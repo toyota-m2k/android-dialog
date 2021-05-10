@@ -2,14 +2,12 @@
 
 package io.github.toyota32k.dialog
 
-import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
 import io.github.toyota32k.BuildConfig
 import io.github.toyota32k.utils.UtLog
 import java.lang.ref.WeakReference
@@ -82,14 +80,36 @@ interface IUtDialog {
     val status: Status
 //    fun show(parent:FragmentActivity, tag:String=this.javaClass.name)
 //    fun show(parent: Fragment, tag:String=this.javaClass.name)
+
+    enum class ParentVisibilityOption {
+        NONE,                   // 何もしない：表示しっぱなし
+        HIDE_AND_SHOW,          // このダイアログを開くときに非表示にして、閉じるときに表示する
+        HIDE_AND_LEAVE_IT       // このダイアログを開くときに非表示にして、あとは知らん
+        ;
+        companion object {
+            fun safeValueOf(name: String?, defValue: ParentVisibilityOption): ParentVisibilityOption {
+                return name?.let { try { valueOf(it) } catch (e: Throwable) { null} } ?: defValue
+            }
+        }
+    }
+    var parentVisibilityOption:ParentVisibilityOption
+    var visible:Boolean
+
+    val asFragment:DialogFragment
+        get() = this as DialogFragment
+
     fun cancel()
-    fun cancelChildren()
+
 }
 
 abstract class UtDialogBase : DialogFragment(), IUtDialog {
     private var dialogHost: WeakReference<IUtDialogHost>? = null
 
     override var status: IUtDialog.Status = IUtDialog.Status.UNKNOWN
+    override var parentVisibilityOption by UtDialogArgumentGenericDelegate { IUtDialog.ParentVisibilityOption.safeValueOf(it, IUtDialog.ParentVisibilityOption.NONE) }
+    override var visible: Boolean
+        get() = dialog?.isShowing ?: false
+        set(v) { dialog?.apply { if(v) show() else hide() } }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -114,6 +134,11 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         onClosed()
+        if(parentVisibilityOption==IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW) {
+            (parentFragment as? IUtDialog)?.apply {
+                visible = true
+            }
+        }
     }
 
     private fun queryResultReceptor(): IUtDialogResultReceptor? {
@@ -129,6 +154,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * OK/Doneなどによる正常終了時に呼び出される
      */
     protected open fun onComplete() {
+        logger.debug("$this")
         notifyResult()
     }
 
@@ -136,6 +162,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * キャンセル時に呼び出される
      */
     protected open fun onCancel() {
+        logger.debug("$this")
         if(!status.finished) {
             status = IUtDialog.Status.NEGATIVE
             notifyResult()
@@ -146,6 +173,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * ok/cancelに関わらず、ダイアログが閉じるときに呼び出される。
      */
     protected open fun onClosed() {
+        logger.debug("$this")
     }
 
     /**
@@ -171,44 +199,29 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         dialog?.cancel()
     }
 
-    override fun cancelChildren() {
-        cancelAllDialogs(childFragmentManager)
-        cancel()    //自分自身を閉じる
-    }
-
     open fun show(parent:FragmentActivity, tag:String?) {
         super.show(parent.supportFragmentManager, tag)
     }
 
-    open fun show(parent: Fragment, tag:String?) {
+    open fun show(parent: Fragment, tag:String?, parentVisibilityOption: IUtDialog.ParentVisibilityOption=IUtDialog.ParentVisibilityOption.NONE) {
+        if(parentVisibilityOption!=this.parentVisibilityOption) {
+            this.parentVisibilityOption = parentVisibilityOption
+        }
+        if(parent is IUtDialog && parentVisibilityOption!=IUtDialog.ParentVisibilityOption.NONE) {
+            parent.visible = false
+        }
         super.show(parent.childFragmentManager, tag)
     }
 
     companion object {
-        fun cancelAllDialogs(fm:FragmentManager) {
-            for(f in fm.fragments) {
-                if(f is IUtDialog) {
-                    f.cancelChildren()
-                }
-            }
-        }
-
-        fun cancelAllDialogs(owner:Fragment) {
-            cancelAllDialogs(owner.childFragmentManager)
-        }
-
-        fun cancelAllDialogs(owner:FragmentActivity) {
-            cancelAllDialogs(owner.supportFragmentManager)
-        }
-
         val logger = UtLog("DLG")
     }
 
 }
 
-open class UtGenericDialog(val createDialogCallback: (context: Context, savedInstanceState:Bundle?)-> Dialog) : UtDialogBase() {
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return createDialogCallback(requireContext(), savedInstanceState)
-    }
-}
+//open class UtGenericDialog(val createDialogCallback: (context: Context, savedInstanceState:Bundle?)-> Dialog) : UtDialogBase() {
+//    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+//        return createDialogCallback(requireContext(), savedInstanceState)
+//    }
+//}
 

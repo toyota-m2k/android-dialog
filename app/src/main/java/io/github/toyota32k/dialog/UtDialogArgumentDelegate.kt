@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import kotlin.reflect.KProperty
 
+/**
+ * プロパティをFragment#argumentsに委譲するためのデリゲートクラス（Nullableなプリミティブ型用）
+ */
 class UtDialogArgumentDelegate {
     inline operator fun <reified T> getValue(thisRef: Fragment, property: KProperty<*>): T {
         return thisRef.arguments?.get(property.name) as T
@@ -33,7 +36,10 @@ class UtDialogArgumentDelegate {
     }
 }
 
-class UtDialogArgumentDelegateBool(val defaultValue:Boolean=false) {
+/**
+ * プロパティをFragment#argumentsに委譲するためのデリゲートクラス（NotNullなBoolean型用）
+ */
+class UtDialogArgumentDelegateBool(private val defaultValue:Boolean=false) {
     operator fun getValue(thisRef: Fragment, property: KProperty<*>): Boolean {
         return thisRef.arguments?.getBoolean(property.name, defaultValue) ?: defaultValue
     }
@@ -42,7 +48,10 @@ class UtDialogArgumentDelegateBool(val defaultValue:Boolean=false) {
     }
 }
 
-class UtDialogArgumentDelegateInt(val defaultValue:Int=0) {
+/**
+ * プロパティをFragment#argumentsに委譲するためのデリゲートクラス（NotNullなInt型用）
+ */
+class UtDialogArgumentDelegateInt(private val defaultValue:Int=0) {
     operator fun getValue(thisRef: Fragment, property: KProperty<*>): Int {
         return thisRef.arguments?.getInt(property.name, defaultValue) ?: defaultValue
     }
@@ -51,6 +60,9 @@ class UtDialogArgumentDelegateInt(val defaultValue:Int=0) {
     }
 }
 
+/**
+ * プロパティをFragment#argumentsに委譲するための汎用デリゲートクラス（文字列化してBundleに入れておいてconvでenumなどに変換する）
+ */
 class UtDialogArgumentGenericDelegate<T>(val conv:(String?)->T) {
     operator fun getValue(thisRef: Fragment, property: KProperty<*>): T {
         return conv(thisRef.arguments?.getString(property.name))

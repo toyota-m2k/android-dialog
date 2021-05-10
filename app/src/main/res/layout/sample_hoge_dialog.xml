@@ -6,14 +6,42 @@
     android:orientation="vertical"
     >
     <Button android:text="@string/app_name"
+        android:id="@+id/first_button"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"/>
+
+    <Button android:text="@string/app_name"
+        android:id="@+id/second_button"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"/>
 
     <Button android:text="@string/app_name"
         android:layout_width="300dp"
-        android:layout_height="wrap_content"
+        android:layout_height="100dp"
         android:layout_gravity="center_horizontal"/>
 
+    <Button android:text="@string/app_name"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_horizontal"/>
 
+    <Button android:text="@string/app_name"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_horizontal"/>
+
+    <Button android:text="@string/app_name"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_horizontal"/>
+    <Button android:text="@string/app_name"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_horizontal"/>
+    <Button android:text="@string/app_name"
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_horizontal"/>
 </LinearLayout>

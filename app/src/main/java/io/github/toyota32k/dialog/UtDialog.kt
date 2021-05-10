@@ -1,6 +1,7 @@
 package io.github.toyota32k.dialog
 
 import android.app.Dialog
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -20,15 +21,9 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import io.github.toyota32k.R
 import io.github.toyota32k.utils.dp2px
-import io.github.toyota32k.utils.px2dp
-import java.lang.IllegalStateException
 import kotlin.math.min
 
-fun <R> safeRun(defValue:R, fn:()->R):R {
-    return try { fn() } catch(e:Throwable) { defValue }
-}
-
-
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 abstract class UtDialog : UtDialogBase() {
     /**
      * タイトル： createBodyView()より前（コンストラクタ、または、onCreateあたり）にセットしておく
@@ -43,17 +38,7 @@ abstract class UtDialog : UtDialogBase() {
     var scrollable:Boolean by UtDialogArgumentDelegateBool(false)
     var cancellable:Boolean by UtDialogArgumentDelegateBool(true)
 
-    private data class SizingInfo(var width:Int= WRAP_CONTENT, var height:Int= WRAP_CONTENT) {
-
-
-        fun getLayoutParams(view:View):ViewGroup.LayoutParams {
-            return view.layoutParams?.also {
-                it.width = width
-                it.height = height
-            } ?: ViewGroup.LayoutParams(width, height)
-        }
-    }
-
+    @Suppress("unused")
     enum class WidthOption(val param:Int) {
         COMPACT(WRAP_CONTENT),        // WRAP_CONTENT
         FULL(MATCH_PARENT),           // フルスクリーンに対して、MATCH_PARENT
@@ -63,11 +48,12 @@ abstract class UtDialog : UtDialogBase() {
         companion object {
             fun safeValueOf(name: String?, defValue: WidthOption): WidthOption {
                 return name?.let { try {
-                    WidthOption.valueOf(it)
+                    valueOf(it)
                 } catch (e: Throwable) { null} } ?: defValue
             }
         }
     }
+    @Suppress("unused")
     enum class HeightOption(val param:Int) {
         COMPACT(WRAP_CONTENT),        // WRAP_CONTENT
         FULL(MATCH_PARENT),           // フルスクリーンに対して、MATCH_PARENT
@@ -77,7 +63,7 @@ abstract class UtDialog : UtDialogBase() {
         companion object {
             fun safeValueOf(name: String?, defValue: HeightOption): HeightOption {
                 return name?.let { try {
-                    HeightOption.valueOf(it)
+                    valueOf(it)
                 } catch (e: Throwable) { null} } ?: defValue
             }
         }
@@ -88,6 +74,7 @@ abstract class UtDialog : UtDialogBase() {
     var widthHint:Int by UtDialogArgumentDelegateInt(100)
     var heightHint:Int by UtDialogArgumentDelegateInt(100)
 
+    @Suppress("unused")
     fun setFixedHeight(height:Int) {
         if(dialog!=null) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
@@ -96,6 +83,7 @@ abstract class UtDialog : UtDialogBase() {
         heightHint = height
     }
 
+    @Suppress("unused")
     fun setFixedWidth(width:Int) {
         if(dialog!=null) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
@@ -104,6 +92,7 @@ abstract class UtDialog : UtDialogBase() {
         widthHint = width
     }
 
+    @Suppress("unused")
     fun setLimitWidth(width:Int) {
         if(dialog!=null) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
@@ -112,6 +101,7 @@ abstract class UtDialog : UtDialogBase() {
         widthHint = width
     }
 
+    @Suppress("unused")
     enum class GravityOption(val gravity:Int) {
         RIGHT_TOP(Gravity.END or Gravity.TOP),      // 右上（デフォルト）
         CENTER(Gravity.CENTER),         // 画面中央（メッセージボックス的）
@@ -121,12 +111,12 @@ abstract class UtDialog : UtDialogBase() {
         companion object {
             fun safeValueOf(name: String?, defValue: GravityOption): GravityOption {
                 return name?.let { try {
-                    GravityOption.valueOf(it)
+                    valueOf(it)
                 } catch (e: Throwable) { null} } ?: defValue
             }
         }
     }
-    var gravityOption: GravityOption by UtDialogArgumentGenericDelegate<GravityOption> { GravityOption.safeValueOf(it, GravityOption.RIGHT_TOP) }
+    var gravityOption: GravityOption by UtDialogArgumentGenericDelegate { GravityOption.safeValueOf(it, GravityOption.RIGHT_TOP) }
 
     /**
      * ダイアログの「画面外」の背景
@@ -135,11 +125,13 @@ abstract class UtDialog : UtDialogBase() {
         INVALID(Color.argb(0,0,0,0)),                       // 透明（無効値）
         TRANSPARENT(Color.argb(0,0xFF,0xFF,0xFF)),          // 透明（通常、 cancellable == true のとき用）
         DIM(Color.argb(0x40,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
+        @Suppress("unused")
         SEE_THROUGH(Color.argb(0x40,0xFF, 0xFF, 0xFF));     // 白っぽいやつ　（好みで）
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     var guardColor:Int by UtDialogArgumentDelegateInt(GuardColor.INVALID.color)
-    val hasGuardColor:Boolean
+    private val hasGuardColor:Boolean
         get() = guardColor!= GuardColor.INVALID.color
 
     @ColorInt
@@ -151,6 +143,7 @@ abstract class UtDialog : UtDialogBase() {
         }
     }
 
+    @Suppress("unused")
     enum class BuiltInButtonType(@StringRes val id:Int, val positive:Boolean, val blueColor:Boolean) {
         OK(R.string.ok, true, true),
         DONE(R.string.done, true, true),
@@ -164,12 +157,14 @@ abstract class UtDialog : UtDialogBase() {
     private var leftButtonText:Int by UtDialogArgumentDelegateInt(0)
     private var leftButtonPositive:Boolean by UtDialogArgumentDelegate()
     private var leftButtonBlue:Boolean by UtDialogArgumentDelegate()
+    @Suppress("unused")
     val hasLeftButton:Boolean
         get() = leftButtonText > 0
 
     private var rightButtonText:Int by UtDialogArgumentDelegateInt(0)
     private var rightButtonPositive:Boolean by UtDialogArgumentDelegate()
     private var rightButtonBlue:Boolean by UtDialogArgumentDelegate()
+    @Suppress("unused")
     val hasRightButton:Boolean
         get() = rightButtonText > 0
 
@@ -229,8 +224,19 @@ abstract class UtDialog : UtDialogBase() {
         }
     }
 
-    open fun preCreateBodyView(isLandscape:Boolean, isPhone:Boolean) {
 
+    val orientation:Int
+        get() = resources.configuration.orientation
+    val isLandscape:Boolean
+        get() = orientation == Configuration.ORIENTATION_LANDSCAPE
+    val isPortrait:Boolean
+        get() = orientation == Configuration.ORIENTATION_PORTRAIT
+    val isPhone:Boolean
+        get() = resources.getBoolean(R.bool.under600dp)
+    val isTablet:Boolean
+        get() = !isPhone
+
+    open fun preCreateBodyView() {
     }
 
     abstract fun createBodyView(savedInstanceState:Bundle?, inflater: LayoutInflater, rootView:ViewGroup): View
@@ -284,14 +290,11 @@ abstract class UtDialog : UtDialogBase() {
 
     private fun setupDynamicSize() {
         if(widthOption== WidthOption.LIMIT ||heightOption== HeightOption.AUTO_SCROLL) {
-            rootView.addOnLayoutChangeListener { _, left, top, right, bottom, _, _, _, _ -> onRootViewSizeChanged(right-left, bottom-top) }
+            rootView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> onRootViewSizeChanged() }
         }
         if(heightOption== HeightOption.AUTO_SCROLL) {
-//            bodyView.viewTreeObserver.addOnGlobalLayoutListener {
-//                onDialogBodySizeChanged(bodyView.width, bodyView.height)
-//            }
-            bodyView.addOnLayoutChangeListener { _, left, top, right, bottom, _, _, _, _ ->
-                onBodyViewSizeChanged(right-left, bottom-top)
+            bodyView.addOnLayoutChangeListener { _, _,_,_,_, _, _, _, _ ->
+                onBodyViewSizeChanged()
             }
         }
     }
@@ -307,7 +310,7 @@ abstract class UtDialog : UtDialogBase() {
             val maxScrHeight = winHeight - (dlgHeight - scrHeight)
             val newScrHeight = min(bodyHeight, maxScrHeight)
 
-            logger.info("window:${winHeight}, scroller:$scrHeight, dialogView:$dlgHeight, bodyHeight:$bodyHeight, maxScrHeight=$maxScrHeight, newScrHeight=$newScrHeight")
+//            logger.info("window:${winHeight}, scroller:$scrHeight, dialogView:$dlgHeight, bodyHeight:$bodyHeight, maxScrHeight=$maxScrHeight, newScrHeight=$newScrHeight")
             if(lp.height != newScrHeight) {
                 lp.height = newScrHeight
                 return true
@@ -316,7 +319,7 @@ abstract class UtDialog : UtDialogBase() {
         return false
     }
 
-    private fun updateBodyConteinerWidthOnLimitOption(lp:ConstraintLayout.LayoutParams) : Boolean {
+    private fun updateBodyContainerWidthOnLimitOption(lp:ConstraintLayout.LayoutParams) : Boolean {
         if(widthOption== WidthOption.LIMIT) {
             val winWidth = rootView.width
             val dlgWidth = dialogView.width
@@ -331,21 +334,21 @@ abstract class UtDialog : UtDialogBase() {
         return false
     }
 
-    private fun onRootViewSizeChanged(newWidth:Int, newHeight:Int) {
-        logger.info("W=$newWidth, H=$newHeight (${requireContext().px2dp(newWidth)},${requireContext().px2dp(newHeight)})")
-        logger.info("dialogView.height=${dialogView.height} bodyContainer.height=${bodyContainer.height}")
-        val lp = bodyContainer.layoutParams as ConstraintLayout.LayoutParams ?: return
+    private fun onRootViewSizeChanged() {
+//        logger.info("W=$newWidth, H=$newHeight (${requireContext().px2dp(newWidth)},${requireContext().px2dp(newHeight)})")
+//        logger.info("dialogView.height=${dialogView.height} bodyContainer.height=${bodyContainer.height}")
+        val lp = bodyContainer.layoutParams as ConstraintLayout.LayoutParams
         val h = updateBodyContainerHeightOnAutoScroll(lp)
-        val w = updateBodyConteinerWidthOnLimitOption(lp)
+        val w = updateBodyContainerWidthOnLimitOption(lp)
         if(h||w) {
             bodyContainer.layoutParams = lp
         }
     }
 
-    private fun onBodyViewSizeChanged(newWidth:Int, newHeight:Int) {
-        logger.info("W=$newWidth, H=$newHeight (${requireContext().px2dp(newWidth)},${requireContext().px2dp(newHeight)})")
+    private fun onBodyViewSizeChanged() {
+//        logger.info("W=$newWidth, H=$newHeight (${requireContext().px2dp(newWidth)},${requireContext().px2dp(newHeight)})")
         if (heightOption == HeightOption.AUTO_SCROLL) {
-            val lp = bodyContainer.layoutParams as ConstraintLayout.LayoutParams ?: return
+            val lp = bodyContainer.layoutParams as ConstraintLayout.LayoutParams
             if(updateBodyContainerHeightOnAutoScroll(lp)) {
                 bodyContainer.layoutParams = lp
             }
@@ -373,10 +376,12 @@ abstract class UtDialog : UtDialogBase() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // Dialogの第２引数でスタイルを渡したら、（そのスタイルの指定やダイアログ側のルートコンテナのlayout指定に関わらず）常に全画面のダイアログが開く。
         return Dialog(requireContext(), R.style.dlg_style).also { dlg ->
+            preCreateBodyView()
             // ダイアログの背景を透過させる。
             // ダイアログテーマとかdialog_frameのルートコンテナの背景を透過させても効果がないので注意。
             dlg.window?.setBackgroundDrawable(ColorDrawable(managedGuardColor()))
-            rootView = dlg.layoutInflater.inflate(R.layout.dialog_frame, null) as FrameLayout
+            rootView = View.inflate(requireContext(), R.layout.dialog_frame, null) as FrameLayout
+//            rootView = dlg.layoutInflater.inflate(R.layout.dialog_frame, null) as FrameLayout
             leftButton = rootView.findViewById(R.id.left_button)
             rightButton = rootView.findViewById(R.id.right_button)
             titleView = rootView.findViewById(R.id.dialog_title)
@@ -385,10 +390,10 @@ abstract class UtDialog : UtDialogBase() {
             if(heightOption== HeightOption.AUTO_SCROLL) {
                 scrollable  = true
             }
-            if (scrollable) {
-                bodyContainer = rootView.findViewById(R.id.body_scroller)
+            bodyContainer = if (scrollable) {
+                rootView.findViewById(R.id.body_scroller)
             } else {
-                bodyContainer = rootView.findViewById(R.id.body_container)
+                rootView.findViewById(R.id.body_container)
             }
             bodyContainer.visibility = View.VISIBLE
             leftButton.setOnClickListener(this::onLeftButtonTapped)
@@ -400,7 +405,11 @@ abstract class UtDialog : UtDialogBase() {
             updateLeftButton()
             updateRightButton()
             bodyView = createBodyView(savedInstanceState, dlg.layoutInflater, bodyContainer)
-            bodyContainer.addView(bodyView)
+            if(bodyContainer==bodyView) {
+                bodyView = bodyContainer.getChildAt(0)
+            } else if(bodyContainer.childCount==0) {
+                bodyContainer.addView(bodyView)
+            }
             setupLayout()
             dlg.setContentView(rootView)
         }
