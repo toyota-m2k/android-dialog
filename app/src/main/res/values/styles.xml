@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DialogのコンストラクタにStyleを渡したら（その内容に関わらず）全画面表示になるっぽい -->
+    <style name="dlg_style">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
+    <!-- Ok/Cancelなどの作り付けボタン -->
+    <style name="dlg_button_style">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/dlg_header_button_height</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    <!-- タイトルの左側ボタン -->
+    <style name="dlg_left_button_style" parent="dlg_button_style">
+        <item name="android:layout_gravity">start|center</item>
+        <item name="android:layout_marginStart">@dimen/dlg_header_button_horz_margin</item>
+    </style>
+    <!-- タイトルの右側ボタン -->
+    <style name="dlg_right_button_style" parent="dlg_button_style">
+        <item name="android:layout_gravity">end|center</item>
+        <item name="android:layout_marginEnd">@dimen/dlg_header_button_horz_margin</item>
+    </style>
+
+    <!-- ダイアログタイトル -->
+    <style name="dlg_title_style">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_gravity">center_horizontal|center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">#0a0a0a</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+</resources>
