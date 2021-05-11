@@ -55,12 +55,28 @@ class UtDialogHostManager: IUtDialogHost {
         return null
     }
 
+    operator fun set(tag:String, r: IUtDialogResultReceptor?) {
+        if(r!=null) {
+            receiverMap[tag] = r
+        } else {
+            receiverMap.remove(tag)
+        }
+    }
+
+    operator fun set(tag:String, fn:(IUtDialog)->Unit) {
+        receiverMap[tag] = ReceptorWrapper(fn)
+    }
+
+    operator fun get(tag:String):IUtDialogResultReceptor? {
+        return queryDialogResultReceptor(tag)
+    }
+
     fun addReceptor(tag:String, r: IUtDialogResultReceptor) {
-        receiverMap[tag] = r
+        this[tag] = r
     }
 
     fun addReceptor(tag:String, fn:(IUtDialog)->Unit) {
-        receiverMap[tag] = ReceptorWrapper(fn)
+        this[tag] = fn
     }
 
     fun removeReceptor(tag:String) {

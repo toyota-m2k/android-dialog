@@ -29,14 +29,14 @@ abstract class UtDialog : UtDialogBase() {
      * タイトル： createBodyView()より前（コンストラクタ、または、onCreateあたり）にセットしておく
      * ダイアログ表示後に動的にタイトルを変える場合は、replaceTitle()を呼ぶ。
      */
-    var title:String? by UtDialogArgumentDelegate()
+    var title:String? by bundle.stringNullable
 
     /**
      * bodyViewをスクロール可能にするかどうか。
      * trueにセットする場合は、sizingOptionを　COMPACT 以外にセットする。AUTO_HEIGHT|FIXED_HEIGHTを推奨
      */
-    var scrollable:Boolean by UtDialogArgumentDelegateBool(false)
-    var cancellable:Boolean by UtDialogArgumentDelegateBool(true)
+    var scrollable:Boolean by bundle.booleanFalse
+    var cancellable:Boolean by bundle.booleanTrue
 
     @Suppress("unused")
     enum class WidthOption(val param:Int) {
@@ -44,14 +44,6 @@ abstract class UtDialog : UtDialogBase() {
         FULL(MATCH_PARENT),           // フルスクリーンに対して、MATCH_PARENT
         FIXED(WRAP_CONTENT),          // bodyの幅を、widthHint で与えられる値に固定
         LIMIT(WRAP_CONTENT),          // MATCH_PARENT を最大値として、widthHint で指定されたサイズを超えないように調整される
-        ;
-        companion object {
-            fun safeValueOf(name: String?, defValue: WidthOption): WidthOption {
-                return name?.let { try {
-                    valueOf(it)
-                } catch (e: Throwable) { null} } ?: defValue
-            }
-        }
     }
     @Suppress("unused")
     enum class HeightOption(val param:Int) {
@@ -59,20 +51,12 @@ abstract class UtDialog : UtDialogBase() {
         FULL(MATCH_PARENT),           // フルスクリーンに対して、MATCH_PARENT
         FIXED(WRAP_CONTENT),          // bodyの高さを、heightHint で与えられる値に固定
         AUTO_SCROLL(WRAP_CONTENT),    // MATCH_PARENTを最大値として、コンテントが収まる高さに自動調整。収まらない場合はスクロールする。（bodyには MATCH_PARENTを指定)
-        ;
-        companion object {
-            fun safeValueOf(name: String?, defValue: HeightOption): HeightOption {
-                return name?.let { try {
-                    valueOf(it)
-                } catch (e: Throwable) { null} } ?: defValue
-            }
-        }
     }
 
-    var widthOption: WidthOption by UtDialogArgumentGenericDelegate { WidthOption.safeValueOf(it, WidthOption.COMPACT) }
-    var heightOption: HeightOption by UtDialogArgumentGenericDelegate { HeightOption.safeValueOf(it, HeightOption.COMPACT) }
-    var widthHint:Int by UtDialogArgumentDelegateInt(100)
-    var heightHint:Int by UtDialogArgumentDelegateInt(100)
+    var widthOption: WidthOption by bundle.enum(WidthOption.COMPACT)
+    var heightOption: HeightOption by bundle.enum(HeightOption.COMPACT)
+    var widthHint:Int by bundle.intZero
+    var heightHint:Int by bundle.intZero
 
     @Suppress("unused")
     fun setFixedHeight(height:Int) {
@@ -107,16 +91,8 @@ abstract class UtDialog : UtDialogBase() {
         CENTER(Gravity.CENTER),         // 画面中央（メッセージボックス的）
         LEFT_TOP(Gravity.START or Gravity.TOP),       // これいるか？
         CUSTOM(Gravity.NO_GRAVITY);         // todo: requestPosition()で指定するとか、なんか方法を考える
-
-        companion object {
-            fun safeValueOf(name: String?, defValue: GravityOption): GravityOption {
-                return name?.let { try {
-                    valueOf(it)
-                } catch (e: Throwable) { null} } ?: defValue
-            }
-        }
     }
-    var gravityOption: GravityOption by UtDialogArgumentGenericDelegate { GravityOption.safeValueOf(it, GravityOption.RIGHT_TOP) }
+    var gravityOption: GravityOption by bundle.enum(GravityOption.RIGHT_TOP)
 
     /**
      * ダイアログの「画面外」の背景
@@ -130,7 +106,7 @@ abstract class UtDialog : UtDialogBase() {
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
-    var guardColor:Int by UtDialogArgumentDelegateInt(GuardColor.INVALID.color)
+    var guardColor:Int by bundle.intNonnull(GuardColor.INVALID.color)
     private val hasGuardColor:Boolean
         get() = guardColor!= GuardColor.INVALID.color
 
@@ -154,16 +130,16 @@ abstract class UtDialog : UtDialogBase() {
         CLOSE_LEFT(R.string.close, false, false),
     }
 
-    private var leftButtonText:Int by UtDialogArgumentDelegateInt(0)
-    private var leftButtonPositive:Boolean by UtDialogArgumentDelegate()
-    private var leftButtonBlue:Boolean by UtDialogArgumentDelegate()
+    private var leftButtonText:Int by bundle.intZero
+    private var leftButtonPositive:Boolean by bundle.booleanFalse
+    private var leftButtonBlue:Boolean by bundle.booleanFalse
     @Suppress("unused")
     val hasLeftButton:Boolean
         get() = leftButtonText > 0
 
-    private var rightButtonText:Int by UtDialogArgumentDelegateInt(0)
-    private var rightButtonPositive:Boolean by UtDialogArgumentDelegate()
-    private var rightButtonBlue:Boolean by UtDialogArgumentDelegate()
+    private var rightButtonText:Int by bundle.intZero
+    private var rightButtonPositive:Boolean by bundle.booleanFalse
+    private var rightButtonBlue:Boolean by bundle.booleanFalse
     @Suppress("unused")
     val hasRightButton:Boolean
         get() = rightButtonText > 0

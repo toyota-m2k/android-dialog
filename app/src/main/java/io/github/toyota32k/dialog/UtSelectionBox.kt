@@ -19,8 +19,9 @@ interface IUtSingleSelectionResult {
 
 open class UtSingleSelectionBox : UtDialogBase(), DialogInterface.OnClickListener,
     IUtSingleSelectionResult {
-    var title:String? by UtDialogArgumentDelegate()
-    var items:Array<String> by UtDialogArgumentDelegate()
+    @Suppress("MemberVisibilityCanBePrivate")
+    var title:String? by bundle.stringNullable
+    var items:Array<String> by bundle.stringArray
 
     override var selectedIndex: Int = -1
     override val selectedItem: String?
@@ -65,9 +66,8 @@ open class UtSingleSelectionBox : UtDialogBase(), DialogInterface.OnClickListene
 }
 
 open class UtRadioSelectionBox : UtMessageBox(), DialogInterface.OnClickListener {
-
-    var items:Array<String> by UtDialogArgumentDelegate()
-    var selectedIndex: Int by UtDialogArgumentDelegate()
+    var items:Array<String> by bundle.stringArray
+    var selectedIndex: Int by bundle.intMinusOne
     val selectedItem: String?
         get() = if (0 <= selectedIndex && selectedIndex < items.size) items[selectedIndex] else null
 
@@ -128,8 +128,8 @@ open class UtRadioSelectionBox : UtMessageBox(), DialogInterface.OnClickListener
 
 class UtMultiSelectionBox
     : UtMessageBox(), DialogInterface.OnMultiChoiceClickListener {
-    var items:Array<String> by UtDialogArgumentDelegate()
-    var selectedIndices:BooleanArray by UtDialogArgumentDelegate()
+    var items:Array<String> by bundle.stringArray
+    var selectedIndices:BooleanArray by bundle.booleanArray
     val selectedItems:Array<String>
         get() = (items.indices).filter { selectedIndices[it] }.map { items[it] }.toTypedArray()
 

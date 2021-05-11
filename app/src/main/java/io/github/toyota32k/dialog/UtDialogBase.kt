@@ -11,7 +11,6 @@ import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.BuildConfig
 import io.github.toyota32k.utils.UtLog
 import java.lang.ref.WeakReference
-import kotlin.reflect.KProperty
 
 /**
  * Activityでダイアログの結果を受け取る場合に継承すべきi/f
@@ -46,70 +45,28 @@ import kotlin.reflect.KProperty
 //    }
 //}
 
-class BundleDelegate(val bundle:Bundle) {
-    inline operator fun <reified T> getValue(thisRef: BundleDelegate, property: KProperty<*>): T? {
-        return thisRef.bundle[property.name] as T?
-    }
-}
-
-interface IUtDialog {
-    enum class Status(val index:Int) {
-        UNKNOWN(0),
-        POSITIVE(DialogInterface.BUTTON_POSITIVE),
-        NEGATIVE(DialogInterface.BUTTON_NEGATIVE),
-        NEUTRAL(DialogInterface.BUTTON_NEUTRAL);
-
-        val finished : Boolean
-            get() = this != UNKNOWN
-
-        val negative: Boolean
-            get() = this == NEGATIVE
-        val cancel: Boolean
-            get() = this == NEGATIVE
-        val no: Boolean
-            get() = this == NEGATIVE
-        val positive: Boolean
-            get() = this == POSITIVE
-        val ok: Boolean
-            get() = this == POSITIVE
-        val yes: Boolean
-            get() = this == POSITIVE
-        val neutral: Boolean
-            get() = this == NEUTRAL
-    }
-    val status: Status
-//    fun show(parent:FragmentActivity, tag:String=this.javaClass.name)
-//    fun show(parent: Fragment, tag:String=this.javaClass.name)
-
-    enum class ParentVisibilityOption {
-        NONE,                   // 何もしない：表示しっぱなし
-        HIDE_AND_SHOW,          // このダイアログを開くときに非表示にして、閉じるときに表示する
-        HIDE_AND_LEAVE_IT       // このダイアログを開くときに非表示にして、あとは知らん
-        ;
-        companion object {
-            fun safeValueOf(name: String?, defValue: ParentVisibilityOption): ParentVisibilityOption {
-                return name?.let { try { valueOf(it) } catch (e: Throwable) { null} } ?: defValue
-            }
-        }
-    }
-    var parentVisibilityOption:ParentVisibilityOption
-    var visible:Boolean
-
-    val asFragment:DialogFragment
-        get() = this as DialogFragment
-
-    fun cancel()
-
-}
+//class BundleDelegate(val bundle:Bundle) {
+//    inline operator fun <reified T> getValue(thisRef: BundleDelegate, property: KProperty<*>): T? {
+//        return thisRef.bundle[property.name] as T?
+//    }
+//}
 
 abstract class UtDialogBase : DialogFragment(), IUtDialog {
+    val bundle = UtBundleDelegate<Fragment> { ensureArgument() }
+
+    private fun ensureArgument():Bundle {
+        return arguments ?: Bundle().apply { arguments = this }
+    }
+
     private var dialogHost: WeakReference<IUtDialogHost>? = null
 
     override var status: IUtDialog.Status = IUtDialog.Status.UNKNOWN
-    override var parentVisibilityOption by UtDialogArgumentGenericDelegate { IUtDialog.ParentVisibilityOption.safeValueOf(it, IUtDialog.ParentVisibilityOption.NONE) }
+    override var parentVisibilityOption by bundle.enum(IUtDialog.ParentVisibilityOption.NONE) //UtDialogArgumentGenericDelegate { IUtDialog.ParentVisibilityOption.safeValueOf(it, IUtDialog.ParentVisibilityOption.NONE) }
     override var visible: Boolean
         get() = dialog?.isShowing ?: false
         set(v) { dialog?.apply { if(v) show() else hide() } }
+    override val asFragment: DialogFragment
+        get() = this
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -179,7 +136,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     /**
      * OK/Doneボタンなどから呼び出す
      */
-    open fun complete(status: IUtDialog.Status) {
+    override fun complete(status: IUtDialog.Status) {
         if (BuildConfig.DEBUG && !status.finished) {
             error("Assertion failed")
         }

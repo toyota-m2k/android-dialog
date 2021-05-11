@@ -6,10 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import io.github.toyota32k.R
-import io.github.toyota32k.dialog.IUtDialog
-import io.github.toyota32k.dialog.UtDialog
+import io.github.toyota32k.dialog.*
 
-class HogeDialog : UtDialog(), View.OnClickListener {
+class HogeDialog : UtDialog(), View.OnClickListener, IUtDialogHost {
     init {
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
@@ -28,6 +27,19 @@ class HogeDialog : UtDialog(), View.OnClickListener {
     }
 
     override fun onClick(v: View?) {
+        dialogHostManager["fuga"] = this::onFugaDialogCompleted
         FugaDialog().show(this, "fuga", IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW)
+    }
+
+    fun onFugaDialogCompleted(dlg:IUtDialog) {
+        dialogHostManager["fuga"] = null
+        if(dlg.status.ok) {
+            complete()
+        }
+    }
+
+    val dialogHostManager = UtDialogHostManager()
+    override fun queryDialogResultReceptor(tag: String): IUtDialogResultReceptor? {
+        return dialogHostManager[tag]
     }
 }

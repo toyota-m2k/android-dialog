@@ -11,11 +11,11 @@ import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.R
 
 open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
-    var title:String? by UtDialogArgumentDelegate()
-    var message:String? by UtDialogArgumentDelegate()
-    var okLabel:String? by UtDialogArgumentDelegate()
-    var cancelLabel:String? by UtDialogArgumentDelegate()
-    var otherLabel:String? by UtDialogArgumentDelegate()
+    var title:String? by bundle.stringNullable
+    var message:String? by bundle.stringNullable
+    var okLabel:String? by bundle.stringNullable
+    var cancelLabel:String? by bundle.stringNullable
+    var otherLabel:String? by bundle.stringNullable
 
     protected open fun getAlertBuilder():AlertDialog.Builder {
         val builder = AlertDialog.Builder(requireContext())
