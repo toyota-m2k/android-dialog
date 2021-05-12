@@ -2,6 +2,12 @@
 
 package io.github.toyota32k.dialog
 
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import java.lang.ref.WeakReference
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
+
 /**
  * ダイアログの処理が終わったときに、その結果（ダイアログインスタンス）を返すためのi/f
  * Activity / Fragment / ViewModel などで継承・実装する。
@@ -38,11 +44,11 @@ class UtDialogHostManager: IUtDialogHost {
         }
     }
 
-    private val receiverMap = mutableMapOf<String, IUtDialogResultReceptor>()
+    private val receptorMap = mutableMapOf<String, IUtDialogResultReceptor>()
     private val hostList = mutableListOf<IUtDialogHost>()
 
     override fun queryDialogResultReceptor(tag: String): IUtDialogResultReceptor? {
-        var r = receiverMap[tag]
+        var r = receptorMap[tag]
         if(r!=null) {
             return r
         }
@@ -57,30 +63,55 @@ class UtDialogHostManager: IUtDialogHost {
 
     operator fun set(tag:String, r: IUtDialogResultReceptor?) {
         if(r!=null) {
-            receiverMap[tag] = r
+            receptorMap[tag] = r
         } else {
-            receiverMap.remove(tag)
+            receptorMap.remove(tag)
         }
     }
 
     operator fun set(tag:String, fn:(IUtDialog)->Unit) {
-        receiverMap[tag] = ReceptorWrapper(fn)
+        receptorMap[tag] = ReceptorWrapper(fn)
     }
 
     operator fun get(tag:String):IUtDialogResultReceptor? {
         return queryDialogResultReceptor(tag)
     }
 
-    fun addReceptor(tag:String, r: IUtDialogResultReceptor) {
+    fun setReceptor(tag:String, r: IUtDialogResultReceptor) {
         this[tag] = r
     }
 
-    fun addReceptor(tag:String, fn:(IUtDialog)->Unit) {
+    fun setReceptor(tag:String, fn:(IUtDialog)->Unit) {
         this[tag] = fn
     }
 
+    // uuidを使ってTagを自動発行とするのは、実装をシンプルにするよいアイデアだと思われたが、
+    // 発行されたtagをどこに覚えておくか、ActivityやFragmentでは当然ダメで、
+    // ViewModelさえ再作成される可能性があり、なら、savedStateHandlerを使うのか？となっていくと、逆に複雑になってしまう。
+    // 却下。
+    // 代わりに、ReceptorDelegate を使って プロパティ名をタグにする作戦で攻めてみよう。
+
+//    private fun generateTag() : String {
+//        var uuid:String
+//        do {
+//            uuid = UUID.randomUUID().toString()
+//        } while(receptorMap.containsKey(uuid))
+//        return uuid
+//    }
+//
+//    fun addReceptor(r: IUtDialogResultReceptor) : String {
+//        return generateTag().also {
+//            this[it] = r
+//        }
+//    }
+//
+//    fun addReceptor(fn:(IUtDialog)->Unit):String {
+//        return addReceptor(ReceptorWrapper(fn))
+//    }
+
+
     fun removeReceptor(tag:String) {
-        receiverMap.remove(tag)
+        receptorMap.remove(tag)
     }
 
     fun addChildHost(host: IUtDialogHost) {
@@ -92,8 +123,97 @@ class UtDialogHostManager: IUtDialogHost {
     }
 
     fun clear() {
-        receiverMap.clear()
+        receptorMap.clear()
         hostList.clear()
     }
 
+    interface ISubmission {
+        val dialog:IUtDialog
+        val clientData:Any?
+    }
+    inner class ReceptorImpl(private val tag:String, val submit:(ISubmission)->Unit) : IUtDialogResultReceptor, ISubmission {
+        init {
+            setReceptor(this.tag, this)
+        }
+
+        private var dialogRef:WeakReference<IUtDialog>? = null
+        override val dialog: IUtDialog
+            get() = dialogRef?.get()!!
+        override var clientData:Any?
+            get() = dialogRef?.get()?.asFragment?.arguments?.get(tag)
+            set(v) { dialogRef?.get()?.ensureArguments()?.put(tag,v)}
+
+        override fun onDialogResult(caller: IUtDialog) {
+            dialogRef = WeakReference(caller)
+            submit(this)
+        }
+
+        fun showDialog(activity: FragmentActivity, creator:(ReceptorImpl)->IUtDialog) {
+            creator(this).apply{
+                attachDialog(this, null)
+                show(activity, tag)
+            }
+        }
+        fun showDialog(fragment: Fragment, creator:(ReceptorImpl)->IUtDialog) {
+            creator(this).apply{
+                attachDialog(this, null)
+                show(fragment, tag)
+            }
+        }
+        fun showDialog(activity: FragmentActivity, clientData:Any?, creator:(ReceptorImpl)->IUtDialog) {
+            creator(this).apply{
+                attachDialog(this, clientData)
+                show(activity, tag)
+            }
+        }
+        fun showDialog(fragment: Fragment, clientData:Any?, creator:(ReceptorImpl)->IUtDialog) {
+            creator(this).apply{
+                attachDialog(this, clientData)
+                show(fragment, tag)
+            }
+        }
+
+        fun attachDialog(dlg:IUtDialog, clientData:Any?) {
+            dialogRef = WeakReference(dlg)
+            if(clientData!=null) {
+                this.clientData = clientData
+            }
+        }
+
+        fun dispose() {
+            removeReceptor(tag)
+        }
+    }
+
+    // 委譲プロパティを使って、プロパティ名をタグにもつReceptorを生成する作戦
+    // ... うまくいった！と思ったが、なんと、プロパティにアクセスされるまで、getValue()が呼ばれない。。。当たり前といえば当たり前。
+    // getValue()が呼ばれないと、dialogHostManager に登録されないので、ダイアログ再構築後、ダイアログのcompleteから呼ばれるときに、登録がない、ということが起きる。
+    // 企画倒れ。
+
+//    inner class ReceptorDelegate(val submit: (ISubmission) -> Unit):ReadOnlyProperty<Any,ReceptorImpl> {
+//        override operator fun getValue(thisRef: Any, property: KProperty<*>): ReceptorImpl {
+//            return ReceptorImpl(property.name, submit)
+//        }
+//    }
+//
+//    fun delegate(submit: (ISubmission) -> Unit):ReadOnlyProperty<Any,ReceptorImpl> {
+//        return ReceptorDelegate(submit)
+//    }
+
+//    fun createReceptor(onComplete:(IUtDialog, clientData:Any?)->Unit) : ReceptorImpl {
+//        return ReceptorImpl(onComplete)
+//    }
+//    fun createReceptor(onComplete:(IUtDialog)->Unit) : ReceptorImpl {
+//        return ReceptorImpl { dlg, _-> onComplete(dlg) }
+//    }
+
+    // ブサイクだが、これしかないか。。。
+
+
+    fun register(tag:String, submit: (ISubmission) -> Unit) : ReceptorImpl {
+        return ReceptorImpl(tag,submit)
+    }
+    fun find(tag:String):ReceptorImpl? {
+        return receptorMap[tag] as? ReceptorImpl
+    }
 }

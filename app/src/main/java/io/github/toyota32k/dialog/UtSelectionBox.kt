@@ -55,11 +55,10 @@ open class UtSingleSelectionBox : UtDialogBase(), DialogInterface.OnClickListene
     }
 
     companion object {
-        fun selectOne(fragment: Fragment, tag:String, title:String?, items:Array<String>) {
-            UtSingleSelectionBox().apply {
+        fun create(title:String?, items:Array<String>) : UtSingleSelectionBox {
+            return UtSingleSelectionBox().apply {
                 this.items = items
                 this.title = title
-                show(fragment, tag)
             }
         }
     }
@@ -99,28 +98,13 @@ open class UtRadioSelectionBox : UtMessageBox(), DialogInterface.OnClickListener
     }
 
     companion object {
-        fun selectOne(fragment: Fragment, tag:String, title:String?, items:Array<String>, initialSelection:Int, okLabel:String=fragment.getString(
-            R.string.ok
-        ), cancelLabel:String?=null) {
-            UtRadioSelectionBox().apply {
+        fun create(title:String?, items:Array<String>, initialSelection:Int, okLabel:String=UtStandardString.OK.text, cancelLabel:String?=null) : UtRadioSelectionBox {
+            return UtRadioSelectionBox().apply {
                 this.title = title
                 this.items = items
                 this.selectedIndex = initialSelection
                 this.okLabel = okLabel
                 this.cancelLabel = cancelLabel
-                show(fragment, tag)
-            }
-        }
-        fun selectOne(activity: FragmentActivity, tag:String, title:String?, items:Array<String>, initialSelection:Int, okLabel:String=activity.getString(
-            R.string.ok
-        ), cancelLabel:String?=null) {
-            UtRadioSelectionBox().apply {
-                this.title = title
-                this.items = items
-                this.selectedIndex = initialSelection
-                this.okLabel = okLabel
-                this.cancelLabel = cancelLabel
-                show(activity, tag)
             }
         }
     }
@@ -146,27 +130,14 @@ class UtMultiSelectionBox
     }
 
     companion object {
-        fun select(fragment: Fragment, tag:String, title:String, items:Array<String>, initialSelections:BooleanArray?, okLabel:String=fragment.getString(
-            R.string.ok
-        ), cancelLabel:String?=null) {
-            UtMultiSelectionBox().apply {
+        fun create(title:String, items:Array<String>, initialSelections:BooleanArray?, okLabel:String=UtStandardString.OK.text, cancelLabel:String?=null) : UtMultiSelectionBox{
+            return UtMultiSelectionBox().apply {
                 this.title = title
                 this.items = items
                 this.selectedIndices = initialSelections ?: BooleanArray(items.size) { false }
                 this.okLabel = okLabel
                 this.cancelLabel = cancelLabel
-            }.show(fragment, tag)
-        }
-        fun select(activity: FragmentActivity, tag:String, title:String, items:Array<String>, initialSelections:BooleanArray?, okLabel:String=activity.getString(
-            R.string.ok
-        ), cancelLabel:String?=null) {
-            UtMultiSelectionBox().apply {
-                this.title = title
-                this.items = items
-                this.selectedIndices = initialSelections ?: BooleanArray(items.size) { false }
-                this.okLabel = okLabel
-                this.cancelLabel = cancelLabel
-            }.show(activity, tag)
+            }
         }
     }
 }

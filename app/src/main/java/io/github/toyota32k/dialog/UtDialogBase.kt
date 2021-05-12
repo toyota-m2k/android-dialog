@@ -52,9 +52,9 @@ import java.lang.ref.WeakReference
 //}
 
 abstract class UtDialogBase : DialogFragment(), IUtDialog {
-    val bundle = UtBundleDelegate<Fragment> { ensureArgument() }
+    val bundle = UtBundleDelegate { ensureArguments() }
 
-    private fun ensureArgument():Bundle {
+    override fun ensureArguments():Bundle {
         return arguments ?: Bundle().apply { arguments = this }
     }
 
@@ -75,6 +75,13 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        if( parentVisibilityOption!=IUtDialog.ParentVisibilityOption.NONE) {
+            (parentFragment as? IUtDialog)?.apply { visible = false }
+        }
+    }
+
     override fun onDetach() {
         super.onDetach()
         dialogHost = null
@@ -86,7 +93,6 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         }
         super.onCancel(dialog)
     }
-
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
@@ -156,18 +162,12 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         dialog?.cancel()
     }
 
-    open fun show(parent:FragmentActivity, tag:String?) {
-        super.show(parent.supportFragmentManager, tag)
+    override fun show(activity:FragmentActivity, tag:String?) {
+        super.show(activity.supportFragmentManager, tag)
     }
 
-    open fun show(parent: Fragment, tag:String?, parentVisibilityOption: IUtDialog.ParentVisibilityOption=IUtDialog.ParentVisibilityOption.NONE) {
-        if(parentVisibilityOption!=this.parentVisibilityOption) {
-            this.parentVisibilityOption = parentVisibilityOption
-        }
-        if(parent is IUtDialog && parentVisibilityOption!=IUtDialog.ParentVisibilityOption.NONE) {
-            parent.visible = false
-        }
-        super.show(parent.childFragmentManager, tag)
+    override fun show(fragment: Fragment, tag:String?) {
+        super.show(fragment.childFragmentManager, tag)
     }
 
     companion object {

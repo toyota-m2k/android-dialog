@@ -44,63 +44,25 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
         /**
          * アクティビティから呼び出すOKボタンだけの確認メッセージ
          */
-        fun confirm(activity: FragmentActivity, tag:String?, title:String?, message:String?, okLabel:String=activity.getString(
-            R.string.ok
-        )) {
-            UtMessageBox().apply {
+        fun createForConfirm(title:String?, message:String?, okLabel:String=UtStandardString.OK.text) : UtMessageBox {
+            return UtMessageBox().apply {
                 this.title = title
                 this.message = message
                 this.okLabel = okLabel
-                show(activity, tag)
-            }
-        }
-        fun confirm(fragment: Fragment, tag:String, title:String?, message:String?, okLabel:String=fragment.getString(
-            R.string.ok
-        )) {
-            UtMessageBox().apply {
-                this.title = title
-                this.message = message
-                this.okLabel = okLabel
-                show(fragment, tag)
             }
         }
 
-        fun okCancel(activity: FragmentActivity, tag:String, title:String?, message:String?, okLabel:String=activity.getString(
-            R.string.ok
-        ), cancelLabel:String=activity.getString(R.string.cancel)) {
-            UtMessageBox().apply {
+        fun createForOkCancel(title:String?, message:String?, okLabel:String=UtStandardString.OK.text, cancelLabel:String=UtStandardString.CANCEL.text) : UtMessageBox {
+            return UtMessageBox().apply {
                 this.title = title
                 this.message = message
                 this.okLabel = okLabel
                 this.cancelLabel = cancelLabel
-                show(activity,tag)
             }
         }
 
-        fun okCancel(fragment: Fragment, tag:String, title:String?, message:String?, okLabel:String=fragment.getString(
-            R.string.ok
-        ), cancelLabel:String=fragment.getString(R.string.cancel)) {
-            UtMessageBox().apply {
-                UtMessageBox().apply {
-                    this.title = title
-                    this.message = message
-                    this.okLabel = okLabel
-                    this.cancelLabel = cancelLabel
-                    show(fragment,tag)
-                }
-            }
-        }
-
-        fun yesNo(activity: FragmentActivity, tag:String, title:String?, message:String?, yesLabel:String=activity.getString(
-            R.string.yes
-        ), noLabel:String=activity.getString(R.string.no)) {
-            okCancel(activity,tag,title,message,yesLabel,noLabel)
-        }
-
-        fun yesNo(fragment: Fragment, tag:String, title:String?, message:String?, yesLabel:String=fragment.getString(
-            R.string.yes
-        ), noLabel:String=fragment.getString(R.string.no)) {
-            okCancel(fragment,tag,title,message,yesLabel,noLabel)
+        fun createForYesNo(title:String?, message:String?, yesLabel:String=UtStandardString.YES.text, noLabel:String=UtStandardString.NO.text) : UtMessageBox {
+            return createForOkCancel(title,message,yesLabel,noLabel)
         }
     }
 }

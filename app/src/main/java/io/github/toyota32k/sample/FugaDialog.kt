@@ -23,10 +23,9 @@ class FugaDialog : UtDialog(), View.OnClickListener {
     }
     override fun createBodyView(
         savedInstanceState: Bundle?,
-        inflater: LayoutInflater,
-        rootView: ViewGroup
+        inflater: IViewInflater
     ): View {
-        return inflater.inflate(R.layout.sample_fuga_dialog, rootView, false).apply {
+        return inflater.inflate(R.layout.sample_fuga_dialog).apply {
             findViewById<Button>(R.id.first_button).setOnClickListener(this@FugaDialog)
         }
     }

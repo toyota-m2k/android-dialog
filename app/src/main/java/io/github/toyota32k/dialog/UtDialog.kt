@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -16,6 +15,7 @@ import android.widget.FrameLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.annotation.ColorInt
+import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -120,14 +120,14 @@ abstract class UtDialog : UtDialogBase() {
     }
 
     @Suppress("unused")
-    enum class BuiltInButtonType(@StringRes val id:Int, val positive:Boolean, val blueColor:Boolean) {
-        OK(R.string.ok, true, true),
-        DONE(R.string.done, true, true),
-        CLOSE(R.string.close, true, true),
+    enum class BuiltInButtonType(val string:UtStandardString, val positive:Boolean, val blueColor:Boolean) {
+        OK(UtStandardString.OK, true, true),
+        DONE(UtStandardString.DONE, true, true),
+        CLOSE(UtStandardString.CLOSE, true, true),
 
-        CANCEL(R.string.cancel, false, false),
-        BACK(R.string.back, false, false),
-        CLOSE_LEFT(R.string.close, false, false),
+        CANCEL(UtStandardString.CANCEL, false, false),
+        BACK(UtStandardString.BACK, false, false),
+        CLOSE_LEFT(UtStandardString.CLOSE, false, false),
     }
 
     private var leftButtonText:Int by bundle.intZero
@@ -151,7 +151,7 @@ abstract class UtDialog : UtDialogBase() {
     }
 
     fun setLeftButton(type: BuiltInButtonType) {
-        setLeftButton(type.id, type.positive, type.blueColor)
+        setLeftButton(type.string.id, type.positive, type.blueColor)
         if(dialog!=null) {
             updateLeftButton()
         }
@@ -167,7 +167,7 @@ abstract class UtDialog : UtDialogBase() {
     }
 
     fun setRightButton(type: BuiltInButtonType) {
-        setRightButton(type.id, type.positive)
+        setRightButton(type.string.id, type.positive)
     }
 
     private fun updateButton(button:Button, @StringRes id:Int, blue:Boolean) {
@@ -215,7 +215,10 @@ abstract class UtDialog : UtDialogBase() {
     open fun preCreateBodyView() {
     }
 
-    abstract fun createBodyView(savedInstanceState:Bundle?, inflater: LayoutInflater, rootView:ViewGroup): View
+    interface IViewInflater {
+        fun inflate(@LayoutRes id:Int):View
+    }
+    protected abstract fun createBodyView(savedInstanceState:Bundle?, inflater: IViewInflater): View
 
     lateinit var titleView:TextView
     lateinit var leftButton: Button
@@ -349,6 +352,13 @@ abstract class UtDialog : UtDialogBase() {
 //        }
 //    }
 
+    data class ViewInflater(val dlg:Dialog, val rootView:ViewGroup):IViewInflater {
+        override fun inflate(id: Int): View {
+            return dlg.layoutInflater.inflate(id, rootView, false)
+        }
+
+    }
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // Dialogの第２引数でスタイルを渡したら、（そのスタイルの指定やダイアログ側のルートコンテナのlayout指定に関わらず）常に全画面のダイアログが開く。
         return Dialog(requireContext(), R.style.dlg_style).also { dlg ->
@@ -380,7 +390,7 @@ abstract class UtDialog : UtDialogBase() {
             }
             updateLeftButton()
             updateRightButton()
-            bodyView = createBodyView(savedInstanceState, dlg.layoutInflater, bodyContainer)
+            bodyView = createBodyView(savedInstanceState, ViewInflater(dlg,rootView))
             if(bodyContainer==bodyView) {
                 bodyView = bodyContainer.getChildAt(0)
             } else if(bodyContainer.childCount==0) {

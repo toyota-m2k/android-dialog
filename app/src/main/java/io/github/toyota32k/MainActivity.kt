@@ -1,14 +1,12 @@
 package io.github.toyota32k
 
-import android.content.DialogInterface
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
-import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import io.github.toyota32k.dialog.IUtDialogHost
 import io.github.toyota32k.dialog.IUtDialogResultReceptor
 import io.github.toyota32k.dialog.UtDialogHostManager
+import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.sample.HogeDialog
 import io.github.toyota32k.utils.UtLog
 
@@ -18,6 +16,7 @@ class MainActivity : AppCompatActivity(), IUtDialogHost {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        UtStandardString.setContext(this)
         dialogHostManager["hoge"] = {
             logger.info("hoge:${it.status}")
         }

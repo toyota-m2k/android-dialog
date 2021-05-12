@@ -20,8 +20,8 @@ class HogeDialog : UtDialog(), View.OnClickListener, IUtDialogHost {
         scrollable = true
 
     }
-    override fun createBodyView(savedInstanceState: Bundle?, inflater: LayoutInflater, rootView: ViewGroup): View {
-        return inflater.inflate(R.layout.sample_hoge_dialog, rootView, false).apply {
+    override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
+        return inflater.inflate(R.layout.sample_hoge_dialog).apply {
             findViewById<Button>(R.id.first_button).setOnClickListener(this@HogeDialog)
         }
     }

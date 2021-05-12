@@ -1,7 +1,10 @@
 package io.github.toyota32k.dialog
 
 import android.content.DialogInterface
+import android.os.Bundle
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 
 interface IUtDialog {
     /**
@@ -50,14 +53,22 @@ interface IUtDialog {
     var visible:Boolean
 
     /**
+     * ダイアログを表示する
+     */
+    fun show(activity: FragmentActivity, tag:String?)
+    fun show(fragment: Fragment, tag:String?)
+
+    /**
      * ダイアログ状態をセットして閉じる
      */
-    fun complete(status: IUtDialog.Status= IUtDialog.Status.POSITIVE)
+    fun complete(status: Status= Status.POSITIVE)
 
     /**
      * ダイアログを（キャンセルして）閉じる
      */
     fun cancel()
+
+    fun ensureArguments(): Bundle
 
     val asFragment: DialogFragment
 }

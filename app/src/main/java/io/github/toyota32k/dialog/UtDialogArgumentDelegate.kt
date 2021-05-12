@@ -1,11 +1,46 @@
 package io.github.toyota32k.dialog
 
 import android.os.Bundle
+import android.os.Parcelable
 import io.github.toyota32k.utils.asArrayOfType
+import java.io.Serializable
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-class UtBundleDelegate<T>(val namespace:String?, val source:()->Bundle) {
+@Suppress("UNCHECKED_CAST")
+fun Bundle.put(key:String, value:Any?):Bundle {
+    when(value) {
+        null -> remove(key)
+        is Boolean -> putBoolean(key, value)
+        is BooleanArray -> putBooleanArray(key, value)
+        is Bundle -> putBundle(key, value)
+        is Byte -> putByte(key, value)
+        is ByteArray-> putByteArray(key, value)
+        is String -> putString(key, value)
+        is Array<*> -> putStringArray(key, value as Array<String?>)     // Arrayの型は、他にCharSequence, Parcelableがあるが、Bundle#put*()の中身は、全部同じなので、これでいいはず
+        is ArrayList<*> -> putStringArrayList(key, value as ArrayList<String?>) // 。。。
+        is Char -> putChar(key, value)
+        is CharArray -> putCharArray(key, value)
+        is CharSequence-> putCharSequence(key, value)
+        is Double-> putDouble(key, value)
+        is DoubleArray->putDoubleArray(key, value)
+        is Float->putFloat(key, value)
+        is FloatArray->putFloatArray(key, value)
+        is Short->putShort(key, value)
+        is ShortArray->putShortArray(key, value)
+        is Int->putInt(key, value)
+        is IntArray->putIntArray(key, value)
+        is Long->putLong(key, value)
+        is LongArray->putLongArray(key, value)
+        is Parcelable ->putParcelable(key, value)
+        is Serializable->putSerializable(key, value)
+        else-> throw IllegalArgumentException("${key}:unsupported value type (${value.javaClass.simpleName})")
+    }
+    return this
+}
+
+@Suppress("RemoveExplicitTypeArguments")
+class UtBundleDelegate(val namespace:String?, val source:()->Bundle) {
     constructor(source:()->Bundle):this(null,source)
 //    constructor(fragment:Fragment, namespace:String?=null): this(namespace, { fragment.arguments!! })
 
@@ -16,78 +51,65 @@ class UtBundleDelegate<T>(val namespace:String?, val source:()->Bundle) {
         return if(namespace.isNullOrEmpty()) name else "$namespace.name"
     }
 
-    open inner class GenericDelegate<R>(val conv:(Any?)->R, val rev:((R)->Any?)?) : ReadWriteProperty<T,R> {
+    open inner class GenericDelegate<R>(val conv:(Any?)->R, val rev:((R)->Any?)?) : ReadWriteProperty<Any,R> {
         constructor(conv:(Any?)->R):this(conv,null)
 
-        override fun getValue(thisRef: T, property: KProperty<*>): R {
+        override fun getValue(thisRef: Any, property: KProperty<*>): R {
             return conv(bundle.get(key(property.name)))
         }
 
-        override fun setValue(thisRef: T, property: KProperty<*>, value: R) {
+        override fun setValue(thisRef: Any, property: KProperty<*>, value: R) {
             val v = rev?.invoke(value) ?: value
-            if(v==null) {
-                bundle.remove(key(property.name))
-            } else {
-                when (v) {
-                    is Int -> bundle.putInt(key(property.name), v)
-                    is Boolean -> bundle.putBoolean(key(property.name), v)
-                    is IntArray -> bundle.putIntArray(key(property.name), v)
-                    is BooleanArray -> bundle.putBooleanArray(key(property.name), v)
-                    is String -> bundle.putString(key(property.name), v)
-                    is Array<*> -> bundle.putStringArray(key(property.name), v.asArrayOfType())
-                    // 他のタイプは必要なら追加する
-                    else -> throw IllegalArgumentException("unknown type ${v::class.java.name}")
-                }
-            }
+            bundle.put(key(property.name), v)
         }
     }
 
     // Int
-    val intNullable:ReadWriteProperty<T,Int?> by lazy { GenericDelegate<Int?>{it as? Int} }
-    val intZero:ReadWriteProperty<T,Int> by lazy { GenericDelegate<Int>{(it as? Int)?:0} }
-    val intMinusOne:ReadWriteProperty<T,Int> by lazy { GenericDelegate<Int>{(it as? Int)?:-1} }
-    fun intNonnull(def:Int) : ReadWriteProperty<T,Int> { return GenericDelegate<Int>{(it as? Int)?:def} }
+    val intNullable:ReadWriteProperty<Any,Int?> by lazy { GenericDelegate<Int?>{it as? Int} }
+    val intZero:ReadWriteProperty<Any,Int> by lazy { GenericDelegate<Int>{(it as? Int)?:0} }
+    val intMinusOne:ReadWriteProperty<Any,Int> by lazy { GenericDelegate<Int>{(it as? Int)?:-1} }
+    fun intNonnull(def:Int) : ReadWriteProperty<Any,Int> { return GenericDelegate<Int>{(it as? Int)?:def} }
 
     // Boolean
-    val booleanNullable:ReadWriteProperty<T,Boolean?> by lazy { GenericDelegate<Boolean?>{it as? Boolean} }
-    val booleanFalse:ReadWriteProperty<T,Boolean> by lazy { GenericDelegate<Boolean>{(it as? Boolean)?:false} }
-    val booleanTrue: ReadWriteProperty<T,Boolean> by lazy { GenericDelegate<Boolean>{(it as? Boolean)?:true} }
+    val booleanNullable:ReadWriteProperty<Any,Boolean?> by lazy { GenericDelegate<Boolean?>{it as? Boolean} }
+    val booleanFalse:ReadWriteProperty<Any,Boolean> by lazy { GenericDelegate<Boolean>{(it as? Boolean)?:false} }
+    val booleanTrue: ReadWriteProperty<Any,Boolean> by lazy { GenericDelegate<Boolean>{(it as? Boolean)?:true} }
 
     // String
-    val string:ReadWriteProperty<T,String> by lazy { GenericDelegate<String>{it as? String ?: ""} }
-    val stringNullable:ReadWriteProperty<T,String?> by lazy { GenericDelegate<String?>{it as? String} }
-    fun stringNonnull(def:String):ReadWriteProperty<T,String> { return GenericDelegate<String>{(it as? String)?:def} }
+    val string:ReadWriteProperty<Any,String> by lazy { GenericDelegate<String>{it as? String ?: ""} }
+    val stringNullable:ReadWriteProperty<Any,String?> by lazy { GenericDelegate<String?>{it as? String} }
+    fun stringNonnull(def:String):ReadWriteProperty<Any,String> { return GenericDelegate<String>{(it as? String)?:def} }
 
     // IntArray
-    val intArray:ReadWriteProperty<T,IntArray> by lazy { GenericDelegate<IntArray>{it as? IntArray ?: intArrayOf()} }
-    val intArrayNullable:ReadWriteProperty<T,IntArray?> by lazy { GenericDelegate<IntArray?>{it as? IntArray} }
-    fun intArrayNonnull(def:()->IntArray):ReadWriteProperty<T,IntArray> { return GenericDelegate<IntArray>{it as? IntArray ?: def()}}
+    val intArray:ReadWriteProperty<Any,IntArray> by lazy { GenericDelegate<IntArray>{it as? IntArray ?: intArrayOf()} }
+    val intArrayNullable:ReadWriteProperty<Any,IntArray?> by lazy { GenericDelegate<IntArray?>{it as? IntArray} }
+    fun intArrayNonnull(def:()->IntArray):ReadWriteProperty<Any,IntArray> { return GenericDelegate<IntArray>{it as? IntArray ?: def()}}
 
     // BooleanArray
-    val booleanArray:ReadWriteProperty<T,BooleanArray> by lazy { GenericDelegate<BooleanArray>{it as? BooleanArray ?: booleanArrayOf()}}
-    val booleanArrayNullable:ReadWriteProperty<T,BooleanArray?> by lazy { GenericDelegate<BooleanArray?>{it as? BooleanArray}}
+    val booleanArray:ReadWriteProperty<Any,BooleanArray> by lazy { GenericDelegate<BooleanArray>{it as? BooleanArray ?: booleanArrayOf()}}
+    val booleanArrayNullable:ReadWriteProperty<Any,BooleanArray?> by lazy { GenericDelegate<BooleanArray?>{it as? BooleanArray}}
     fun booleanArrayNonnull(def:()->BooleanArray) { GenericDelegate<BooleanArray>{it as? BooleanArray ?: def()}}
 
     // Array<String>
-    val stringArray:ReadWriteProperty<T, Array<String>> by lazy { GenericDelegate{(it as? Array<*>)?.asArrayOfType() ?: arrayOf()}}
-    val stringArrayNullable:ReadWriteProperty<T, Array<String>?> by lazy { GenericDelegate{(it as? Array<*>)?.asArrayOfType() }}
+    val stringArray:ReadWriteProperty<Any, Array<String>> by lazy { GenericDelegate{(it as? Array<*>)?.asArrayOfType() ?: arrayOf()}}
+    val stringArrayNullable:ReadWriteProperty<Any, Array<String>?> by lazy { GenericDelegate{(it as? Array<*>)?.asArrayOfType() }}
     fun stringArrayNonnull(def:()->Array<String>) { GenericDelegate<Array<String>>{ (it as? Array<*>)?.asArrayOfType() ?: def()}}
 
-//    inline fun <reified V> straight(def:V):ReadWriteProperty<T,V> {
+//    inline fun <reified V> straight(def:V):ReadWriteProperty<Any,V> {
 //        return GenericDelegate({it as? V ?: def})
 //    }
 
     // enum
-    inline fun <reified E:Enum<E>> enum(def:E) : ReadWriteProperty<T,E> {
+    inline fun <reified E:Enum<E>> enum(def:E) : ReadWriteProperty<Any,E> {
         return GenericDelegate(
             {(it as? String)?.let { name-> enumValueOf<E>(name) } ?: def},
             { it.toString()})
     }
 
-    fun inherit(namespace: String?) : UtBundleDelegate<T> {
+    fun inherit(namespace: String?) : UtBundleDelegate {
         return UtBundleDelegate("${this.namespace}.$namespace", source)
     }
-    fun <T2> export(namespace: String?) : UtBundleDelegate<T2> {
+    fun <T2> export(namespace: String?) : UtBundleDelegate {
         return UtBundleDelegate("${this.namespace}.$namespace", source)
     }
 }
