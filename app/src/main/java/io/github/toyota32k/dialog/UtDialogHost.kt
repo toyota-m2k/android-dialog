@@ -149,24 +149,28 @@ class UtDialogHostManager: IUtDialogHost {
         }
 
         fun showDialog(activity: FragmentActivity, creator:(ReceptorImpl)->IUtDialog) {
+            if(UtDialogHelper.findChildDialog(activity, tag)!=null) return
             creator(this).apply{
                 attachDialog(this, null)
                 show(activity, tag)
             }
         }
         fun showDialog(fragment: Fragment, creator:(ReceptorImpl)->IUtDialog) {
+            if(UtDialogHelper.findChildDialog(fragment, tag)!=null) return
             creator(this).apply{
                 attachDialog(this, null)
                 show(fragment, tag)
             }
         }
         fun showDialog(activity: FragmentActivity, clientData:Any?, creator:(ReceptorImpl)->IUtDialog) {
+            if(UtDialogHelper.findChildDialog(activity, tag)!=null) return
             creator(this).apply{
                 attachDialog(this, clientData)
                 show(activity, tag)
             }
         }
         fun showDialog(fragment: Fragment, clientData:Any?, creator:(ReceptorImpl)->IUtDialog) {
+            if(UtDialogHelper.findChildDialog(fragment, tag)!=null) return
             creator(this).apply{
                 attachDialog(this, clientData)
                 show(fragment, tag)

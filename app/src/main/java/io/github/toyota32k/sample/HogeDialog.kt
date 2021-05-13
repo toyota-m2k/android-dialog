@@ -21,18 +21,28 @@ class HogeDialog : UtDialog(), View.OnClickListener, IUtDialogHost {
 
     }
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
+        dialogHostManager["fuga"] = this::onFugaDialogCompleted
+        dialogHostManager["piyo"] = this::onPiyoDialogCompleted
         return inflater.inflate(R.layout.sample_hoge_dialog).apply {
             findViewById<Button>(R.id.first_button).setOnClickListener(this@HogeDialog)
+            findViewById<Button>(R.id.second_button).setOnClickListener(this@HogeDialog)
         }
     }
 
     override fun onClick(v: View?) {
-        dialogHostManager["fuga"] = this::onFugaDialogCompleted
-        FugaDialog().show(this, "fuga", IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW)
+        if(v?.id == R.id.first_button) {
+            FugaDialog().show(this, "fuga")
+        } else {
+            PiyoDialog().show(this, "piyo")
+        }
     }
 
     fun onFugaDialogCompleted(dlg:IUtDialog) {
-        dialogHostManager["fuga"] = null
+        if(dlg.status.ok) {
+            complete()
+        }
+    }
+    fun onPiyoDialogCompleted(dlg:IUtDialog) {
         if(dlg.status.ok) {
             complete()
         }

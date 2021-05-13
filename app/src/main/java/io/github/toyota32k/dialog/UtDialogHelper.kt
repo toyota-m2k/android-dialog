@@ -11,9 +11,11 @@ object UtDialogHelper {
      * leafからルートに向かって、ダイアログチェーン列挙する
      */
     fun dialogChainToParent(leaf:IUtDialog) = sequence<IUtDialog> {
-        var dlg: Fragment? = leaf.asFragment
-        while(dlg!=null && dlg is IUtDialog) {
-            yield(dlg)
+        var dlg: Fragment? = leaf.asFragment.parentFragment
+        while(dlg!=null) {
+            if(dlg is IUtDialog) {
+                yield(dlg)
+            }
             dlg = dlg.parentFragment
         }
     }
@@ -64,5 +66,12 @@ object UtDialogHelper {
             cancelChildren(c)
             c.cancel()
         }
+    }
+
+    fun findChildDialog(activity: FragmentActivity, tag:String):IUtDialog? {
+        return activity.supportFragmentManager.findFragmentByTag(tag) as? IUtDialog
+    }
+    fun findChildDialog(fragment: Fragment, tag:String):IUtDialog? {
+        return fragment.childFragmentManager.findFragmentByTag(tag) as? IUtDialog
     }
 }

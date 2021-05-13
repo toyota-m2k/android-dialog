@@ -7,10 +7,6 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.ListAdapter
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import io.github.toyota32k.R
-
 
 interface IUtSingleSelectionResult {
     val selectedIndex: Int

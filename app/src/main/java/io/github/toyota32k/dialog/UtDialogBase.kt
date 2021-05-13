@@ -5,6 +5,7 @@ package io.github.toyota32k.dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
+import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -160,13 +161,16 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      */
     override fun cancel() {
         dialog?.cancel()
+        onCancel()  // dialog.cancel()を呼んだら自動的にonCancelが呼ばれるのかと思っていたが、よばれないので明示的に呼ぶ
     }
 
     override fun show(activity:FragmentActivity, tag:String?) {
+        if(tag!=null && UtDialogHelper.findChildDialog(activity,tag)!=null) return
         super.show(activity.supportFragmentManager, tag)
     }
 
     override fun show(fragment: Fragment, tag:String?) {
+        if(tag!=null && UtDialogHelper.findChildDialog(fragment,tag)!=null) return
         super.show(fragment.childFragmentManager, tag)
     }
 
