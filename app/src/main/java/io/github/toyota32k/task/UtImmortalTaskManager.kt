@@ -16,12 +16,11 @@ import java.lang.IllegalStateException
 object UtImmortalTaskManager : Closeable  {
     interface ITaskInfo {
         val name:String
-        val ownerName:String
         val state:LiveData<UtImmortalTaskState>
         val task:IUtImmortalTask?
         val result:Any?
     }
-    data class TaskEntry(override val name:String, override val ownerName:String):ITaskInfo {
+    data class TaskEntry(override val name:String):ITaskInfo {
         override val state = MutableLiveData<UtImmortalTaskState>(UtImmortalTaskState.INITIAL)
         override var task:IUtImmortalTask?=null
         override var result:Any?=null
@@ -38,29 +37,21 @@ object UtImmortalTaskManager : Closeable  {
         return taskTable[name]
     }
 
-    private fun createTask(name:String, ownerName: String):TaskEntry {
-        return TaskEntry(name,ownerName).apply { taskTable[name]=this }
+    private fun createTask(name:String):TaskEntry {
+        return TaskEntry(name).apply { taskTable[name]=this }
     }
 
-    fun onOwnerResumed(name:String, ownerName: String, owner:UtDialogOwner) : ITaskInfo {
+    fun onOwnerResumed(name:String, owner:UtDialogOwner) : ITaskInfo {
         dialogOwnerStack.push(owner)
-        return taskTable[name] ?: createTask(name, ownerName)
+        return taskTable[name] ?: createTask(name)
     }
-    fun onOwnerPaused(name:String, ownerName:String, owner:UtDialogOwner) {
+    fun onOwnerPaused(name:String, owner:UtDialogOwner) {
         dialogOwnerStack.remove(owner)
         taskTable[name]?.state?.removeObservers(owner.lifecycleOwner)
     }
 
-    fun disposeTask(name:String, ownerName: String, owner:UtDialogOwner) {
-        val entry = taskTable[name] ?: return
-        if(entry.ownerName == ownerName) {
-            entry.state.removeObservers(owner.lifecycleOwner)
-            entry.task?.close()
-            taskTable.remove(name)
-        }
-    }
-
     fun attachTask(task:IUtImmortalTask) {
+        logger.debug(task.taskName)
         val entry = taskTable[task.taskName] ?: throw IllegalStateException("no such task: ${task.taskName}")
         if(entry.task!=null) throw IllegalStateException("task already running: ${task.taskName}")
         entry.state.value = UtImmortalTaskState.RUNNING
@@ -68,11 +59,23 @@ object UtImmortalTaskManager : Closeable  {
     }
 
     fun detachTask(task:IUtImmortalTask, succeeded:Boolean) {
+        logger.debug()
         val entry = taskTable[task.taskName] ?: return
         entry.result = task.taskResult
         entry.state.value = if(succeeded) UtImmortalTaskState.COMPLETED else UtImmortalTaskState.ERROR
         entry.task = null
     }
+
+    fun disposeTask(name:String, owner:UtDialogOwner?) {
+        val entry = taskTable[name] ?: return
+        owner?.lifecycleOwner?.let {
+            entry.state.removeObservers(it)
+        }
+        entry.task?.close()
+        entry.task = null
+        taskTable.remove(name)
+    }
+
 
     override fun close() {
         for(entry in taskTable.values) {

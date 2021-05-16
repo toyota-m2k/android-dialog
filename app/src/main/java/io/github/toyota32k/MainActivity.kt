@@ -2,19 +2,30 @@ package io.github.toyota32k
 
 import android.os.Bundle
 import android.widget.Button
-import androidx.appcompat.app.AppCompatActivity
 import io.github.toyota32k.dialog.*
 import io.github.toyota32k.sample.HogeDialog
+import io.github.toyota32k.task.UtImmortalTaskManager
+import io.github.toyota32k.task.UtMortalActivity
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
-class MainActivity : AppCompatActivity(), IUtDialogHost {
+class MainActivity : UtMortalActivity(), IUtDialogHost {
     val logger = UtLog("SAMPLE")
     val dialogHostManager = UtDialogHostManager()
+
+    override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME)
+
+    override fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo?) {
+        if(taskInfo!=null) {
+            logger.info("${taskInfo.name} ${taskInfo.state.value} ${taskInfo.result}")
+            UtMessageBox.createForConfirm("Task Completed", "Task Result=${taskInfo.result}").show(this, "taskCompleted")
+        } else {
+            logger.error("taskInfo == null")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +50,9 @@ class MainActivity : AppCompatActivity(), IUtDialogHost {
         }
         findViewById<Button>(R.id.flow_test_button).setOnClickListener {
             flowTest()
+        }
+        findViewById<Button>(R.id.immortal_task_button).setOnClickListener {
+            SampleTask().fire()
         }
     }
 

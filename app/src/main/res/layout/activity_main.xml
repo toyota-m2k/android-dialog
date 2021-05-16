@@ -39,6 +39,12 @@
             android:text="Flow Test"
             />
 
+        <Button
+            android:id="@+id/immortal_task_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Immortal Task Test"
+            />
     </LinearLayout>
 
 

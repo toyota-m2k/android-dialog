@@ -5,7 +5,6 @@ import io.github.toyota32k.dialog.show
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.lang.IllegalStateException
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -15,6 +14,7 @@ import kotlin.coroutines.suspendCoroutine
  */
 @Suppress("unused")
 abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTask {
+
     private var continuation:Continuation<Any?>? = null
     private var dialogOwnerTicket:Any? = null
 
@@ -49,9 +49,11 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
      * タスクを開始する
      */
     open fun fire() {
+        logger.debug()
         UtImmortalTaskManager.attachTask(this)
         UtImmortalTaskManager.immortalTaskScope.launch {
             val result = try {
+                logger.debug("to executed...")
                 execute()
             } catch(e:Throwable) {
                 logger.stackTrace(e, "ImmortalTask:$taskName")
@@ -65,7 +67,8 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
      * タスク内からダイアログを表示し、complete()までsuspendする。
      */
     protected suspend fun showDialog(tag:String, dialogSource:()-> IUtDialog) : IUtDialog? {
-        if(UtImmortalTaskManager.taskOf(taskName)!=this) {
+        val running = UtImmortalTaskManager.taskOf(taskName)
+        if(running == null || running.task != this) {
             throw IllegalStateException("task($taskName) is not running")
         }
         logger.debug("dialog opening...")
@@ -74,7 +77,7 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
                 dialogOwnerTicket = ticket
                 suspendCoroutine<Any?> {
                     continuation = it
-                    dialogSource().apply { immortalTaskName=taskName } .show(owner,tag)
+                    dialogSource().apply { immortalTaskName = taskName }.show(owner, tag)
                 } as IUtDialog
             }
         }
