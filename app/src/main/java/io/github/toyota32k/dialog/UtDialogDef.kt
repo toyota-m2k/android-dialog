@@ -46,6 +46,7 @@ interface IUtDialog {
     }
     var parentVisibilityOption:ParentVisibilityOption
 
+    var immortalTaskName:String?
 
     /**
      * ダイアログの表示/非表示

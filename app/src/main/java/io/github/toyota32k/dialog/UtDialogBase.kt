@@ -5,11 +5,11 @@ package io.github.toyota32k.dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.BuildConfig
+import io.github.toyota32k.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
 import java.lang.ref.WeakReference
 
@@ -63,6 +63,8 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
 
     override var status: IUtDialog.Status = IUtDialog.Status.UNKNOWN
     override var parentVisibilityOption by bundle.enum(IUtDialog.ParentVisibilityOption.NONE) //UtDialogArgumentGenericDelegate { IUtDialog.ParentVisibilityOption.safeValueOf(it, IUtDialog.ParentVisibilityOption.NONE) }
+    override var immortalTaskName: String? by bundle.stringNullable
+
     override var visible: Boolean
         get() = dialog?.isShowing ?: false
         set(v) { dialog?.apply { if(v) show() else hide() } }
@@ -81,6 +83,10 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         if( parentVisibilityOption!=IUtDialog.ParentVisibilityOption.NONE) {
             (parentFragment as? IUtDialog)?.apply { visible = false }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
     }
 
     override fun onDetach() {
@@ -111,7 +117,8 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     }
 
     private fun notifyResult() {
-        queryResultReceptor()?.onDialogResult(this)
+        immortalTaskName?.let { UtImmortalTaskManager.taskOf(it) }?.task?.resumeTask(this)
+            ?:queryResultReceptor()?.onDialogResult(this)
     }
 
     /**
