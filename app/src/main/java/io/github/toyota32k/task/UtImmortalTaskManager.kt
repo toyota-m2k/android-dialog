@@ -14,42 +14,90 @@ import java.lang.IllegalStateException
  * 世界の終り（アプリ終了）まで生きることができる不死身のタスククラス
  */
 object UtImmortalTaskManager : Closeable  {
+    val logger = UtLog("UtTask")
+
+    /**
+     * タスク情報i/f
+     */
     interface ITaskInfo {
         val name:String
         val state:LiveData<UtImmortalTaskState>
         val task:IUtImmortalTask?
         val result:Any?
     }
-    data class TaskEntry(override val name:String):ITaskInfo {
+
+    /**
+     * タスク情報i/f の実装クラス
+     */
+    private data class TaskEntry(override val name:String):ITaskInfo {
         override val state = MutableLiveData<UtImmortalTaskState>(UtImmortalTaskState.INITIAL)
         override var task:IUtImmortalTask?=null
         override var result:Any?=null
     }
 
-    val logger = UtLog("UtTask")
+    // タスクテーブル
     private val taskTable = mutableMapOf<String,TaskEntry>()
+    // Activity/Fragment のキャッシュ的なやつ
     private val dialogOwnerStack = UtDialogOwnerStack()
 
+    /**
+     * ImmortalTask用コルーチンスコープ
+     */
     val immortalTaskScope:CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    /**
+     * Activity/Fragment を取得するための仕掛け i/f
+     */
     val mortalInstanceSource:IUiMortalInstanceSource = dialogOwnerStack
 
+    /**
+     * 名前をキーにタスクを取得
+     */
     fun taskOf(name:String):ITaskInfo? {
         return taskTable[name]
     }
 
+    /**
+     * タスクを構築してテーブルに登録する
+     */
     private fun createTask(name:String):TaskEntry {
         return TaskEntry(name).apply { taskTable[name]=this }
     }
 
-    fun onOwnerResumed(name:String, owner:UtDialogOwner) : ITaskInfo {
+    /**
+     * タスクテーブルへのエントリ作成
+     *
+     * タスクテーブルに登録済みなら、そのタスクを返す。未登録なら作成して登録して返す。
+     * attachTask()の前に実行しておく。Activity/Fragmentと協調する場合は、onResumed()から呼び出す。
+     */
+    fun reserveTask(name:String, owner:UtDialogOwner) : ITaskInfo {
         dialogOwnerStack.push(owner)
         return taskTable[name] ?: createTask(name)
     }
-    fun onOwnerPaused(name:String, owner:UtDialogOwner) {
-        dialogOwnerStack.remove(owner)
-        taskTable[name]?.state?.removeObservers(owner.lifecycleOwner)
-    }
 
+    /**
+     * Activity/Fragmentの切り離し
+     *
+     * Activity/Fragment #onPaused()から呼び出したらどうや。
+     * dialogOwnerStackから削除、オブザーバーの登録解除のみ。
+     * タスクテーブルからの削除は行わない。
+     * タスクテーブルから削除する場合は disposeTask() を呼ぶこと。
+     */
+//    fun onOwnerPaused(name:String, owner:UtDialogOwner) {
+//        dialogOwnerStack.remove(owner)
+//        taskTable[name]?.state?.removeObservers(owner.lifecycleOwner)
+//    }
+
+    /**
+     * 実行中タスクのタスクテーブルへの登録
+     *
+     * タスクを起動するときに呼び出す。
+     * 実行中タスクをタスクテーブルに登録しておくことで、ダイアログなど、どこからでも、そのタスクを取り出せるようにする。
+     *
+     * @throw IllegalStateException
+     *  - これ以前に、reserveTask()されていない。
+     *  - 同一タスクの多重起動しようとした。
+     */
     fun attachTask(task:IUtImmortalTask) {
         logger.debug(task.taskName)
         val entry = taskTable[task.taskName] ?: throw IllegalStateException("no such task: ${task.taskName}")
@@ -58,6 +106,14 @@ object UtImmortalTaskManager : Closeable  {
         entry.task = task
     }
 
+    /**
+     * 実行中タスクをタスクテーブルから切り離す。
+     *
+     * タスク終了後に呼び出す。
+     * タスク終了後もタスクの結果(state/result)はtaskOfで取り出せる。
+     * ある意味、意図的にリークさせているので、task.taskResultには、最小限の情報だけを残すようにする。
+     * 本当に不要になれば、disposeTask()を呼び出す。
+     */
     fun detachTask(task:IUtImmortalTask, succeeded:Boolean) {
         logger.debug()
         val entry = taskTable[task.taskName] ?: return
@@ -66,6 +122,9 @@ object UtImmortalTaskManager : Closeable  {
         entry.task = null
     }
 
+    /**
+     * タスクテーブルからエントリを削除する。
+     */
     fun disposeTask(name:String, owner:UtDialogOwner?) {
         val entry = taskTable[name] ?: return
         owner?.lifecycleOwner?.let {
@@ -76,7 +135,9 @@ object UtImmortalTaskManager : Closeable  {
         taskTable.remove(name)
     }
 
-
+    /**
+     * 全クリア ... 普通は呼ぶ必要はないとおもう。
+     */
     override fun close() {
         for(entry in taskTable.values) {
             entry.task?.close()
