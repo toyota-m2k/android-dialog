@@ -27,4 +27,5 @@ interface IUtImmortalTask : Closeable {
  */
 interface IUiMortalInstanceSource {
     suspend fun <T> withOwner(ticket:Any?=null, fn: suspend (Any, UtDialogOwner)->T):T
+    suspend fun <T> withOwner(clazzSpecified:Class<*>, ticket:Any?, fn: suspend (Any, UtDialogOwner)->T):T
 }

@@ -30,7 +30,7 @@ object UtImmortalTaskManager : Closeable  {
      * タスク情報i/f の実装クラス
      */
     private data class TaskEntry(override val name:String):ITaskInfo {
-        override val state = MutableLiveData<UtImmortalTaskState>(UtImmortalTaskState.INITIAL)
+        override val state = MutableLiveData(UtImmortalTaskState.INITIAL)
         override var task:IUtImmortalTask?=null
         override var result:Any?=null
     }
@@ -70,7 +70,7 @@ object UtImmortalTaskManager : Closeable  {
      * タスクテーブルに登録済みなら、そのタスクを返す。未登録なら作成して登録して返す。
      * attachTask()の前に実行しておく。Activity/Fragmentと協調する場合は、onResumed()から呼び出す。
      */
-    fun reserveTask(name:String, owner:UtDialogOwner) : ITaskInfo {
+    fun reserveTask(name:String, owner: UtDialogOwner) : ITaskInfo {
         dialogOwnerStack.push(owner)
         return taskTable[name] ?: createTask(name)
     }

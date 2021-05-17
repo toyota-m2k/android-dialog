@@ -21,7 +21,7 @@ class UtDialogOwnerStack: IUiMortalInstanceSource {
             }
         }
     }
-    fun push(owner:UtDialogOwner) {
+    fun push(owner: UtDialogOwner) {
         UtOwner(owner.lifecycleOwner).also {
             list.add(it)
             ownerFlow.value = it
@@ -49,7 +49,6 @@ class UtDialogOwnerStack: IUiMortalInstanceSource {
     private var currentClient = AtomicInteger(0)
 
     override suspend fun <T> withOwner(ticket:Any?, fn: suspend (Any, UtDialogOwner)->T):T {
-        var j = this::class.java
         if(currentClient.get()==ticket) {
             return fn(ticket, peekOne())
         }
@@ -65,7 +64,7 @@ class UtDialogOwnerStack: IUiMortalInstanceSource {
             if(lo!=null && lo::class.java==clazz) it.asDialogOwner else null }.first()
     }
 
-    suspend fun <T> withOwner(clazzSpecified:Class<*>, ticket:Any?, fn: suspend (Any, UtDialogOwner)->T):T {
+    override suspend fun <T> withOwner(clazzSpecified:Class<*>, ticket:Any?, fn: suspend (Any, UtDialogOwner)->T):T {
         if(currentClient.get()==ticket) {
             return fn(ticket, peekOne(clazzSpecified))
         }

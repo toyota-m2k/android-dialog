@@ -109,9 +109,9 @@ class UtBundleDelegate(val namespace:String?, val source:()->Bundle) {
     fun inherit(namespace: String?) : UtBundleDelegate {
         return UtBundleDelegate("${this.namespace}.$namespace", source)
     }
-    fun <T2> export(namespace: String?) : UtBundleDelegate {
-        return UtBundleDelegate("${this.namespace}.$namespace", source)
-    }
+//    fun <T2> export(namespace: String?) : UtBundleDelegate {
+//        return UtBundleDelegate("${this.namespace}.$namespace", source)
+//    }
 }
 
 ///**

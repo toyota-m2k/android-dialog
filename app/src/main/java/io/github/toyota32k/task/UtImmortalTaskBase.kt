@@ -1,6 +1,7 @@
 package io.github.toyota32k.task
 
 import io.github.toyota32k.dialog.IUtDialog
+import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.dialog.show
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.launch
@@ -66,7 +67,7 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
     /**
      * タスク内からダイアログを表示し、complete()までsuspendする。
      */
-    protected suspend fun showDialog(tag:String, dialogSource:()-> IUtDialog) : IUtDialog? {
+    protected suspend fun showDialog(tag:String, dialogSource:(UtDialogOwner)-> IUtDialog) : IUtDialog? {
         val running = UtImmortalTaskManager.taskOf(taskName)
         if(running == null || running.task != this) {
             throw IllegalStateException("task($taskName) is not running")
@@ -77,7 +78,7 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
                 dialogOwnerTicket = ticket
                 suspendCoroutine<Any?> {
                     continuation = it
-                    dialogSource().apply { immortalTaskName = taskName }.show(owner, tag)
+                    dialogSource(owner).apply { immortalTaskName = taskName }.show(owner, tag)
                 } as IUtDialog
             }
         }
@@ -87,6 +88,6 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
     }
 
     companion object {
-        val logger:UtLog = UtImmortalTaskManager.logger
+        val logger: UtLog = UtImmortalTaskManager.logger
     }
 }

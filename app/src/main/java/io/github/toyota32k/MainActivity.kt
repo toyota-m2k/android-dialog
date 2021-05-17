@@ -18,13 +18,9 @@ class MainActivity : UtMortalActivity(), IUtDialogHost {
 
     override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME)
 
-    override fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo?) {
-        if(taskInfo!=null) {
-            logger.info("${taskInfo.name} ${taskInfo.state.value} ${taskInfo.result}")
-            UtMessageBox.createForConfirm("Task Completed", "Task Result=${taskInfo.result}").show(this, "taskCompleted")
-        } else {
-            logger.error("taskInfo == null")
-        }
+    override fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {
+        logger.info("${taskInfo.name} ${taskInfo.state.value} ${taskInfo.result}")
+        UtMessageBox.createForConfirm("Task Completed", "Task Result=${taskInfo.result}").show(this, "taskCompleted")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,7 +57,7 @@ class MainActivity : UtMortalActivity(), IUtDialogHost {
     }
 
     private fun flowTest() {
-        val flow = MutableStateFlow<Int>(0)
+        val flow = MutableStateFlow(0)
         GlobalScope.launch {
             val v = flow.filter { it>=5 }.first()
             logger.info("flow:$v")

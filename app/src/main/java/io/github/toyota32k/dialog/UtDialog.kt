@@ -60,6 +60,8 @@ abstract class UtDialog : UtDialogBase() {
     var widthHint:Int by bundle.intZero
     var heightHint:Int by bundle.intZero
 
+    override var parentVisibilityOption by bundle.enum(IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW) //UtDialogArgumentGenericDelegate { IUtDialog.ParentVisibilityOption.safeValueOf(it, IUtDialog.ParentVisibilityOption.NONE) }
+
     @Suppress("unused")
     fun setFixedHeight(height:Int) {
         if(dialog!=null) {
@@ -92,7 +94,7 @@ abstract class UtDialog : UtDialogBase() {
         RIGHT_TOP(Gravity.END or Gravity.TOP),      // 右上（デフォルト）
         CENTER(Gravity.CENTER),         // 画面中央（メッセージボックス的）
         LEFT_TOP(Gravity.START or Gravity.TOP),       // これいるか？
-        CUSTOM(Gravity.NO_GRAVITY);         // todo: requestPosition()で指定するとか、なんか方法を考える
+//        CUSTOM(Gravity.NO_GRAVITY);         // requestPosition()で指定するとか、なんか方法を考える
     }
     var gravityOption: GravityOption by bundle.enum(GravityOption.RIGHT_TOP)
 

@@ -16,7 +16,7 @@ abstract class UtMortalActivity : AppCompatActivity() {
     /**
      * タスクの結果を受け取るハンドラ
      */
-    protected abstract fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo?)
+    protected abstract fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo)
 
     /**
      * Activity終了時にタスクをdisposeするかどうかを返す。
@@ -34,7 +34,7 @@ abstract class UtMortalActivity : AppCompatActivity() {
 
         // ImmortalTask に接続する
         for(name in immortalTaskNameList) {
-            UtImmortalTaskManager.reserveTask(name, toDialogOwner()).let { observeImmortalTask(name,it.state) }
+            observeImmortalTask(name, UtImmortalTaskManager.reserveTask(name, toDialogOwner()).state)
         }
     }
 
@@ -58,7 +58,8 @@ abstract class UtMortalActivity : AppCompatActivity() {
      */
     open fun onImmortalTaskStateChanged(taskName:String, state:UtImmortalTaskState) {
         if(state.finished) {
-            notifyImmortalTaskResult(UtImmortalTaskManager.taskOf(taskName))
+            val task = UtImmortalTaskManager.taskOf(taskName) ?: return
+            notifyImmortalTaskResult(task)
         }
     }
 

@@ -55,21 +55,21 @@ import java.lang.ref.WeakReference
 abstract class UtDialogBase : DialogFragment(), IUtDialog {
     val bundle = UtBundleDelegate { ensureArguments() }
 
-    override fun ensureArguments():Bundle {
+    final override fun ensureArguments():Bundle {
         return arguments ?: Bundle().apply { arguments = this }
     }
 
     private var dialogHost: WeakReference<IUtDialogHost>? = null
 
-    override var status: IUtDialog.Status = IUtDialog.Status.UNKNOWN
-    override var parentVisibilityOption by bundle.enum(IUtDialog.ParentVisibilityOption.NONE) //UtDialogArgumentGenericDelegate { IUtDialog.ParentVisibilityOption.safeValueOf(it, IUtDialog.ParentVisibilityOption.NONE) }
-    override var immortalTaskName: String? by bundle.stringNullable
-
-    override var visible: Boolean
+    final override var status: IUtDialog.Status = IUtDialog.Status.UNKNOWN
+    final override var immortalTaskName: String? by bundle.stringNullable
+    final override var visible: Boolean
         get() = dialog?.isShowing ?: false
         set(v) { dialog?.apply { if(v) show() else hide() } }
-    override val asFragment: DialogFragment
+    final override val asFragment: DialogFragment
         get() = this
+
+    override var parentVisibilityOption by bundle.enum(IUtDialog.ParentVisibilityOption.NONE) //UtDialogArgumentGenericDelegate { IUtDialog.ParentVisibilityOption.safeValueOf(it, IUtDialog.ParentVisibilityOption.NONE) }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -83,10 +83,6 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         if( parentVisibilityOption!=IUtDialog.ParentVisibilityOption.NONE) {
             (parentFragment as? IUtDialog)?.apply { visible = false }
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
     }
 
     override fun onDetach() {

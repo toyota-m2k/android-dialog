@@ -16,7 +16,7 @@ import io.github.toyota32k.utils.UtLog;
 public class PiyoDialog extends UtDialog implements View.OnClickListener, IUtDialogHost {
     private final UtLog logger = new UtLog("Piyo");
     private final UtDialogHostManager dialogHostManager = new UtDialogHostManager();
-    private final UtDialogHostManager.ReceptorImpl receptor = dialogHostManager.register("piyo.fuga", (s)->{
+    private final UtDialogHostManager.NamedReceptor receptor = dialogHostManager.register("piyo.fuga", (s)->{
         logger.info("completed Fuga");
         return null;
     });
