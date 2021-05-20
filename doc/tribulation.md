@@ -208,7 +208,9 @@ Activityが再作成されたとき、callbackが更新されないので、破�
 class MainActivity:AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         ...
-        ViewModelProvider(this, SavedStateViewModelFactory(this.requireActivity().application, this)).get(MessageBoxViewModel::class.java).callback = {if(it){ goAhead() }}
+        ViewModelProvider(this, SavedStateViewModelFactory(this.requireActivity().application, this))
+        .get(MessageBoxViewModel::class.java)
+        .callback = {if(it){ goAhead() }}
         findViewById<Button>(R.id.submit).setOnClickListener {
             MessageBox("Are you ready?") { result->
                 if(result) { goAhead() }
