@@ -420,40 +420,47 @@ abstract class UtDialog : UtDialogBase() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // Dialogの第２引数でスタイルを渡したら、（そのスタイルの指定やダイアログ側のルートコンテナのlayout指定に関わらず）常に全画面のダイアログが開く。
         return Dialog(requireContext(), R.style.dlg_style).also { dlg ->
-            preCreateBodyView()
-            // ダイアログの背景を透過させる。
-            // ダイアログテーマとかdialog_frameのルートコンテナの背景を透過させても効果がないので注意。
-            dlg.window?.setBackgroundDrawable(ColorDrawable(managedGuardColor()))
-            rootView = View.inflate(requireContext(), R.layout.dialog_frame, null) as FrameLayout
+            try {
+                preCreateBodyView()
+                // ダイアログの背景を透過させる。
+                // ダイアログテーマとかdialog_frameのルートコンテナの背景を透過させても効果がないので注意。
+                dlg.window?.setBackgroundDrawable(ColorDrawable(managedGuardColor()))
+                rootView =
+                    View.inflate(requireContext(), R.layout.dialog_frame, null) as FrameLayout
 //            rootView = dlg.layoutInflater.inflate(R.layout.dialog_frame, null) as FrameLayout
-            leftButton = rootView.findViewById(R.id.left_button)
-            rightButton = rootView.findViewById(R.id.right_button)
-            titleView = rootView.findViewById(R.id.dialog_title)
-            dialogView = rootView.findViewById(R.id.dialog_view)
-            title?.let { titleView.text = it }
-            if(heightOption== HeightOption.AUTO_SCROLL) {
-                scrollable  = true
-            } else if(heightOption == HeightOption.CUSTOM) {
-                scrollable = false
+                leftButton = rootView.findViewById(R.id.left_button)
+                rightButton = rootView.findViewById(R.id.right_button)
+                titleView = rootView.findViewById(R.id.dialog_title)
+                dialogView = rootView.findViewById(R.id.dialog_view)
+                title?.let { titleView.text = it }
+                if (heightOption == HeightOption.AUTO_SCROLL) {
+                    scrollable = true
+                } else if (heightOption == HeightOption.CUSTOM) {
+                    scrollable = false
+                }
+                bodyContainer = if (scrollable) {
+                    rootView.findViewById(R.id.body_scroller)
+                } else {
+                    rootView.findViewById(R.id.body_container)
+                }
+                bodyContainer.visibility = View.VISIBLE
+                leftButton.setOnClickListener(this::onLeftButtonTapped)
+                rightButton.setOnClickListener(this::onRightButtonTapped)
+                if (cancellable) {
+                    rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
+                    dialogView.setOnClickListener(this@UtDialog::onBackgroundTapped)
+                }
+                updateLeftButton()
+                updateRightButton()
+                bodyView = createBodyView(savedInstanceState, ViewInflater(dlg, bodyContainer))
+                bodyContainer.addView(bodyView)
+                setupLayout()
+                dlg.setContentView(rootView)
+            } catch(e:Throwable) {
+                // View作り中のエラーは、デフォルトでログに出る間もなく死んでしまうようなので、キャッチして出力する。throwし直すから死ぬけど。
+                logger.stackTrace(e)
+                throw e
             }
-            bodyContainer = if (scrollable) {
-                rootView.findViewById(R.id.body_scroller)
-            } else {
-                rootView.findViewById(R.id.body_container)
-            }
-            bodyContainer.visibility = View.VISIBLE
-            leftButton.setOnClickListener(this::onLeftButtonTapped)
-            rightButton.setOnClickListener(this::onRightButtonTapped)
-            if(cancellable) {
-                rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
-                dialogView.setOnClickListener(this@UtDialog::onBackgroundTapped)
-            }
-            updateLeftButton()
-            updateRightButton()
-            bodyView = createBodyView(savedInstanceState, ViewInflater(dlg,bodyContainer))
-            bodyContainer.addView(bodyView)
-            setupLayout()
-            dlg.setContentView(rootView)
         }
     }
 

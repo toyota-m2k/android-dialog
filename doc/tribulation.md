@@ -1,6 +1,6 @@
-# DialogFragment の苦しみ
+# Lifecycle の苦悩
 
-もう10年くらいAndroidの開発に関わっているが、Android って、iOS や Windows に比べて、「異質（<-控えめな表現）」だと思う。はじめのころ、Activityを、iOSのViewController, Windows の WindowかPage(UWP)くらいに考えていた。そしてActivityやView がコロコロ入れ替わることに気づく。まるで、大地が消えてなくなるような感じ。コールバックして帰ってきたら、呼び出したActivityが死んでいる。会社から帰宅したら、家がなくなっているような感じ。
+もう10年くらいAndroidの開発に関わっているが、Android って、iOS や Windows に比べて、「異質（<-全力で控えめにした表現）」だと思う。はじめのころ、Activityを、iOSのViewController, Windows の WindowかPage(UWP)くらいに考えていた。そしてActivityやView がコロコロ入れ替わることに気づく。まるで、大地が消えてなくなるような感じ。コールバックして帰ってきたら、呼び出したActivityが死んでいる。会社から帰宅したら、家がなくなっているような感じ。
 
 とりわけ、ダイアログやメッセージボックスを表示し、ユーザーの判断によって処理を分岐する、というありふれたフローの実装がやたらと難しいし手間がかかる。そのためか、いたるところに不適切な実装が見られる。Kotlinとかコルーチン、あるいは、ViewModel,LiveData,　Flow など、新しい仕掛けが次々に登場したが、ActivityやFragmentの本質的な気持ち悪さは一貫して変わっていない。
 
