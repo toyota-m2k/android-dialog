@@ -183,7 +183,9 @@ class MainActivity:AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         ...
         findViewById<Button>(R.id.submit).setOnClickListener {
-            ViewModelProvider(this,ViewModelProvider.NewInstanceFactory()).get(MessageBoxViewModel::class.java).callback = {if(it){ goAhead() }}
+            ViewModelProvider(this,ViewModelProvider.NewInstanceFactory())
+            .get(MessageBoxViewModel::class.java)
+            .callback = {if(it){ goAhead() }}
             MessageBox("Are you ready?") { result->
                 if(result) { goAhead() }
             }.show(supportFragmentManager, null)
