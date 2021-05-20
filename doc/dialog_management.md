@@ -96,7 +96,7 @@ UtDialogHostManagerは、ダイアログから結果を受け取る、Activity, 
 4. ViewModelにダイアログの結果を受け取る Receptorを作成する。
    
     ```Kotlin
-    val yesNoReceptor = dialogHostManager.register("yesNoReceptor") {
+    val yesNoReceptor = dialogHostManager.register<UtMessageBox>("yesNoReceptor") {
         if(it.dialog.status.ok) {
             doAction()
         } else {
@@ -121,13 +121,13 @@ UtDialogHostManagerは、ダイアログから結果を受け取る、Activity, 
     ```
 ## 【３】サブダイアログの使用
 
-ダイアログ（１）から、さらにサブダイアログ（２）を開いたとき、サブダイアログ（２）の結果は、ダイアログ（１）で受け取りたい場合が多いと思う。
+ダイアログ（１）から、さらにサブダイアログ（２）を開いたとき、サブダイアログ（２）の結果は、ダイアログ（１）で受け取りたい場合が多いと思う。この場合、サブダイアログにUtDialogHostManagerを、親のそれにaddChildHost()してDialogHostをチェインするのが基本だが、単に、サブダイアログの結果を親ダイアログで受け取りたいだけなら、もっと簡単に実現できる。
 
 IUtDialog は、ダイアログの結果通知先を、次の優先順序で検索・選択する。
 1. 起動元の [ImmortalTask](./task.md)
 2. 親Fragment (IUtDialogHostの場合)
 3. AttachされているActivity (IUtDialogHostの場合)
 
-したがって、ダイアログ（１）で IUtDialogHost を実装すれば、Activityや、他のFragmentよりも優先して、これが呼ばれる。
+したがって、ダイアログ（１）が IUtDialogHost を実装するだけで、Activityや、他のFragmentよりも優先して、これが呼ばれるので、UtDialogHostManagerのチェーンを構成しなくても、子ダイアログの結果は取得できる。
 
 
