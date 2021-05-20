@@ -109,17 +109,17 @@ open class UtRadioSelectionBox : UtMessageBox(), DialogInterface.OnClickListener
 class UtMultiSelectionBox
     : UtMessageBox(), DialogInterface.OnMultiChoiceClickListener {
     var items:Array<String> by bundle.stringArray
-    var selectedIndices:BooleanArray by bundle.booleanArray
+    var selectionFlags:BooleanArray by bundle.booleanArray
     val selectedItems:Array<String>
-        get() = (items.indices).filter { selectedIndices[it] }.map { items[it] }.toTypedArray()
+        get() = (items.indices).filter { selectionFlags[it] }.map { items[it] }.toTypedArray()
 
     override fun getAlertBuilder(): AlertDialog.Builder {
-        return super.getAlertBuilder().setMultiChoiceItems(items, selectedIndices, this)
+        return super.getAlertBuilder().setMultiChoiceItems(items, selectionFlags, this)
     }
 
     override fun onClick(dialog: DialogInterface?, which: Int, isChecked: Boolean) {
         if(0<=which && which<items.size) {
-            selectedIndices[which] = isChecked
+            selectionFlags[which] = isChecked
         } else {
             super.onClick(dialog, which)
         }
@@ -130,7 +130,7 @@ class UtMultiSelectionBox
             return UtMultiSelectionBox().apply {
                 this.title = title
                 this.items = items
-                this.selectedIndices = initialSelections ?: BooleanArray(items.size) { false }
+                this.selectionFlags = initialSelections ?: BooleanArray(items.size) { false }
                 this.okLabel = okLabel
                 this.cancelLabel = cancelLabel
             }

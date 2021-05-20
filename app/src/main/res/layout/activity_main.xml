@@ -45,6 +45,12 @@
             android:layout_height="wrap_content"
             android:text="Immortal Task Test"
             />
+        <Button
+            android:id="@+id/catalogue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dialog Catalogue"
+            />
     </LinearLayout>
 
 

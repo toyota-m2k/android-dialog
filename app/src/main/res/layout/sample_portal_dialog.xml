@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    >
+    <Button
+        android:id="@+id/compact"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Compact Sample"/>
+    <Button
+        android:id="@+id/auto_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Auto Scroll Sample"/>
+
+    <Button
+        android:id="@+id/fill"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fill Sample"/>
+
+    <Button
+        android:id="@+id/custom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Custom Sample"/>
+</LinearLayout>

@@ -5,6 +5,8 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -44,7 +46,7 @@ abstract class UtDialog : UtDialogBase() {
         COMPACT(WRAP_CONTENT),        // WRAP_CONTENT
         FULL(MATCH_PARENT),           // フルスクリーンに対して、MATCH_PARENT
         FIXED(WRAP_CONTENT),          // bodyの幅を、widthHint で与えられる値に固定
-        LIMIT(WRAP_CONTENT),          // MATCH_PARENT を最大値として、widthHint で指定されたサイズを超えないように調整される
+        LIMIT(WRAP_CONTENT),          // フルスクリーンを最大値として、widthHint で指定されたサイズを超えないように調整される
     }
     @Suppress("unused")
     enum class HeightOption(val param:Int) {
@@ -290,11 +292,9 @@ abstract class UtDialog : UtDialogBase() {
             }
         }
         if(heightOption== HeightOption.AUTO_SCROLL) {
-            bodyView.addOnLayoutChangeListener { _, _,_,_,_, _, _, _, _ ->
-                bodyView.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
-                    if (or - ol != r - l || ob - ot != b - t) {
-                        onBodyViewSizeChanged()
-                    }
+            bodyView.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
+                if (or - ol != r - l || ob - ot != b - t) {
+                    onBodyViewSizeChanged()
                 }
             }
         }
@@ -384,13 +384,16 @@ abstract class UtDialog : UtDialogBase() {
         if (heightOption == HeightOption.AUTO_SCROLL) {
             val lp = bodyContainer.layoutParams as ConstraintLayout.LayoutParams
             if(updateDynamicHeight(lp)) {
-                bodyContainer.layoutParams = lp
+                // bodyView のOnLayoutChangeListenerの中から、コンテナのサイズを変更しても、なんか１回ずつ無視されるので、ちょっと遅延する。
+                Handler(Looper.getMainLooper()).post {
+                    bodyContainer.layoutParams = lp
+                }
             }
         }
     }
 
 //    private fun autoHeight():Int {
-//        return MATCH_PARENT // todo
+//        return MATCH_PARENT
 //    }
 //    private fun fixedHeight(): Int {
 //        if(fixedBodyHeight>0) {

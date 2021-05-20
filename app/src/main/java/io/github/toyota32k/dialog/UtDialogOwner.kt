@@ -10,9 +10,9 @@ import java.lang.IllegalStateException
 import java.lang.ref.WeakReference
 
 /**
- * �_�C�A���O�̐e�ƂȂ�AFragment��Activity ��API�I�ɋ�ʂ��Ȃ��ň�����悤�ɂ��邽�߂̃N���X
- * ����́AFragment/Activity�����Q�Ƃŕێ�����̂ŁA�����̈����n���p�Ƃ��Ă̂ݎg�p���A
- * �����o�[�Ƃ��ĕێ�����ꍇ�� UtDialogWeakOwner ���g�p���邱�ƁB
+ * ダイアログの親となる、FragmentとActivity をAPI的に区別しないで扱えるようにするためのクラス
+ * これは、Fragment/Activityを強参照で保持するので、引数の引き渡し用としてのみ使用し、
+ * メンバーとして保持する場合は UtDialogWeakOwner を使用すること。
  */
 data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
     constructor(owner:UtDialogOwner):this(owner.lifecycleOwner)
@@ -52,7 +52,7 @@ fun FragmentActivity.toDialogOwner() = UtDialogOwner(this)
 fun Fragment.toDialogOwner() = UtDialogOwner(this)
 
 /**
- * UtDialogOwner��e�ɂ��ă_�C�A���O���J�����߂̊g���֐�
+ * UtDialogOwnerを親にしてダイアログを開くための拡張関数
  */
 fun IUtDialog.show(owner:UtDialogOwner, tag:String) {
     when(owner.lifecycleOwner) {
@@ -62,7 +62,7 @@ fun IUtDialog.show(owner:UtDialogOwner, tag:String) {
 }
 
 /**
- * UtDialogOwner��e�ɂ���UtDialogHostManager.ReceptorImpl.showDialog���ĂԂ��߂̊g���֐�
+ * UtDialogOwnerを親にしてUtDialogHostManager.NamedReceptor.showDialogを呼ぶための拡張関数
  */
 //fun UtDialogHostManager.ReceptorImpl.showDialog(owner:UtDialogOwner, creator:(UtDialogHostManager.ReceptorImpl)->IUtDialog) {
 //    when(owner.lifecycleOwner) {
@@ -70,7 +70,7 @@ fun IUtDialog.show(owner:UtDialogOwner, tag:String) {
 //        is Fragment         -> showDialog(owner.lifecycleOwner, creator)
 //    }
 //}
-fun UtDialogHostManager.NamedReceptor.showDialog(owner:UtDialogOwner, clientData:Any?=null, creator:(UtDialogHostManager.NamedReceptor)->IUtDialog) {
+fun <D> UtDialogHostManager.NamedReceptor<D>.showDialog(owner:UtDialogOwner, clientData:Any?=null, creator:(UtDialogHostManager.NamedReceptor<D>)->D) where D:IUtDialog {
     when(owner.lifecycleOwner) {
         is FragmentActivity -> showDialog(owner.lifecycleOwner, clientData, creator)
         is Fragment         -> showDialog(owner.lifecycleOwner, clientData, creator)

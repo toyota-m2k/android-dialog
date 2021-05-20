@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Button
 import io.github.toyota32k.dialog.*
 import io.github.toyota32k.sample.HogeDialog
+import io.github.toyota32k.sample.SamplePortalDialog
 import io.github.toyota32k.task.UtImmortalTaskManager
 import io.github.toyota32k.task.UtMortalActivity
 import io.github.toyota32k.utils.UtLog
@@ -49,6 +50,9 @@ class MainActivity : UtMortalActivity(), IUtDialogHost {
         }
         findViewById<Button>(R.id.immortal_task_button).setOnClickListener {
             SampleTask().fire()
+        }
+        findViewById<Button>(R.id.catalogue).setOnClickListener {
+            SamplePortalDialog().show(this, "Catalogue")
         }
     }
 

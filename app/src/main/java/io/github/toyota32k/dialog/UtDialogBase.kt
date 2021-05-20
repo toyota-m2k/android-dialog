@@ -122,7 +122,6 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      */
     protected open fun onComplete() {
         logger.debug("$this")
-        notifyResult()
     }
 
     /**
@@ -153,6 +152,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         if (!this.status.finished) {
             this.status = status
             onComplete()
+            notifyResult()
             dismiss()
         }
     }

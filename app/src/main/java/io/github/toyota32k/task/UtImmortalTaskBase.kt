@@ -42,7 +42,7 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
     protected abstract suspend fun execute(): Boolean
 
     /**
-     * bool以外の結果を返す場合は、このプロパティをオーバーライドする。
+     * bool 以外の結果を返す場合は、このプロパティをオーバーライドする。
      */
     override val taskResult:Any? = null
 
