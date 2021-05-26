@@ -264,6 +264,9 @@ abstract class UtDialog : UtDialogBase() {
         if(heightOption==HeightOption.FULL) {
             bodyContainer.setLayoutHeight(0)
         }
+        if(widthOption==WidthOption.FULL) {
+            bodyContainer.setLayoutWidth(0)
+        }
         setupFixedSize()
         setupDynamicSize()
     }
