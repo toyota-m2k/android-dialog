@@ -67,19 +67,20 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
     /**
      * タスク内からダイアログを表示し、complete()までsuspendする。
      */
-    protected suspend fun showDialog(tag:String, dialogSource:(UtDialogOwner)-> IUtDialog) : IUtDialog? {
+    @Suppress("UNCHECKED_CAST")
+    protected suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D? where D:IUtDialog {
         val running = UtImmortalTaskManager.taskOf(taskName)
         if(running == null || running.task != this) {
             throw IllegalStateException("task($taskName) is not running")
         }
         logger.debug("dialog opening...")
-        val r = withContext<IUtDialog?>(UtImmortalTaskManager.immortalTaskScope.coroutineContext) {
+        val r = withContext<D?>(UtImmortalTaskManager.immortalTaskScope.coroutineContext) {
             UtImmortalTaskManager.mortalInstanceSource.withOwner(dialogOwnerTicket) { ticket, owner->
                 dialogOwnerTicket = ticket
                 suspendCoroutine<Any?> {
                     continuation = it
                     dialogSource(owner).apply { immortalTaskName = taskName }.show(owner, tag)
-                } as IUtDialog
+                } as D
             }
         }
         dialogOwnerTicket = null
