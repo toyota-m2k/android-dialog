@@ -183,7 +183,9 @@ class MainActivity:AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         ...
         findViewById<Button>(R.id.submit).setOnClickListener {
-            ViewModelProvider(this,ViewModelProvider.NewInstanceFactory()).get(MessageBoxViewModel::class.java).callback = {if(it){ goAhead() }}
+            ViewModelProvider(this,ViewModelProvider.NewInstanceFactory())
+            .get(MessageBoxViewModel::class.java)
+            .callback = {if(it){ goAhead() }}
             MessageBox("Are you ready?") { result->
                 if(result) { goAhead() }
             }.show(supportFragmentManager, null)
@@ -206,7 +208,9 @@ Activityが再作成されたとき、callbackが更新されないので、破�
 class MainActivity:AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         ...
-        ViewModelProvider(this, SavedStateViewModelFactory(this.requireActivity().application, this)).get(MessageBoxViewModel::class.java).callback = {if(it){ goAhead() }}
+        ViewModelProvider(this, SavedStateViewModelFactory(this.requireActivity().application, this))
+        .get(MessageBoxViewModel::class.java)
+        .callback = {if(it){ goAhead() }}
         findViewById<Button>(R.id.submit).setOnClickListener {
             MessageBox("Are you ready?") { result->
                 if(result) { goAhead() }
@@ -401,14 +405,16 @@ Coroutineとか、ViewModelとか、周辺事情は日々進化しているけ�
 「バックグラウンド処理（コルーチン）の途中で、ダイアログ（確認メッセージなど）を表示し、その後の処理を分岐する」というのがある。
 例えば、サーバーへのログインを行うため、
 「ログインボタンが押されたら、バックグラウンドでサーバーに認証情報を送り、認証が成功すれば、次の画面へ遷移、失敗すればエラーメッセージを表示」
-というシナリオを考える。これを、上記のフロー（DialogFragmentの結果は、かならずActivity/Fragmentで受け取る）では、かなり複雑なステートマシンを作らないといけない。現実的ではない。困った。
+というシナリオを考える。これを、上記のフロー（DialogFragmentの結果は、かならずActivity/Fragmentで受け取る）では、Activityとバックグランドタスクの間を行き来する、かなり複雑なステートマシンを作らないといけない。しかも、ActivityはSuspendしてるかもしれない。。。これはめんどい、しんどい、いやだ。。。
+
+本能が全力で拒絶するので、他の方法を真剣に考えよう。
 
 ここで問題となるのは、バックグラウンド処理として想定するコルーチンの生存期間と、DialogFragment などのライフサイクルが一致しないこと。この例だと、認証が終わったときに、
 - 元のActivityと違うActivityに入れ替わっているかもしれない。
 - そもそも、Activityが生きていない（他のアプリがアクティブになっている）かもしれない。
  
 対策として、まず最初に思いつくのは、ViewModelScope でログインを実行する方法。
-これなら、Activityが入れ替わってもViewModelが生きていれば、正しく動く。Activityが死ぬときは、ViewModelも死に、ログイン処理のコルーチンがキャンセルされるので、辻褄は合う。【５】の場合と違って、宙ぶらりんで残ってしまうビューもない。
+これなら、Activityが入れ替わってもViewModelが生きていれば、正しく動く。Activityが死ぬときは、ViewModelも死に、ログイン処理のコルーチンがキャンセルされるので、辻褄は合う。バックグランドタスクなので、【５】の場合と違って、宙ぶらりんで残ってしまうビューはないから大丈夫。
 だが、「ログインボタンを押した」というユーザー操作は、まるでなかったことにされてしまうが、それでよいか？
 ログイン程度の通信なら、やり直してください、で済むかもしれないが、大きいファイルのDLとか、もっと時間のかかる処理だったら？
 
