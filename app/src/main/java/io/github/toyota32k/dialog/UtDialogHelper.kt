@@ -48,14 +48,14 @@ object UtDialogHelper {
     }
 
     /**
-     * parentで与えられたダイアログの子ダイアログを（末端から）すべてキャンセルする。
-     * parent自身はキャンセルしない。
+     * parentで与えられたダイアログと、その子ダイアログをキャンセルする
      */
     fun cancelChildren(parent:IUtDialog) {
         for(c in dialogChildren(parent)) {
+            c.parentVisibilityOption = IUtDialog.ParentVisibilityOption.NONE    // 閉じるダイアログ（親）が表示されてから閉じるのはブサイクなので非表示のまま閉じる
             cancelChildren(c)
-            c.cancel()
         }
+        parent.cancel()
     }
 
     /**
@@ -64,7 +64,6 @@ object UtDialogHelper {
     fun cancelAllDialogs(activity:FragmentActivity) {
         for(c in dialogChildren(activity.supportFragmentManager)) {
             cancelChildren(c)
-            c.cancel()
         }
     }
 

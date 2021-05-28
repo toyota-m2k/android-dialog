@@ -31,9 +31,9 @@ class HogeDialog : UtDialog(), View.OnClickListener, IUtDialogHost {
 
     override fun onClick(v: View?) {
         if(v?.id == R.id.first_button) {
-            FugaDialog().show(this, "fuga")
+            FugaDialog().apply{parentVisibilityOption=IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE}.show(this, "fuga")
         } else {
-            PiyoDialog().show(this, "piyo")
+            PiyoDialog().apply{parentVisibilityOption=IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE}.show(this, "piyo")
         }
     }
 

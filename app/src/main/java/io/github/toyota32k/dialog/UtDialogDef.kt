@@ -42,6 +42,8 @@ interface IUtDialog {
     enum class ParentVisibilityOption {
         NONE,                   // 何もしない：表示しっぱなし
         HIDE_AND_SHOW,          // このダイアログを開くときに非表示にして、閉じるときに表示する
+        HIDE_AND_SHOW_ON_NEGATIVE,  // onNegativeで閉じるときには、親を表示する。Positiveのときは非表示のまま
+        HIDE_AND_SHOW_ON_POSITIVE,  // onPositiveで閉じるときには、親を表示する。Netatigeのときは非表示のまま
         HIDE_AND_LEAVE_IT       // このダイアログを開くときに非表示にして、あとは知らん
     }
     var parentVisibilityOption:ParentVisibilityOption

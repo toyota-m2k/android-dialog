@@ -11,6 +11,9 @@ import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.BuildConfig
 import io.github.toyota32k.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 /**
@@ -78,11 +81,55 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         }
     }
 
+    /**
+     * 子ダイアログが開いたときに呼び出される。
+     * 子ダイアログのparentVisibilityOptionに従って、親ダイアログを非表示にする。
+     */
+     open fun onChildDialogOpened(child:UtDialogBase) {
+         if (child.parentVisibilityOption != IUtDialog.ParentVisibilityOption.NONE) {
+             if (visible) {
+                 visible = false
+             }
+         }
+     }
+
+    /**
+     * 子ダイアログが閉じたときに呼び出される。
+     * 子ダイアログのparentVisibilityOptionに従って、親ダイアログを表示する。
+     */
+    open fun onChildDialogClosing(child:UtDialogBase) {
+        if(!visible) {
+            if (child.parentVisibilityOption == IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW ||
+                (child.parentVisibilityOption == IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_POSITIVE && child.status.positive) ||
+                (child.parentVisibilityOption == IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE && !child.status.positive)
+            ) {
+                visible = true
+            }
+        }
+    }
+
+    /**
+     * ダイアログが開く
+     */
+    private suspend fun onDialogOpening() {
+        val parent = parentFragment as? UtDialogBase ?: return
+        delay(100)          // 子ダイアログ(==this)が表示されてから親を閉じるため、ウェイトを入れる
+        parent.onChildDialogOpened(this@UtDialogBase)
+    }
+
+    /**
+     * ダイアログが閉じる
+     */
+    private suspend fun onDialogClosing() {
+        val parent = parentFragment as? UtDialogBase
+        parent?.onChildDialogClosing(this)
+        delay(100)
+    }
+
+
     override fun onStart() {
         super.onStart()
-        if( parentVisibilityOption!=IUtDialog.ParentVisibilityOption.NONE) {
-            (parentFragment as? IUtDialog)?.apply { visible = false }
-        }
+        MainScope().launch { onDialogOpening() }
     }
 
     override fun onDetach() {
@@ -100,11 +147,8 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         onClosed()
-        if(parentVisibilityOption==IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW) {
-            (parentFragment as? IUtDialog)?.apply {
-                visible = true
-            }
-        }
+        // cancelやcompleteをすり抜けるケースがあると困るので。。。
+        MainScope().launch { onDialogClosing() }
     }
 
     private fun queryResultReceptor(): IUtDialogResultReceptor? {
@@ -151,9 +195,12 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         }
         if (!this.status.finished) {
             this.status = status
-            onComplete()
-            notifyResult()
-            dismiss()
+            MainScope().launch {
+                onDialogClosing()
+                onComplete()
+                notifyResult()
+                dismiss()
+            }
         }
     }
 
@@ -163,8 +210,15 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * setCanceledOnTouchOutside(true)なDialogなら、画面外タップでキャンセルされると思う。
      */
     override fun cancel() {
-        dialog?.cancel()
-        onCancel()  // dialog.cancel()を呼んだら自動的にonCancelが呼ばれるのかと思っていたが、よばれないので明示的に呼ぶ
+        if(!status.finished) {
+            status = IUtDialog.Status.NEGATIVE
+            MainScope().launch {
+                onDialogClosing()
+                notifyResult()
+                dialog?.cancel()
+                onCancel()  // dialog.cancel()を呼んだら自動的にonCancelが呼ばれるのかと思っていたが、よばれないので明示的に呼ぶ
+            }
+        }
     }
 
     override fun show(activity:FragmentActivity, tag:String?) {

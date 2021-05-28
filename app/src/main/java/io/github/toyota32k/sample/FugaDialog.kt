@@ -19,7 +19,6 @@ class FugaDialog : UtDialog(), View.OnClickListener {
         widthOption = WidthOption.COMPACT
         cancellable = true
         scrollable = false
-
     }
     override fun createBodyView(
         savedInstanceState: Bundle?,

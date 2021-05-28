@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat
 import io.github.toyota32k.R
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
+import io.github.toyota32k.utils.setLayoutWidth
 import kotlin.math.max
 import kotlin.math.min
 
@@ -116,21 +117,17 @@ abstract class UtDialog : UtDialogBase() {
     private val hasGuardColor:Boolean
         get() = guardColor!= GuardColor.INVALID.color
 
+    fun parentDialog() : UtDialog? {
+        return UtDialogHelper.dialogChainToParent(this).filter { it!=this@UtDialog && it is UtDialog }.firstOrNull() as UtDialog?
+    }
+
     @ColorInt
     private fun managedGuardColor():Int {
-        val c = when {
+        return when {
             hasGuardColor -> guardColor
             !cancellable-> GuardColor.DIM.color
             else-> GuardColor.TRANSPARENT.color
         }
-        if(Color.alpha(c)!=0) {
-            for (dlg in UtDialogHelper.dialogChainToParent(this)) {
-                if (dlg is UtDialog) {
-                    return if (Color.alpha(dlg.managedGuardColor()) != 0) GuardColor.TRANSPARENT.color else c
-                }
-            }
-        }
-        return c
     }
 
     @Suppress("unused")
@@ -417,7 +414,6 @@ abstract class UtDialog : UtDialogBase() {
         override fun inflate(id: Int): View {
             return dlg.layoutInflater.inflate(id, bodyContainer, false)
         }
-
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -428,8 +424,7 @@ abstract class UtDialog : UtDialogBase() {
                 // ダイアログの背景を透過させる。
                 // ダイアログテーマとかdialog_frameのルートコンテナの背景を透過させても効果がないので注意。
                 dlg.window?.setBackgroundDrawable(ColorDrawable(managedGuardColor()))
-                rootView =
-                    View.inflate(requireContext(), R.layout.dialog_frame, null) as FrameLayout
+                rootView = View.inflate(requireContext(), R.layout.dialog_frame, null) as FrameLayout
 //            rootView = dlg.layoutInflater.inflate(R.layout.dialog_frame, null) as FrameLayout
                 leftButton = rootView.findViewById(R.id.left_button)
                 rightButton = rootView.findViewById(R.id.right_button)
@@ -465,6 +460,16 @@ abstract class UtDialog : UtDialogBase() {
                 throw e
             }
         }
+    }
+
+    override fun onChildDialogOpened(child: UtDialogBase) {
+        dialog?.window?.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
+        super.onChildDialogOpened(child)
+    }
+
+    override fun onChildDialogClosing(child: UtDialogBase) {
+        dialog?.window?.setBackgroundDrawable(ColorDrawable(managedGuardColor()))
+        return super.onChildDialogClosing(child)
     }
 
     protected open fun onBackgroundTapped(view:View) {
