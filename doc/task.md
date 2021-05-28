@@ -66,4 +66,46 @@ Activity （あるいは、Fragment, ViewModel）からダイアログを開い�
     ```
 
 
+## プロトコルの説明
 
+UtImmortalTaskBase, UtMortalActivity は、UtImmortalTaskManager を使った immortal/mortal 間の典型的な処理を実装するが、以下の規約に従うことで、そのフローをカスタマイズしたり、新たに書き起こすことができる。
+
+1. Immortal Task は ユニークに識別可能なキー（名前）を持つ
+
+    companion object で定義した、TASK_NAME がこれに相当。
+
+2. Mortal Object は、連携する Immortal Task を UtImmortalTaskManager に登録して監視する。
+
+    UtImmortalTaskManager.registerTask()を呼び出すと、タスクテーブルに（なければ）タスクエントリーを追加し、ITaskInfo を返す。Mortal Object は、ITaskInfo.state (LiveData) を observe()することで、タスクの完了を検出する。タスクの結果は、ITaskInfo を介して取得できる。
+
+    UtMortalActivity では、immortalTaskNameList をオーバーライドして、連携する Immortal Task のキーを列挙できるようにしておけば、onResume()で、これらのタスク登録処理を行い、state監視を開始する。タスクの完了は、オーバーライドした notifyImmortalTaskResult()で受け取ることができる。
+
+3. Immortal Task は、開始時にタスクエントリにアタッチし、終了時にデタッチする。
+
+    上記のタスクの登録(registerTask)は、エントリの予約であり、タスクそのものの情報は、Immortal Taskの開始時に attachTask() し、タスク終了時に detachTask()する。
+
+    UtImmortalTaskBaseクラスを使うと、fire()メソッドで、attachTask/detachTaskを自動化できる。
+    
+    タスクエントリが作成されていないと、attachTask()は失敗する。Mortal Object の onResume()などのタイミングでreserveTask()することにより、エントリが登録されることを想定しているが、Mortal Object の開始前からタスクを実行しておくような場合は、ImmortalTaskBase継承クラスのコンストラクタなどで、UtImmortalTaskManager.createTask() を呼んでおく。
+
+
+4. Immortal Task 内からダイアログを表示するときは、suspend fun で同期的に呼び出せる。
+   
+   UtDialogBaseのimmortalTaskName プロパティにタスク名をセットしてshow()すると、ダイアログのcomplete時に、この名前のタスクに対して、IUtImmortalTask.resumeTask(IUtDialog)を呼び出す規約としている。
+
+   ImmortalTaskBaseでは、suspendCoroutine で待機し、ダイアログを呼び出し、resumeTaskで、待機を解除する一連の処理を、showDialog()メソッドで実装しており、同期的にダイアログの結果を受け取ることができる。
+   
+5. Immortal Task の登録解除
+
+    Immortal Task 側からの detachTask()は、attachTask()前の状態（エントリが予約された状態）に戻すだけであり、タスクエントリは削除されない。
+ 
+   タスクエントリは、Mortal Object側から、UtImmortalTaskManager.disposeTask() を呼び出すことで完全に削除されるが、アプリ実行中に複数回実行されるタスクや、Mortal Object 終了後も生き残るタスクの場合は、登録解除しない、という選択肢もある。 タスクエントリ（ITaskInfo）は、非常に小さいデータクラスであり、（resultに妙な参照をもったデータをセットしない限り）アプリ終了まで残っても支障はない。
+
+   デフォルトで、UtMortalActivity は、finish されるとき（回転などによるonDestroyではない）に、disposeTask()する。アクティビティのfinish時にタスクエントリを残す必要がある場合は、queryDisposeTaskOnFinishActivity()をオーバーライドして、false を返すようにする。
+
+
+
+
+
+
+    

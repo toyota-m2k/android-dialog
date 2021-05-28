@@ -56,7 +56,7 @@ object UtImmortalTaskManager : Closeable  {
     /**
      * タスクを構築してテーブルに登録する
      */
-    private fun createTask(name:String):TaskEntry {
+    fun createTask(name:String):ITaskInfo {
         return TaskEntry(name).apply { taskTable[name]=this }
     }
 
