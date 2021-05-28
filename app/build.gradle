@@ -54,7 +54,7 @@ dependencies {
     implementation "io.reactivex.rxjava3:rxjava:$rx_java_version"
     implementation "io.reactivex.rxjava3:rxandroid:$rx_android_version"
     implementation "io.reactivex.rxjava3:rxkotlin:$rx_kotlin_version"
-    implementation project(":library")
+    implementation project(':dialog')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
