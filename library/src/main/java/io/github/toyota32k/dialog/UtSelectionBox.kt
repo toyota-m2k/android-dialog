@@ -94,7 +94,7 @@ open class UtRadioSelectionBox : UtMessageBox(), DialogInterface.OnClickListener
     }
 
     companion object {
-        fun create(title:String?, items:Array<String>, initialSelection:Int, okLabel:String=UtStandardString.OK.text, cancelLabel:String?=null) : UtRadioSelectionBox {
+        fun create(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=null) : UtRadioSelectionBox {
             return UtRadioSelectionBox().apply {
                 this.title = title
                 this.items = items
@@ -126,7 +126,7 @@ class UtMultiSelectionBox
     }
 
     companion object {
-        fun create(title:String, items:Array<String>, initialSelections:BooleanArray?, okLabel:String=UtStandardString.OK.text, cancelLabel:String?=null) : UtMultiSelectionBox{
+        fun create(title:String, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=null) : UtMultiSelectionBox {
             return UtMultiSelectionBox().apply {
                 this.title = title
                 this.items = items

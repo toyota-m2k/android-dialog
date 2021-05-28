@@ -1,13 +1,9 @@
-package io.github.toyota32k.task
+package io.github.toyota32k.dialog.task
 
-import androidx.annotation.MainThread
 import androidx.lifecycle.*
-import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.utils.setAndGet
 import kotlinx.coroutines.*
 import java.io.Closeable
-import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 
 /**
@@ -70,7 +66,7 @@ object UtImmortalTaskManager : Closeable  {
      * タスクテーブルに登録済みなら、そのタスクを返す。未登録なら作成して登録して返す。
      * attachTask()の前に実行しておく。Activity/Fragmentと協調する場合は、onResumed()から呼び出す。
      */
-    fun reserveTask(name:String, owner: UtDialogOwner) : ITaskInfo {
+    fun reserveTask(name:String, owner: io.github.toyota32k.dialog.UtDialogOwner) : ITaskInfo {
         dialogOwnerStack.push(owner)
         return taskTable[name] ?: createTask(name)
     }
@@ -125,7 +121,7 @@ object UtImmortalTaskManager : Closeable  {
     /**
      * タスクテーブルからエントリを削除する。
      */
-    fun disposeTask(name:String, owner:UtDialogOwner?) {
+    fun disposeTask(name:String, owner: io.github.toyota32k.dialog.UtDialogOwner?) {
         val entry = taskTable[name] ?: return
         owner?.lifecycleOwner?.let {
             entry.state.removeObservers(it)

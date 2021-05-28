@@ -1,15 +1,13 @@
 package io.github.toyota32k.sample
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogHelper
 
-class FugaDialog : UtDialog(), View.OnClickListener {
+class FugaDialog : io.github.toyota32k.dialog.UtDialog(), View.OnClickListener {
     init {
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
@@ -30,6 +28,6 @@ class FugaDialog : UtDialog(), View.OnClickListener {
     }
 
     override fun onClick(v: View?) {
-        UtDialogHelper.cancelAllDialogs(requireActivity())
+        io.github.toyota32k.dialog.UtDialogHelper.cancelAllDialogs(requireActivity())
     }
 }

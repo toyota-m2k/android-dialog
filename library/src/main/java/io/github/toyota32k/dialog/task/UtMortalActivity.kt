@@ -1,4 +1,4 @@
-package io.github.toyota32k.task
+package io.github.toyota32k.dialog.task
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData

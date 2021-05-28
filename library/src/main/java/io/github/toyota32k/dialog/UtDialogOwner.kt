@@ -15,7 +15,7 @@ import java.lang.ref.WeakReference
  * メンバーとして保持する場合は UtDialogWeakOwner を使用すること。
  */
 data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
-    constructor(owner:UtDialogOwner):this(owner.lifecycleOwner)
+    constructor(owner: UtDialogOwner):this(owner.lifecycleOwner)
     init {
         if(!(lifecycleOwner is FragmentActivity || lifecycleOwner is Fragment)) {
             throw IllegalArgumentException("DialogOwner must be FragmentActivity or Fragment")
@@ -54,7 +54,7 @@ fun Fragment.toDialogOwner() = UtDialogOwner(this)
 /**
  * UtDialogOwnerを親にしてダイアログを開くための拡張関数
  */
-fun IUtDialog.show(owner:UtDialogOwner, tag:String) {
+fun IUtDialog.show(owner: UtDialogOwner, tag:String) {
     when(owner.lifecycleOwner) {
         is FragmentActivity -> show(owner.lifecycleOwner, tag)
         is Fragment         -> show(owner.lifecycleOwner, tag)
@@ -70,7 +70,7 @@ fun IUtDialog.show(owner:UtDialogOwner, tag:String) {
 //        is Fragment         -> showDialog(owner.lifecycleOwner, creator)
 //    }
 //}
-fun <D> UtDialogHostManager.NamedReceptor<D>.showDialog(owner:UtDialogOwner, clientData:Any?=null, creator:(UtDialogHostManager.NamedReceptor<D>)->D) where D:IUtDialog {
+fun <D> UtDialogHostManager.NamedReceptor<D>.showDialog(owner: UtDialogOwner, clientData:Any?=null, creator:(UtDialogHostManager.NamedReceptor<D>)->D) where D: IUtDialog {
     when(owner.lifecycleOwner) {
         is FragmentActivity -> showDialog(owner.lifecycleOwner, clientData, creator)
         is Fragment         -> showDialog(owner.lifecycleOwner, clientData, creator)
@@ -78,7 +78,7 @@ fun <D> UtDialogHostManager.NamedReceptor<D>.showDialog(owner:UtDialogOwner, cli
 }
 
 open class UtDialogWeakOwner(owner: LifecycleOwner) : LifecycleEventObserver {
-    constructor(owner:UtDialogOwner) : this(owner.lifecycleOwner)
+    constructor(owner: UtDialogOwner) : this(owner.lifecycleOwner)
     private var weakOwner :WeakReference<LifecycleOwner>? = null
 
     var lifecycleOwner:LifecycleOwner?
@@ -96,7 +96,7 @@ open class UtDialogWeakOwner(owner: LifecycleOwner) : LifecycleEventObserver {
     }
 
 
-    val asDialogOwner:UtDialogOwner?
+    val asDialogOwner: UtDialogOwner?
         get() = lifecycleOwner?.let { UtDialogOwner(it) }
 
     final override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {

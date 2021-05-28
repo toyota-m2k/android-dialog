@@ -46,7 +46,7 @@ interface IUtDialog {
         HIDE_AND_SHOW_ON_POSITIVE,  // onPositiveで閉じるときには、親を表示する。Netatigeのときは非表示のまま
         HIDE_AND_LEAVE_IT       // このダイアログを開くときに非表示にして、あとは知らん
     }
-    var parentVisibilityOption:ParentVisibilityOption
+    var parentVisibilityOption: ParentVisibilityOption
 
     var immortalTaskName:String?
 
@@ -64,7 +64,7 @@ interface IUtDialog {
     /**
      * ダイアログ状態をセットして閉じる
      */
-    fun complete(status: Status= Status.POSITIVE)
+    fun complete(status: Status = Status.POSITIVE)
 
     /**
      * ダイアログを（キャンセルして）閉じる

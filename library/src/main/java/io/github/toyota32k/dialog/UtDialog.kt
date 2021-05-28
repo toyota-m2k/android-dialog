@@ -20,7 +20,6 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import io.github.toyota32k.R
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
@@ -118,7 +117,8 @@ abstract class UtDialog : UtDialogBase() {
         get() = guardColor!= GuardColor.INVALID.color
 
     fun parentDialog() : UtDialog? {
-        return UtDialogHelper.dialogChainToParent(this).filter { it!=this@UtDialog && it is UtDialog }.firstOrNull() as UtDialog?
+        return UtDialogHelper.dialogChainToParent(this)
+            .filter { it!=this@UtDialog && it is UtDialog }.firstOrNull() as UtDialog?
     }
 
     @ColorInt
@@ -131,7 +131,7 @@ abstract class UtDialog : UtDialogBase() {
     }
 
     @Suppress("unused")
-    enum class BuiltInButtonType(val string:UtStandardString, val positive:Boolean, val blueColor:Boolean) {
+    enum class BuiltInButtonType(val string: UtStandardString, val positive:Boolean, val blueColor:Boolean) {
         OK(UtStandardString.OK, true, true),
         DONE(UtStandardString.DONE, true, true),
         CLOSE(UtStandardString.CLOSE, true, true),
@@ -258,10 +258,10 @@ abstract class UtDialog : UtDialogBase() {
 
     private fun setupLayout() {
         dialogView.layoutParams = FrameLayout.LayoutParams(widthOption.param, heightOption.param, gravityOption.gravity)
-        if(heightOption==HeightOption.FULL) {
+        if(heightOption== HeightOption.FULL) {
             bodyContainer.setLayoutHeight(0)
         }
-        if(widthOption==WidthOption.FULL) {
+        if(widthOption== WidthOption.FULL) {
             bodyContainer.setLayoutWidth(0)
         }
         setupFixedSize()
@@ -284,7 +284,7 @@ abstract class UtDialog : UtDialogBase() {
     }
 
     private fun setupDynamicSize() {
-        if(widthOption== WidthOption.LIMIT || heightOption== HeightOption.AUTO_SCROLL || heightOption==HeightOption.CUSTOM) {
+        if(widthOption== WidthOption.LIMIT || heightOption== HeightOption.AUTO_SCROLL || heightOption== HeightOption.CUSTOM) {
             rootView.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
                 if (or - ol != r - l || ob - ot != b - t) {
                     onRootViewSizeChanged()
@@ -319,7 +319,7 @@ abstract class UtDialog : UtDialogBase() {
     }
 
     private fun updateDynamicHeight(lp:ConstraintLayout.LayoutParams) : Boolean {
-        if(heightOption== HeightOption.AUTO_SCROLL||heightOption==HeightOption.CUSTOM) {
+        if(heightOption== HeightOption.AUTO_SCROLL ||heightOption== HeightOption.CUSTOM) {
             val winHeight = screenSize.height
             if(winHeight==0) return false
             val containerHeight = bodyContainer.height
@@ -327,7 +327,7 @@ abstract class UtDialog : UtDialogBase() {
             val bodyHeight = bodyView.height
             val maxContainerHeight = winHeight - (dlgHeight - containerHeight)
 
-            val newContainerHeight = if(heightOption==HeightOption.AUTO_SCROLL) {
+            val newContainerHeight = if(heightOption== HeightOption.AUTO_SCROLL) {
                 min(bodyHeight, maxContainerHeight)
             } else {
                 calcCustomContainerHeight(bodyHeight,containerHeight,maxContainerHeight)
@@ -410,7 +410,7 @@ abstract class UtDialog : UtDialogBase() {
 //        }
 //    }
 
-    data class ViewInflater(val dlg:Dialog, val bodyContainer:ViewGroup):IViewInflater {
+    data class ViewInflater(val dlg:Dialog, val bodyContainer:ViewGroup): IViewInflater {
         override fun inflate(id: Int): View {
             return dlg.layoutInflater.inflate(id, bodyContainer, false)
         }

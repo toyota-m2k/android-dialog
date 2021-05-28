@@ -8,8 +8,7 @@ import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import io.github.toyota32k.BuildConfig
-import io.github.toyota32k.task.UtImmortalTaskManager
+import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
@@ -85,7 +84,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * 子ダイアログが開いたときに呼び出される。
      * 子ダイアログのparentVisibilityOptionに従って、親ダイアログを非表示にする。
      */
-     open fun onChildDialogOpened(child:UtDialogBase) {
+     open fun onChildDialogOpened(child: UtDialogBase) {
          if (child.parentVisibilityOption != IUtDialog.ParentVisibilityOption.NONE) {
              if (visible) {
                  visible = false
@@ -97,7 +96,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * 子ダイアログが閉じたときに呼び出される。
      * 子ダイアログのparentVisibilityOptionに従って、親ダイアログを表示する。
      */
-    open fun onChildDialogClosing(child:UtDialogBase) {
+    open fun onChildDialogClosing(child: UtDialogBase) {
         if(!visible) {
             if (child.parentVisibilityOption == IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW ||
                 (child.parentVisibilityOption == IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_POSITIVE && child.status.positive) ||
@@ -222,12 +221,12 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     }
 
     override fun show(activity:FragmentActivity, tag:String?) {
-        if(tag!=null && UtDialogHelper.findChildDialog(activity,tag)!=null) return
+        if(tag!=null && UtDialogHelper.findChildDialog(activity, tag) !=null) return
         super.show(activity.supportFragmentManager, tag)
     }
 
     override fun show(fragment: Fragment, tag:String?) {
-        if(tag!=null && UtDialogHelper.findChildDialog(fragment,tag)!=null) return
+        if(tag!=null && UtDialogHelper.findChildDialog(fragment, tag) !=null) return
         super.show(fragment.childFragmentManager, tag)
     }
 

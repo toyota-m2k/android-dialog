@@ -5,28 +5,28 @@ import android.widget.Button
 import io.github.toyota32k.dialog.*
 import io.github.toyota32k.sample.HogeDialog
 import io.github.toyota32k.sample.SamplePortalDialog
-import io.github.toyota32k.task.UtImmortalTaskManager
-import io.github.toyota32k.task.UtMortalActivity
+import io.github.toyota32k.dialog.task.UtImmortalTaskManager
+import io.github.toyota32k.dialog.task.UtMortalActivity
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
-class MainActivity : UtMortalActivity(), IUtDialogHost {
+class MainActivity : UtMortalActivity(), io.github.toyota32k.dialog.IUtDialogHost {
     val logger = UtLog("SAMPLE")
-    val dialogHostManager = UtDialogHostManager()
+    val dialogHostManager = io.github.toyota32k.dialog.UtDialogHostManager()
 
     override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME)
 
     override fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {
         logger.info("${taskInfo.name} ${taskInfo.state.value} ${taskInfo.result}")
-        UtMessageBox.createForConfirm("Task Completed", "Task Result=${taskInfo.result}").show(this, "taskCompleted")
+        io.github.toyota32k.dialog.UtMessageBox.createForConfirm("Task Completed", "Task Result=${taskInfo.result}").show(this, "taskCompleted")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        UtStandardString.setContext(this)
+        io.github.toyota32k.dialog.UtStandardString.setContext(this)
         dialogHostManager["hoge"] = {
             logger.info("hoge:${it.status}")
         }
@@ -37,7 +37,7 @@ class MainActivity : UtMortalActivity(), IUtDialogHost {
         }
         findViewById<Button>(R.id.message_button).setOnClickListener {
             //UtMultiSelectionBox.select(this,"hoge", "タイトル", arrayOf("hoge", "fuga", "piyo"), booleanArrayOf(true,false,true), cancelLabel = getString(R.string.cancel))
-            UtMessageBox.createForOkCancel("UtMessageBox", "テストです").show(this, "utmessage")
+            io.github.toyota32k.dialog.UtMessageBox.createForOkCancel("UtMessageBox", "テストです").show(this, "utmessage")
         }
         findViewById<Button>(R.id.rx_dialog_button).setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
@@ -56,7 +56,7 @@ class MainActivity : UtMortalActivity(), IUtDialogHost {
         }
     }
 
-    override fun queryDialogResultReceptor(tag: String): IUtDialogResultReceptor? {
+    override fun queryDialogResultReceptor(tag: String): io.github.toyota32k.dialog.IUtDialogResultReceptor? {
         return dialogHostManager.queryDialogResultReceptor(tag)
     }
 

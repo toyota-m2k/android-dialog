@@ -2,7 +2,6 @@ package io.github.toyota32k.dialog
 
 import android.content.Context
 import androidx.annotation.StringRes
-import io.github.toyota32k.R
 import java.lang.ref.WeakReference
 
 enum class UtStandardString(@StringRes val id:Int) {
@@ -21,7 +20,7 @@ enum class UtStandardString(@StringRes val id:Int) {
         private var context:WeakReference<Context>? = null
         @JvmStatic
         fun setContext(context:Context) {
-            this.context = WeakReference(context)
+            Companion.context = WeakReference(context)
         }
     }
 }

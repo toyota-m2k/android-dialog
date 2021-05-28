@@ -1,6 +1,5 @@
-package io.github.toyota32k.task
+package io.github.toyota32k.dialog.task
 
-import io.github.toyota32k.dialog.UtDialogOwner
 import java.io.Closeable
 
 /**
@@ -26,6 +25,6 @@ interface IUtImmortalTask : Closeable {
  * ライフサイクルオブジェクト（死んだり生き返ったりするオブジェクト:Activity/Fragment）を取得するための i/f
  */
 interface IUiMortalInstanceSource {
-    suspend fun <T> withOwner(ticket:Any?=null, fn: suspend (Any, UtDialogOwner)->T):T
-    suspend fun <T> withOwner(clazzSpecified:Class<*>, ticket:Any?, fn: suspend (Any, UtDialogOwner)->T):T
+    suspend fun <T> withOwner(ticket:Any?=null, fn: suspend (Any, io.github.toyota32k.dialog.UtDialogOwner)->T):T
+    suspend fun <T> withOwner(clazzSpecified:Class<*>, ticket:Any?, fn: suspend (Any, io.github.toyota32k.dialog.UtDialogOwner)->T):T
 }

@@ -1,7 +1,7 @@
 package io.github.toyota32k
 
 import io.github.toyota32k.dialog.UtMessageBox
-import io.github.toyota32k.task.UtImmortalTaskBase
+import io.github.toyota32k.dialog.task.UtImmortalTaskBase
 import kotlinx.coroutines.delay
 
 class SampleTask : UtImmortalTaskBase(TASK_NAME) {
@@ -16,7 +16,7 @@ class SampleTask : UtImmortalTaskBase(TASK_NAME) {
         delay(3*1000)
         logger.info("dialog")
         val r = showDialog(TASK_NAME) {
-            UtMessageBox.createForOkCancel("Suspend Dialog", "Are you ready?")
+            io.github.toyota32k.dialog.UtMessageBox.createForOkCancel("Suspend Dialog", "Are you ready?")
         }
         delay(3*1000)
         taskResult = r?.status?.ok ?: false

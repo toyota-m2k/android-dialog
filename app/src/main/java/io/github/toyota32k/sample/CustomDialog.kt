@@ -10,7 +10,7 @@ import io.github.toyota32k.bindit.list.ListViewAdapter
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.setLayoutHeight
 
-class CustomDialog : UtDialog() {
+class CustomDialog : io.github.toyota32k.dialog.UtDialog() {
     init {
         title="Auto Scroll Test"
         setLimitWidth(400)
