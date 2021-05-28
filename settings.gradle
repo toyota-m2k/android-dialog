@@ -1,2 +1,3 @@
+rootProject.name = "utdialog"
+include ':library'
 include ':app'
-rootProject.name = "DialogSample"

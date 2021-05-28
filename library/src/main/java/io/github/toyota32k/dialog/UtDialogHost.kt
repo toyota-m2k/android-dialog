@@ -94,7 +94,7 @@ class UtDialogHostManager: IUtDialogHost {
     /**
      * タグに対する receptor を登録する。（インデクサ）
      */
-    operator fun get(tag:String):IUtDialogResultReceptor? {
+    operator fun get(tag:String): IUtDialogResultReceptor? {
         return queryDialogResultReceptor(tag)
     }
 
@@ -171,7 +171,7 @@ class UtDialogHostManager: IUtDialogHost {
     /**
      * ReceptorImpl からコールバックする情報をカプセル化するための i/f
      */
-    interface ISubmission<D> where D:IUtDialog {
+    interface ISubmission<D> where D: IUtDialog {
         val dialog:D        // completeしたダイアログ
         val clientData:Any?         // IUtDialogのbundleに退避しておいた任意のデータ（任意といっても、Bundleに覚えられる型に限る）
     }
@@ -184,7 +184,8 @@ class UtDialogHostManager: IUtDialogHost {
      * @param submit ダイアログがcompleteしたときに呼び出されるコールバックi/f。
      */
     @Suppress("UNCHECKED_CAST")
-    inner class NamedReceptor<D>(private val tag:String, val submit:(ISubmission<D>)->Unit) : IUtDialogResultReceptor, ISubmission<D> where D:IUtDialog {
+    inner class NamedReceptor<D>(private val tag:String, val submit:(ISubmission<D>)->Unit) : IUtDialogResultReceptor,
+        ISubmission<D> where D: IUtDialog {
         init {
             setReceptor(this.tag, this)
         }
@@ -225,7 +226,7 @@ class UtDialogHostManager: IUtDialogHost {
          */
         @JvmOverloads
         fun showDialog(activity: FragmentActivity, clientData:Any?=null, creator:(NamedReceptor<D>)->D) {
-            if(UtDialogHelper.findChildDialog(activity, tag)!=null) return
+            if(UtDialogHelper.findChildDialog(activity, tag) !=null) return
             creator(this).apply{
                 attachDialog(this, clientData)
                 show(activity, tag)
@@ -233,14 +234,14 @@ class UtDialogHostManager: IUtDialogHost {
         }
         @JvmOverloads
         fun showDialog(fragment: Fragment, clientData:Any?=null, creator:(NamedReceptor<D>)->D) {
-            if(UtDialogHelper.findChildDialog(fragment, tag)!=null) return
+            if(UtDialogHelper.findChildDialog(fragment, tag) !=null) return
             creator(this).apply{
                 attachDialog(this, clientData)
                 show(fragment, tag)
             }
         }
 
-        private fun attachDialog(dlg:IUtDialog, clientData:Any?) {
+        private fun attachDialog(dlg: IUtDialog, clientData:Any?) {
             dialogRef = WeakReference(dlg)
             if(clientData!=null) {
                 this.clientData = clientData
@@ -287,7 +288,7 @@ class UtDialogHostManager: IUtDialogHost {
      * つまり、UtDialogHostManagerインスタンスを持っているオブジェクト（通常はViewModel）が、register()が返したNamedReceptorもメンバーとして持っておけばよい。
      * 逆に、この生存期間が異なる場合は、ライフサイクルの短い側で、register()とdispose()をうまい具合にやる必要があって、たぶん絶望する。
      */
-    fun <D> register(tag:String, submit: (ISubmission<D>) -> Unit) : NamedReceptor<D> where D:IUtDialog{
+    fun <D> register(tag:String, submit: (ISubmission<D>) -> Unit) : NamedReceptor<D> where D: IUtDialog {
         return NamedReceptor(tag,submit)
     }
 
@@ -295,7 +296,7 @@ class UtDialogHostManager: IUtDialogHost {
      * すでに作成済みのNamedReceptorを取得する。
      */
     @Suppress("UNCHECKED_CAST")
-    fun <D> find(tag:String):NamedReceptor<D>? where D:IUtDialog {
+    fun <D> find(tag:String): NamedReceptor<D>? where D: IUtDialog {
         return receptorMap[tag] as? NamedReceptor<D>
     }
     // endregion

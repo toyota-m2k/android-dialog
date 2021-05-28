@@ -1,7 +1,5 @@
-package io.github.toyota32k.task
+package io.github.toyota32k.dialog.task
 
-import io.github.toyota32k.dialog.IUtDialog
-import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.dialog.show
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.launch
@@ -68,7 +66,7 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
      * タスク内からダイアログを表示し、complete()までsuspendする。
      */
     @Suppress("UNCHECKED_CAST")
-    protected suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D? where D:IUtDialog {
+    protected suspend fun <D> showDialog(tag:String, dialogSource:(io.github.toyota32k.dialog.UtDialogOwner)-> D) : D? where D: io.github.toyota32k.dialog.IUtDialog {
         val running = UtImmortalTaskManager.taskOf(taskName)
         if(running == null || running.task != this) {
             throw IllegalStateException("task($taskName) is not running")

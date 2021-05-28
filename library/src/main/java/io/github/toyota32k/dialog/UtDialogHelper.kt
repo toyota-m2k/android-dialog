@@ -10,7 +10,7 @@ object UtDialogHelper {
     /**
      * leafからルートに向かって、ダイアログチェーン列挙する
      */
-    fun dialogChainToParent(leaf:IUtDialog) = sequence<IUtDialog> {
+    fun dialogChainToParent(leaf: IUtDialog) = sequence<IUtDialog> {
         var dlg: Fragment? = leaf.asFragment.parentFragment
         while(dlg!=null) {
             if(dlg is IUtDialog) {
@@ -36,23 +36,24 @@ object UtDialogHelper {
     /**
      * parentの子ダイアログを列挙する
      */
-    fun dialogChildren(parent:IUtDialog):Sequence<IUtDialog> {
+    fun dialogChildren(parent: IUtDialog):Sequence<IUtDialog> {
         return dialogChildren(parent.asFragment.childFragmentManager)
     }
 
     /**
      * ダイアログチェーンの先頭（ルートのダイアログ）を取得
      */
-    fun dialogRoot(leaf:IUtDialog):IUtDialog {
+    fun dialogRoot(leaf: IUtDialog): IUtDialog {
         return dialogChainToParent(leaf).last()
     }
 
     /**
      * parentで与えられたダイアログと、その子ダイアログをキャンセルする
      */
-    fun cancelChildren(parent:IUtDialog) {
+    fun cancelChildren(parent: IUtDialog) {
         for(c in dialogChildren(parent)) {
-            c.parentVisibilityOption = IUtDialog.ParentVisibilityOption.NONE    // 閉じるダイアログ（親）が表示されてから閉じるのはブサイクなので非表示のまま閉じる
+            c.parentVisibilityOption =
+                IUtDialog.ParentVisibilityOption.NONE    // 閉じるダイアログ（親）が表示されてから閉じるのはブサイクなので非表示のまま閉じる
             cancelChildren(c)
         }
         parent.cancel()
@@ -67,10 +68,10 @@ object UtDialogHelper {
         }
     }
 
-    fun findChildDialog(activity: FragmentActivity, tag:String):IUtDialog? {
+    fun findChildDialog(activity: FragmentActivity, tag:String): IUtDialog? {
         return activity.supportFragmentManager.findFragmentByTag(tag) as? IUtDialog
     }
-    fun findChildDialog(fragment: Fragment, tag:String):IUtDialog? {
+    fun findChildDialog(fragment: Fragment, tag:String): IUtDialog? {
         return fragment.childFragmentManager.findFragmentByTag(tag) as? IUtDialog
     }
 }

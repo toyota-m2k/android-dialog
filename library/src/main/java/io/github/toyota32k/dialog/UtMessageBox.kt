@@ -41,7 +41,7 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
         /**
          * アクティビティから呼び出すOKボタンだけの確認メッセージ
          */
-        fun createForConfirm(title:String?, message:String?, okLabel:String=UtStandardString.OK.text) : UtMessageBox {
+        fun createForConfirm(title:String?, message:String?, okLabel:String= UtStandardString.OK.text) : UtMessageBox {
             return UtMessageBox().apply {
                 this.title = title
                 this.message = message
@@ -49,7 +49,7 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
             }
         }
 
-        fun createForOkCancel(title:String?, message:String?, okLabel:String=UtStandardString.OK.text, cancelLabel:String=UtStandardString.CANCEL.text) : UtMessageBox {
+        fun createForOkCancel(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancelLabel:String= UtStandardString.CANCEL.text) : UtMessageBox {
             return UtMessageBox().apply {
                 this.title = title
                 this.message = message
@@ -58,7 +58,7 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
             }
         }
 
-        fun createForYesNo(title:String?, message:String?, yesLabel:String=UtStandardString.YES.text, noLabel:String=UtStandardString.NO.text) : UtMessageBox {
+        fun createForYesNo(title:String?, message:String?, yesLabel:String= UtStandardString.YES.text, noLabel:String= UtStandardString.NO.text) : UtMessageBox {
             return createForOkCancel(title,message,yesLabel,noLabel)
         }
     }

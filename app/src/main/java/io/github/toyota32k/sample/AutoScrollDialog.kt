@@ -10,7 +10,7 @@ import androidx.core.view.children
 import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 
-class AutoScrollDialog : UtDialog() {
+class AutoScrollDialog : io.github.toyota32k.dialog.UtDialog() {
     init {
         title="Auto Scroll Test"
         setLimitWidth(400)

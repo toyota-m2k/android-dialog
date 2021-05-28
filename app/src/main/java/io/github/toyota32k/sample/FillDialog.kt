@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
@@ -12,7 +11,7 @@ import io.github.toyota32k.R
 import io.github.toyota32k.bindit.list.ListViewAdapter
 import io.github.toyota32k.dialog.UtDialog
 
-class FillDialog : UtDialog() {
+class FillDialog : io.github.toyota32k.dialog.UtDialog() {
     init {
         title="Auto Scroll Test"
         setLimitWidth(400)

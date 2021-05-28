@@ -6,7 +6,7 @@ import android.widget.EditText
 import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 
-class CompactDialog : UtDialog() {
+class CompactDialog : io.github.toyota32k.dialog.UtDialog() {
     init {
         title="小さいダイアログ"
         setLimitWidth(400)
