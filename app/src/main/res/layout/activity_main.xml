@@ -51,6 +51,12 @@
             android:layout_height="wrap_content"
             android:text="Dialog Catalogue"
             />
+        <Button
+            android:id="@+id/activity_call"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Activity Call"
+            />
     </LinearLayout>
 
 

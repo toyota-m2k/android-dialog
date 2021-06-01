@@ -1,8 +1,11 @@
 package io.github.toyota32k
 
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import androidx.documentfile.provider.DocumentFile
 import io.github.toyota32k.dialog.*
+import io.github.toyota32k.dialog.connector.*
 import io.github.toyota32k.sample.HogeDialog
 import io.github.toyota32k.sample.SamplePortalDialog
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
@@ -13,20 +16,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
-class MainActivity : UtMortalActivity(), io.github.toyota32k.dialog.IUtDialogHost {
+class MainActivity : UtMortalActivity(), IUtDialogHost, IUtActivityConnectorStore {
     val logger = UtLog("SAMPLE")
-    val dialogHostManager = io.github.toyota32k.dialog.UtDialogHostManager()
+    val dialogHostManager = UtDialogHostManager()
 
-    override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME)
+    override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME, FileTestTask.TASK_NAME)
 
     override fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {
         logger.info("${taskInfo.name} ${taskInfo.state.value} ${taskInfo.result}")
-        io.github.toyota32k.dialog.UtMessageBox.createForConfirm("Task Completed", "Task Result=${taskInfo.result}").show(this, "taskCompleted")
+        UtMessageBox.createForConfirm("Task Completed", "Task ${taskInfo.name} Result=${taskInfo.result}").show(this, "taskCompleted")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        io.github.toyota32k.dialog.UtStandardString.setContext(this)
+        UtStandardString.setContext(this)
         dialogHostManager["hoge"] = {
             logger.info("hoge:${it.status}")
         }
@@ -37,7 +40,7 @@ class MainActivity : UtMortalActivity(), io.github.toyota32k.dialog.IUtDialogHos
         }
         findViewById<Button>(R.id.message_button).setOnClickListener {
             //UtMultiSelectionBox.select(this,"hoge", "タイトル", arrayOf("hoge", "fuga", "piyo"), booleanArrayOf(true,false,true), cancelLabel = getString(R.string.cancel))
-            io.github.toyota32k.dialog.UtMessageBox.createForOkCancel("UtMessageBox", "テストです").show(this, "utmessage")
+            UtMessageBox.createForOkCancel("UtMessageBox", "テストです").show(this, "utmessage")
         }
         findViewById<Button>(R.id.rx_dialog_button).setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
@@ -54,9 +57,23 @@ class MainActivity : UtMortalActivity(), io.github.toyota32k.dialog.IUtDialogHos
         findViewById<Button>(R.id.catalogue).setOnClickListener {
             SamplePortalDialog().show(this, "Catalogue")
         }
+        findViewById<Button>(R.id.activity_call).setOnClickListener {
+            activityCallTestSelectionReceptor.showDialog(this) {
+                UtSingleSelectionBox().apply {
+                    title = "Activity Call Test"
+                    items = arrayOf(
+                        "Open File",
+                        "Open Multiple Files",
+                        "Create File",
+                        "Select Folder",
+                        "Process in ImmortalTask"
+                    )
+                }
+            }
+        }
     }
 
-    override fun queryDialogResultReceptor(tag: String): io.github.toyota32k.dialog.IUtDialogResultReceptor? {
+    override fun queryDialogResultReceptor(tag: String): IUtDialogResultReceptor? {
         return dialogHostManager.queryDialogResultReceptor(tag)
     }
 
@@ -76,4 +93,106 @@ class MainActivity : UtMortalActivity(), io.github.toyota32k.dialog.IUtDialogHos
             }
         }
     }
+
+
+    val openFilePicker = UtFileOpenPicker(this, arrayOf("text/*")) { uri->
+        logger.info("OpenFile: ${uri}")
+        if(uri!=null) {
+            contentResolver.openInputStream(uri)?.use { stream->
+                val line = stream.bufferedReader().readLine()
+                logger.info(line)
+            }
+        }
+
+    }
+    val openMultiFilePicker = UtMultiFileOpenPicker(this, arrayOf("application/*")) {
+        logger.info("OpenMultipleFile: ${it}")
+    }
+    val createFilePicker = UtFileCreatePicker(this, "test.txt") { uri->
+        logger.info("CreateFile: ${uri}")
+        if(uri!=null) {
+            contentResolver.openOutputStream(uri)?.use { stream->
+                stream.write("hogehoge".toByteArray())
+            }
+        }
+    }
+    var directoryUri:Uri? = null
+    val direcotryPicker = UtDirectoryPicker(this, directoryUri) { uri->
+        logger.info("Directory: ${uri}")
+        if(uri!=null) {
+            directoryUri = uri
+            val dir = DocumentFile.fromTreeUri(this, uri) ?: return@UtDirectoryPicker
+            val file = dir.createFile("text/plain", "x.txt") ?: return@UtDirectoryPicker
+            contentResolver.openOutputStream(file.uri)?.use { stream->
+                stream.write("fugafuga".toByteArray())
+            }
+
+        }
+    }
+
+    companion object {
+        val activityConnectorFactoryBank = UtActivityConnectorFactoryBank(
+            arrayOf< UtActivityConnectorFactoryBank.ActivityConnectorFactory<*,*>>(
+                UtFileOpenPicker.Factory(FileTestTask.TASK_NAME, FileTestTask.OPEN_FILE_CONNECTOR, arrayOf("text/*")),
+                UtDirectoryPicker.Factory(FileTestTask.TASK_NAME, FileTestTask.OPEN_DIRECTORY_CONNECTOR, null),
+            ))
+    }
+
+    val activityConnectorStore = activityConnectorFactoryBank.createConnectorStore(this)
+    override fun getActivityConnector(immortalTaskName: String,connectorName: String): UtActivityConnector<*, *>? {
+        return activityConnectorStore.getActivityConnector(immortalTaskName,connectorName)
+    }
+
+    class FileTestTask:UtImmortalActivityConnectorTaskBase(TASK_NAME) {
+        companion object {
+            const val TASK_NAME = "FileTestTask"
+            const val OPEN_DIRECTORY_CONNECTOR = "OpenDirectory"
+            const val OPEN_FILE_CONNECTOR = "OpenFile"
+        }
+
+        override suspend fun execute(): Boolean {
+            val dirUri = launchDirectoryPicker(OPEN_DIRECTORY_CONNECTOR) ?: return false
+
+            withOwner { owner ->
+                val dir = DocumentFile.fromTreeUri(owner.asContext(), dirUri)
+                val file = dir?.createFile("text/plain", "xxx.txt")
+                if(file!=null) {
+                    withContext(Dispatchers.IO) {
+                        owner.asContext().contentResolver.openOutputStream(file.uri)?.use { stream ->
+                            stream.write("piyopiyo".toByteArray())
+                        }
+                    }
+                }
+            }
+
+            val fileUrl = launchFileOpenPicker(OPEN_FILE_CONNECTOR) ?: return false
+            withOwner { owner->
+                withContext(Dispatchers.IO) {
+                    owner.asContext().contentResolver.openInputStream(fileUrl)?.use { stream ->
+                        val line = stream.bufferedReader().readLine()
+                        logger.info(line)
+                    }
+                    val file = DocumentFile.fromSingleUri(owner.asContext(),fileUrl)
+                    file?.delete()
+                }
+            }
+
+            logger.info("task completed")
+            return true
+        }
+    }
+
+    val activityCallTestSelectionReceptor = dialogHostManager.register<UtSingleSelectionBox>("activityCallTestSelectionReceptor") {
+        if(it.dialog.status.ok) {
+            when (it.dialog.selectedIndex) {
+                0 -> openFilePicker.launch()
+                1 -> openMultiFilePicker.launch()
+                2 -> createFilePicker.launch()
+                3 -> direcotryPicker.launch()
+                4 -> FileTestTask().fire()
+                else -> {}
+            }
+        }
+    }
+
 }

@@ -1,20 +1,20 @@
 package io.github.toyota32k.dialog
 
-import android.content.DialogInterface
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 
+@Suppress("unused")
 interface IUtDialog {
     /**
      * ダイアログの状態
      */
-    enum class Status(val index:Int) {
-        UNKNOWN(0),
-        POSITIVE(DialogInterface.BUTTON_POSITIVE),
-        NEGATIVE(DialogInterface.BUTTON_NEGATIVE),
-        NEUTRAL(DialogInterface.BUTTON_NEUTRAL);
+    enum class Status {
+        UNKNOWN,
+        POSITIVE,
+        NEGATIVE,
+        NEUTRAL;
 
         val finished : Boolean
             get() = this != UNKNOWN
@@ -36,24 +36,7 @@ interface IUtDialog {
     }
     val status: Status
 
-    /**
-     * 子ダイアログを開くときに親ダイアログを隠すかどうか
-     */
-    enum class ParentVisibilityOption {
-        NONE,                   // 何もしない：表示しっぱなし
-        HIDE_AND_SHOW,          // このダイアログを開くときに非表示にして、閉じるときに表示する
-        HIDE_AND_SHOW_ON_NEGATIVE,  // onNegativeで閉じるときには、親を表示する。Positiveのときは非表示のまま
-        HIDE_AND_SHOW_ON_POSITIVE,  // onPositiveで閉じるときには、親を表示する。Netatigeのときは非表示のまま
-        HIDE_AND_LEAVE_IT       // このダイアログを開くときに非表示にして、あとは知らん
-    }
-    var parentVisibilityOption: ParentVisibilityOption
-
     var immortalTaskName:String?
-
-    /**
-     * ダイアログの表示/非表示
-     */
-    var visible:Boolean
 
     /**
      * ダイアログを表示する

@@ -10,9 +10,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 /**
@@ -65,13 +62,8 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
 
     final override var status: IUtDialog.Status = IUtDialog.Status.UNKNOWN
     final override var immortalTaskName: String? by bundle.stringNullable
-    final override var visible: Boolean
-        get() = dialog?.isShowing ?: false
-        set(v) { dialog?.apply { if(v) show() else hide() } }
     final override val asFragment: DialogFragment
         get() = this
-
-    override var parentVisibilityOption by bundle.enum(IUtDialog.ParentVisibilityOption.NONE) //UtDialogArgumentGenericDelegate { IUtDialog.ParentVisibilityOption.safeValueOf(it, IUtDialog.ParentVisibilityOption.NONE) }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -81,54 +73,21 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     }
 
     /**
-     * 子ダイアログが開いたときに呼び出される。
-     * 子ダイアログのparentVisibilityOptionに従って、親ダイアログを非表示にする。
-     */
-     open fun onChildDialogOpened(child: UtDialogBase) {
-         if (child.parentVisibilityOption != IUtDialog.ParentVisibilityOption.NONE) {
-             if (visible) {
-                 visible = false
-             }
-         }
-     }
-
-    /**
-     * 子ダイアログが閉じたときに呼び出される。
-     * 子ダイアログのparentVisibilityOptionに従って、親ダイアログを表示する。
-     */
-    open fun onChildDialogClosing(child: UtDialogBase) {
-        if(!visible) {
-            if (child.parentVisibilityOption == IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW ||
-                (child.parentVisibilityOption == IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_POSITIVE && child.status.positive) ||
-                (child.parentVisibilityOption == IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE && !child.status.positive)
-            ) {
-                visible = true
-            }
-        }
-    }
-
-    /**
      * ダイアログが開く
      */
-    private suspend fun onDialogOpening() {
-        val parent = parentFragment as? UtDialogBase ?: return
-        delay(100)          // 子ダイアログ(==this)が表示されてから親を閉じるため、ウェイトを入れる
-        parent.onChildDialogOpened(this@UtDialogBase)
+    protected open fun onDialogOpening() {
     }
 
     /**
      * ダイアログが閉じる
      */
-    private suspend fun onDialogClosing() {
-        val parent = parentFragment as? UtDialogBase
-        parent?.onChildDialogClosing(this)
-        delay(100)
+    protected open fun onDialogClosing() {
     }
 
 
     override fun onStart() {
         super.onStart()
-        MainScope().launch { onDialogOpening() }
+        onDialogOpening()
     }
 
     override fun onDetach() {
@@ -143,12 +102,11 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         super.onCancel(dialog)
     }
 
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        onClosed()
-        // cancelやcompleteをすり抜けるケースがあると困るので。。。
-        MainScope().launch { onDialogClosing() }
-    }
+//    override fun onDismiss(dialog: DialogInterface) {
+//        super.onDismiss(dialog)
+//        // cancelやcompleteをすり抜けるケースがあると困るので。。。
+//        onDialogClosing()
+//    }
 
     private fun queryResultReceptor(): IUtDialogResultReceptor? {
         val tag = this.tag ?: return null
@@ -181,9 +139,9 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     /**
      * ok/cancelに関わらず、ダイアログが閉じるときに呼び出される。
      */
-    protected open fun onClosed() {
-        logger.debug("$this")
-    }
+//    protected open fun onClosed() {
+//        logger.debug("$this")
+//    }
 
     /**
      * OK/Doneボタンなどから呼び出す
@@ -194,12 +152,10 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         }
         if (!this.status.finished) {
             this.status = status
-            MainScope().launch {
-                onDialogClosing()
-                onComplete()
-                notifyResult()
-                dismiss()
-            }
+            onDialogClosing()
+            onComplete()
+            notifyResult()
+            dismiss()
         }
     }
 
@@ -211,12 +167,10 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     override fun cancel() {
         if(!status.finished) {
             status = IUtDialog.Status.NEGATIVE
-            MainScope().launch {
-                onDialogClosing()
-                notifyResult()
-                dialog?.cancel()
-                onCancel()  // dialog.cancel()を呼んだら自動的にonCancelが呼ばれるのかと思っていたが、よばれないので明示的に呼ぶ
-            }
+            onDialogClosing()
+            notifyResult()
+            dialog?.cancel()
+            onCancel()  // dialog.cancel()を呼んだら自動的にonCancelが呼ばれるのかと思っていたが、よばれないので明示的に呼ぶ
         }
     }
 

@@ -30,9 +30,9 @@ class HogeDialog : io.github.toyota32k.dialog.UtDialog(), View.OnClickListener,
 
     override fun onClick(v: View?) {
         if(v?.id == R.id.first_button) {
-            FugaDialog().apply{parentVisibilityOption= io.github.toyota32k.dialog.IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE}.show(this, "fuga")
+            FugaDialog().apply{parentVisibilityOption= io.github.toyota32k.dialog.UtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE}.show(this, "fuga")
         } else {
-            PiyoDialog().apply{parentVisibilityOption= io.github.toyota32k.dialog.IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE}.show(this, "piyo")
+            PiyoDialog().apply{parentVisibilityOption= io.github.toyota32k.dialog.UtDialog.ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE}.show(this, "piyo")
         }
     }
 

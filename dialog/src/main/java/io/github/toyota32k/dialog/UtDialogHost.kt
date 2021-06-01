@@ -184,8 +184,7 @@ class UtDialogHostManager: IUtDialogHost {
      * @param submit ダイアログがcompleteしたときに呼び出されるコールバックi/f。
      */
     @Suppress("UNCHECKED_CAST")
-    inner class NamedReceptor<D>(private val tag:String, val submit:(ISubmission<D>)->Unit) : IUtDialogResultReceptor,
-        ISubmission<D> where D: IUtDialog {
+    inner class NamedReceptor<D>(private val tag:String, val submit:(ISubmission<D>)->Unit) : IUtDialogResultReceptor, ISubmission<D> where D:IUtDialog {
         init {
             setReceptor(this.tag, this)
         }

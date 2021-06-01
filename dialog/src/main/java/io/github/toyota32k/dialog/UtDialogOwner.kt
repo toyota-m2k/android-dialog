@@ -15,7 +15,6 @@ import java.lang.ref.WeakReference
  * メンバーとして保持する場合は UtDialogWeakOwner を使用すること。
  */
 data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
-    constructor(owner: UtDialogOwner):this(owner.lifecycleOwner)
     init {
         if(!(lifecycleOwner is FragmentActivity || lifecycleOwner is Fragment)) {
             throw IllegalArgumentException("DialogOwner must be FragmentActivity or Fragment")
@@ -32,6 +31,7 @@ data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
         }
 
     }
+    @Suppress("unused")
     fun asActivity():FragmentActivity? {
         return when(lifecycleOwner) {
             is FragmentActivity->lifecycleOwner
@@ -49,6 +49,7 @@ fun FragmentActivity.toDialogOwner() = UtDialogOwner(this)
 /**
  * Fragment --> UtDialogOwner
  */
+@Suppress("unused")
 fun Fragment.toDialogOwner() = UtDialogOwner(this)
 
 /**
@@ -70,6 +71,7 @@ fun IUtDialog.show(owner: UtDialogOwner, tag:String) {
 //        is Fragment         -> showDialog(owner.lifecycleOwner, creator)
 //    }
 //}
+@Suppress("unused")
 fun <D> UtDialogHostManager.NamedReceptor<D>.showDialog(owner: UtDialogOwner, clientData:Any?=null, creator:(UtDialogHostManager.NamedReceptor<D>)->D) where D: IUtDialog {
     when(owner.lifecycleOwner) {
         is FragmentActivity -> showDialog(owner.lifecycleOwner, clientData, creator)
@@ -78,7 +80,6 @@ fun <D> UtDialogHostManager.NamedReceptor<D>.showDialog(owner: UtDialogOwner, cl
 }
 
 open class UtDialogWeakOwner(owner: LifecycleOwner) : LifecycleEventObserver {
-    constructor(owner: UtDialogOwner) : this(owner.lifecycleOwner)
     private var weakOwner :WeakReference<LifecycleOwner>? = null
 
     var lifecycleOwner:LifecycleOwner?
@@ -110,6 +111,7 @@ open class UtDialogWeakOwner(owner: LifecycleOwner) : LifecycleEventObserver {
         weakOwner = null
     }
 
+    @Suppress("unused")
     val hasOwner:Boolean
         get() = lifecycleOwner!=null
 }

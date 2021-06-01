@@ -20,6 +20,7 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
@@ -62,7 +63,22 @@ abstract class UtDialog : UtDialogBase() {
     var widthHint:Int by bundle.intZero
     var heightHint:Int by bundle.intZero
 
-    override var parentVisibilityOption by bundle.enum(IUtDialog.ParentVisibilityOption.HIDE_AND_SHOW) //UtDialogArgumentGenericDelegate { IUtDialog.ParentVisibilityOption.safeValueOf(it, IUtDialog.ParentVisibilityOption.NONE) }
+    /**
+     * 子ダイアログを開くときに親ダイアログを隠すかどうか
+     */
+    enum class ParentVisibilityOption {
+        NONE,                   // 何もしない：表示しっぱなし
+        HIDE_AND_SHOW,          // このダイアログを開くときに非表示にして、閉じるときに表示する
+        HIDE_AND_SHOW_ON_NEGATIVE,  // onNegativeで閉じるときには、親を表示する。Positiveのときは非表示のまま
+        HIDE_AND_SHOW_ON_POSITIVE,  // onPositiveで閉じるときには、親を表示する。Negativeのときは非表示のまま
+        HIDE_AND_LEAVE_IT       // このダイアログを開くときに非表示にして、あとは知らん
+    }
+    var parentVisibilityOption by bundle.enum(ParentVisibilityOption.HIDE_AND_SHOW)
+    var visible:Boolean
+        get() = dialogView.visibility == View.VISIBLE
+        set(v) { dialogView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
+
+
 
     @Suppress("unused")
     fun setFixedHeight(height:Int) {
@@ -116,10 +132,9 @@ abstract class UtDialog : UtDialogBase() {
     private val hasGuardColor:Boolean
         get() = guardColor!= GuardColor.INVALID.color
 
-    fun parentDialog() : UtDialog? {
-        return UtDialogHelper.dialogChainToParent(this)
-            .filter { it!=this@UtDialog && it is UtDialog }.firstOrNull() as UtDialog?
-    }
+//    fun parentDialog() : UtDialog? {
+//        return UtDialogHelper.dialogChainToParent(this).filter { it!=this@UtDialog && it is UtDialog }.firstOrNull() as UtDialog?
+//    }
 
     @ColorInt
     private fun managedGuardColor():Int {
@@ -131,7 +146,7 @@ abstract class UtDialog : UtDialogBase() {
     }
 
     @Suppress("unused")
-    enum class BuiltInButtonType(val string: UtStandardString, val positive:Boolean, val blueColor:Boolean) {
+    enum class BuiltInButtonType(val string:UtStandardString, val positive:Boolean, val blueColor:Boolean) {
         OK(UtStandardString.OK, true, true),
         DONE(UtStandardString.DONE, true, true),
         CLOSE(UtStandardString.CLOSE, true, true),
@@ -423,7 +438,7 @@ abstract class UtDialog : UtDialogBase() {
                 preCreateBodyView()
                 // ダイアログの背景を透過させる。
                 // ダイアログテーマとかdialog_frameのルートコンテナの背景を透過させても効果がないので注意。
-                dlg.window?.setBackgroundDrawable(ColorDrawable(managedGuardColor()))
+                dlg.window?.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
                 rootView = View.inflate(requireContext(), R.layout.dialog_frame, null) as FrameLayout
 //            rootView = dlg.layoutInflater.inflate(R.layout.dialog_frame, null) as FrameLayout
                 leftButton = rootView.findViewById(R.id.left_button)
@@ -462,15 +477,64 @@ abstract class UtDialog : UtDialogBase() {
         }
     }
 
-    override fun onChildDialogOpened(child: UtDialogBase) {
-        dialog?.window?.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
-        super.onChildDialogOpened(child)
+    val rootDialog : UtDialog
+        get() {
+            var dlg:UtDialog = this
+            var fragment: Fragment = dlg
+            while(true) {
+                fragment = fragment.parentFragment ?: break
+                if(fragment is UtDialog) {
+                    dlg = fragment
+                }
+            }
+            return dlg
+        }
+
+    val parentDialog : UtDialog?
+        get() {
+            var fragment: Fragment? = this.parentFragment
+            while(fragment!=null) {
+                if(fragment is UtDialog) {
+                    return fragment
+                }
+                fragment = fragment.parentFragment
+            }
+            return null
+        }
+
+    protected fun applyGuardColor() {
+        val color = managedGuardColor()
+        if(Color.alpha(color)!=0) {
+            rootDialog.dialog?.window?.setBackgroundDrawable(ColorDrawable(color))
+        } else {
+            val parent = parentDialog
+            if(parent!=null) {
+                parent.applyGuardColor()
+            } else {
+                dialog?.window?.setBackgroundDrawable(ColorDrawable(color))
+            }
+        }
     }
 
-    override fun onChildDialogClosing(child: UtDialogBase) {
-        dialog?.window?.setBackgroundDrawable(ColorDrawable(managedGuardColor()))
-        return super.onChildDialogClosing(child)
+    override fun onDialogOpening() {
+        applyGuardColor()
+        val parent = parentDialog ?: return
+        if (parentVisibilityOption != ParentVisibilityOption.NONE) {
+            parent.visible = false
+        }
     }
+
+    override fun onDialogClosing() {
+        val parent = parentDialog ?: return
+        if(  parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW ||
+            (parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE && status.negative) ||
+            (parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW_ON_POSITIVE && status.positive)) {
+            parent.visible = true
+        }
+        parent.applyGuardColor()
+    }
+
+
 
     protected open fun onBackgroundTapped(view:View) {
         if(view==rootView && cancellable) {

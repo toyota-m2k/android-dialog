@@ -11,7 +11,7 @@ object UtDialogHelper {
      * leafからルートに向かって、ダイアログチェーン列挙する
      */
     fun dialogChainToParent(leaf: IUtDialog) = sequence<IUtDialog> {
-        var dlg: Fragment? = leaf.asFragment.parentFragment
+        var dlg: Fragment? = leaf.asFragment
         while(dlg!=null) {
             if(dlg is IUtDialog) {
                 yield(dlg)
@@ -52,8 +52,6 @@ object UtDialogHelper {
      */
     fun cancelChildren(parent: IUtDialog) {
         for(c in dialogChildren(parent)) {
-            c.parentVisibilityOption =
-                IUtDialog.ParentVisibilityOption.NONE    // 閉じるダイアログ（親）が表示されてから閉じるのはブサイクなので非表示のまま閉じる
             cancelChildren(c)
         }
         parent.cancel()

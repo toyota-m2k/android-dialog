@@ -33,8 +33,9 @@ abstract class UtMortalActivity : AppCompatActivity() {
         super.onResume()
 
         // ImmortalTask に接続する
+        UtImmortalTaskManager.registerOwner(toDialogOwner())
         for(name in immortalTaskNameList) {
-            observeImmortalTask(name, UtImmortalTaskManager.reserveTask(name, toDialogOwner()).state)
+            observeImmortalTask(name, UtImmortalTaskManager.reserveTask(name).state)
         }
     }
 

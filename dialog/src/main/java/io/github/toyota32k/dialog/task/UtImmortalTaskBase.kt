@@ -1,5 +1,7 @@
 package io.github.toyota32k.dialog.task
 
+import io.github.toyota32k.dialog.IUtDialog
+import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.dialog.show
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.launch
@@ -14,7 +16,7 @@ import kotlin.coroutines.suspendCoroutine
 @Suppress("unused")
 abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTask {
 
-    private var continuation:Continuation<Any?>? = null
+    protected var continuation:Continuation<Any?>? = null
     private var dialogOwnerTicket:Any? = null
 
     /**
@@ -62,26 +64,38 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
         }
     }
 
+    protected suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T {
+        val orgTicket = dialogOwnerTicket
+        try {
+            return UtImmortalTaskManager.mortalInstanceSource.withOwner(dialogOwnerTicket) { ticket, owner ->
+                dialogOwnerTicket = ticket
+                fn(owner)
+            }
+        } finally {
+            if(orgTicket==null) {
+                dialogOwnerTicket = null
+            }
+        }
+    }
+
     /**
      * タスク内からダイアログを表示し、complete()までsuspendする。
      */
     @Suppress("UNCHECKED_CAST")
-    protected suspend fun <D> showDialog(tag:String, dialogSource:(io.github.toyota32k.dialog.UtDialogOwner)-> D) : D? where D: io.github.toyota32k.dialog.IUtDialog {
+    protected suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D? where D:IUtDialog {
         val running = UtImmortalTaskManager.taskOf(taskName)
         if(running == null || running.task != this) {
             throw IllegalStateException("task($taskName) is not running")
         }
         logger.debug("dialog opening...")
         val r = withContext<D?>(UtImmortalTaskManager.immortalTaskScope.coroutineContext) {
-            UtImmortalTaskManager.mortalInstanceSource.withOwner(dialogOwnerTicket) { ticket, owner->
-                dialogOwnerTicket = ticket
+            withOwner { owner->
                 suspendCoroutine<Any?> {
                     continuation = it
                     dialogSource(owner).apply { immortalTaskName = taskName }.show(owner, tag)
                 } as D
             }
         }
-        dialogOwnerTicket = null
         logger.debug("dialog closed")
         return r
     }
