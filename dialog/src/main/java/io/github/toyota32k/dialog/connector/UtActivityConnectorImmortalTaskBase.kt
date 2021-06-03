@@ -5,9 +5,16 @@ import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.suspendCoroutine
 
-abstract class UtImmortalActivityConnectorTaskBase(taskName:String) : UtImmortalTaskBase(taskName) {
+/**
+ * ActivityConnectorを利用する ImmortalTaskのベースクラス
+ */
+abstract class UtActivityConnectorImmortalTaskBase(taskName:String) : UtImmortalTaskBase(taskName) {
 
-    private suspend fun <I,O> launchActivityConnector(connectorName:String, launch:(UtActivityConnector<I, O>)->Unit) : O? {
+    /**
+     * ImmortalTask内で、名前で指定したコネクタを実行する。
+     *
+     */
+    suspend fun launchActivityConnector(connectorName:String, launch:(UtActivityConnector<*,*>)->Unit) : Any? {
         val running = UtImmortalTaskManager.taskOf(taskName)
         if(running == null || running.task != this) {
             throw IllegalStateException("task($taskName) is not running")
@@ -20,24 +27,24 @@ abstract class UtImmortalActivityConnectorTaskBase(taskName:String) : UtImmortal
                 val connector = store.getActivityConnector(taskName, connectorName) ?: throw IllegalStateException("no such connector: '$connectorName'")
                 suspendCoroutine<Any?> {
                     continuation = it
-                    launch(connector as UtActivityConnector<I, O>)
-                } as O?
+                    launch(connector)
+                }
             }
         }
         logger.debug("dialog closed")
         return r
     }
 
-    suspend fun <I,O> launchActivityConnector(connectorName: String) : O? {
-        return launchActivityConnector<I,O>(connectorName) { connector->
+    protected suspend inline fun <reified O> launchActivityConnector(connectorName: String) : O? {
+        return launchActivityConnector(connectorName) { connector->
             connector.launch()
-        }
-    }
-    @Suppress("unused")
-    suspend fun <I, O> launchActivityConnector(connectorName: String, arg:I) : O? {
-        return launchActivityConnector<I,O>(connectorName) { connector->
-            connector.launch(arg)
-        }
+        } as? O
     }
 
+    protected suspend inline fun <I, reified O> launchActivityConnector(connectorName: String, arg:I) : O? {
+        return launchActivityConnector(connectorName) { connector->
+            @Suppress("UNCHECKED_CAST")
+            (connector as UtActivityConnector<I,O>).launch(arg)
+        } as? O
+    }
 }

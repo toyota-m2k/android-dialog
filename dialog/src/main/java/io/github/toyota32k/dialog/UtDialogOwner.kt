@@ -39,6 +39,14 @@ data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
             else -> null
         }
     }
+
+    @Suppress("unused")
+    fun asFragment():FragmentActivity? {
+        return when(lifecycleOwner) {
+            is FragmentActivity->lifecycleOwner
+            else -> null
+        }
+    }
 }
 
 /**
