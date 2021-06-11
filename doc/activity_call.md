@@ -74,6 +74,51 @@ UtActivityConnector 仮想クラスのコンストラクタの第１引数は、
 
 実装した UtActivityConnector をImmortalTask から利用できるようにするには、ActivityConnectorFactory を継承したファクトリクラスを作成する必要がある。ActivityConnectorFactoryを実装する場合は、createActivityConnector()メソッドをオーバーライドし、UtActivityConnector継承クラスのインスタンスを返すようにするが、このとき、callback引数には、ImmortalTask専用の UtActivityConnector.ImmortalResultCallback インスタンスを渡すこと。
 
-### 2. Activity / Fragment のコンストラクタで Connectorクラスをインスタンス化
+### 2. Activity / Fragment のメンバとして Connectorクラスをインスタンス化
 
-        
+    通常は、コンストラクタでConnectorインスタンスを作成する。
+    onStart, onCreate/onCreateView でもよいが、onResume では遅すぎる。
+
+```Kotlin
+class SomeActivity : FragmentActivity {
+    val fileOpenPicker = FileOpenPicker(this.toDialogOwner(), "application/pdf") { uri->
+        if(uri!=null) {
+            // uriを使ってファイルにアクセス
+        }
+    }
+    ...
+}
+```
+
+### 3. Connectorを呼び出す
+
+上記 2. で作成したConnector は任意のメソッドから呼び出せる。例えば、R.id.open_file ボタンクリックでこれを呼び出す場合は次の通り。
+
+```Kotlin
+override fun onCreate() {
+    ...
+    findViewById<Button>(R.id.open_file).setOnClickListener {
+        fileOpenPicker.launch()
+    }
+}
+
+```
+
+ここで、次のコードの用に、fileOpenPickerを呼び出すタイミングで作成した方が、美しいと思うかもしれないがこれは間違い！
+
+```Kotlin
+
+lateinit var fileOpenPicker:FileOpenPicker
+override fun onCreate() {
+    ...
+    findViewById<Button>(R.id.open_file).setOnClickListener {
+        // この書き方だと、ボタンクリックされたときにしかfileOpenPickerが登録されず、
+        // FilePickerのActivityから戻ってきたときのActivityでは未登録となり、
+        // 結果を受け取ることができない。
+        fileOpenPicker = FileOpenPicker(this.toDialogOwner(), "application/pdf").apply {
+            launch()
+        }
+    }
+}
+
+```
