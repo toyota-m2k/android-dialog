@@ -9,7 +9,7 @@ UtActivityConnector は、AndroidX のActivity/Fragment で導入された、reg
 
 以下、Activity を呼び出して結果を受け取る方法について、Activity(/Fragment)から実行する場合と、ImmortalTask から実行する場合に分けて説明する。
 
-## Activity(/Fragment)から別のActivityを呼び出して結果を受け取る
+## ■Activity(/Fragment)から別のActivityを呼び出して結果を受け取る
 
 前述の通り、この場合は、AndroidX のActivity/Fragment で導入された、registerForActivityResult() を使う実装そのものなので、あえて UtActivityConnector を使う必要はないが、Activity呼び出しを含む機能をAPI化する場合は、この手順に従い、UtActivityConnectorを実装する。
 
@@ -46,7 +46,7 @@ UtActivityConnector は、AndroidX のActivity/Fragment で導入された、reg
     読み書き用にディレクトリのURLを取得する。取得したURIは、DocumentFile.fromTreeUri()でDocumentFileを作成することにより、そのディレクトリ下のファイルを好きなようにできる。
 
 
-### 1. UtActivityConnectorを継承するConnectorクラスを作成
+## 1. UtActivityConnectorを継承するConnectorクラスを作成
 
 
 以下、UtFileOpenPicker を例にして説明（ただし、説明用にミニマム構成となるよう改変）。
@@ -74,7 +74,7 @@ UtActivityConnector 仮想クラスのコンストラクタの第１引数は、
 
 実装した UtActivityConnector をImmortalTask から利用できるようにするには、ActivityConnectorFactory を継承したファクトリクラスを作成する必要がある。ActivityConnectorFactoryを実装する場合は、createActivityConnector()メソッドをオーバーライドし、UtActivityConnector継承クラスのインスタンスを返すようにするが、このとき、callback引数には、ImmortalTask専用の UtActivityConnector.ImmortalResultCallback インスタンスを渡すこと。
 
-### 2. Activity / Fragment のメンバとして Connectorクラスをインスタンス化
+## 2. Activity / Fragment のメンバとして ActivityConnectorをインスタンス化
 
     通常は、コンストラクタでConnectorインスタンスを作成する。
     onStart, onCreate/onCreateView でもよいが、onResume では遅すぎる。
@@ -90,7 +90,7 @@ class SomeActivity : FragmentActivity {
 }
 ```
 
-### 3. Connectorを呼び出す
+## 3. Connectorを呼び出す
 
 上記 2. で作成したConnector は任意のメソッドから呼び出せる。例えば、R.id.open_file ボタンクリックでこれを呼び出す場合は次の通り。
 
@@ -121,4 +121,116 @@ override fun onCreate() {
     }
 }
 
+```
+
+------
+
+## ■バックグラウンドスレッド（Coroutine）から別のActivityを呼び出して結果を受け取る
+
+UtImmortalTask + UtMortalActivity で、この機能を実現する。
+考え方は、[IUtDialog の場合](./task.md) と同じだが、UtActivityConnector (IUtDialogのIUtDialogResultReceptorに相当)を必ず、Activity/Fragment 側で用意しておく必要がある点が異なる。そのため、ImmortalTask から (Activity/Fragment内の) ActivityConnector を見つけ出すための仕掛けを追加している。
+
+- IUtActivityConnectorStore
+- UtActivityConnectorStore
+- UtActivityConnectorFactoryBank
+
+## 1. UtActivityConnectorImmortalTaskBase を派生するタスククラスを準備する。
+
+UtActivityConnectorImmortalTaskBase を継承したクラスを作成し、execute()をオーバーライドし、UtActivityConnectorImmortalTaskBaseが提供する　launchActivityConnector メソッド、
+
+```Kotlin
+/**
+ * ImmortalTask内で、名前で指定したコネクタのlaunch（引数なし）を実行する。
+ * @param connectorName ActivityConnectorの名前
+ * @return 外部アクティビティからの戻り値
+ */
+protected suspend inline fun <reified O> launchActivityConnector(connectorName: String) : O?
+/**
+ * ImmortalTask内で、名前で指定したコネクタのlaunch（引数あり）を実行する。
+ * @param connectorName ActivityConnectorの名前
+ * @param arg launchに渡す引数
+ * @return 外部アクティビティからの戻り値
+ */
+protected suspend inline fun <I, reified O> launchActivityConnector(connectorName: String, arg:I) : O?
+```
+
+を使って、Activity を起動し、結果を受け取る。
+
+```Kotlin
+class SampleTask : UtActivityConnectorImmortalTaskBase(TASK_NAME) {
+    companion object {
+        const val TASK_NAME = "FileTestTask"
+        const val OPEN_FILE_CONNECTOR_NAME = "OpenFileConnector"
+    }
+
+    override suspend fun execute(): Boolean {
+        val uri = launchActivityConnector<Uri>(OPEN_FILE_CONNECTOR) ?: return false
+        withOwner { owner->
+            owner.asContext().contentResolver.openInputStream(uri)?.use { stream->
+                ...
+            }
+        }
+        return true
+    }
+}
+```
+このように、ImmortalTaskからは、Activityを呼び出して結果を受け取る、という一連のフローを「同期的」に実装できるのだ！！
+
+尚、UtActivityConnectorImmortalTaskBaseは、[UtImmortalTaskBase](./task.md) を継承しているので、IUtDialog との強調動作も可能。
+
+## 2. UtActivityConnector を使用するActivityで IUtActivityConnectorStore を継承する
+
+ImmortalTask との強調動作に必要な処理を隠蔽するため、Activityは、UtMortalActivity の派生クラスとすることを推奨。
+
+```Kotlin
+class SomeActivity : UtMortalActivity,  IUtActivityConnectorStore {
+    ...
+}
+```
+
+## 2. UtActivityConnectorFactoryBank の準備
+
+UtActivityConnectorFactoryBank は、アクティビティが再作成される場合に、そのアクティビティが使用する ActivityConnector を再生成するための情報を保持しておくクラスである。このため、クラスインスタンスではなく、companion object などでインスタンス化しておく。
+
+```Kotlin
+class SomeActivity : UtMortalActivity, IUtActivityConnectorStore {
+    companion object {
+        val activityConnectorFactoryBank = UtActivityConnectorFactoryBank(
+            arrayOf(
+                UtFileOpenPicker.Factory(SomeTask.TASK_NAME, SomeTask.OPEN_FILE_CONNECTOR_NAME, arrayOf("text/*")),
+                UtDirectoryPicker.Factory(OtherTask.TASK_NAME, OtherTask.OPEN_DIRECTORY_CONNECTOR_NANE, null),
+            ))
+    }
+    ...
+}
+```
+
+## 3. UtActivityConnectorStore のインスタンス化
+
+Activityのコンストラクタで、UtActivcityConnectorFactoryBank.createConnectorStore()を呼び出して、UtActivityConnectorStore インスタンスを作成し、IUtActivityConnectorStore #getActivityConnector()を実装する。
+
+```Kotlin
+class SomeActivity : UtMortalActivity, IUtActivityConnectorStore {
+    ...
+    private val activityConnectorStore = activityConnectorFactoryBank.createConnectorStore(this.toDialogOwner())
+
+    override fun getActivityConnector(immortalTaskName: String,connectorName: String): UtActivityConnector<*, *>? {
+        return activityConnectorStore.getActivityConnector(immortalTaskName,connectorName)
+    }
+    ...
+}
+```
+
+## 4. Activityのコンストラクタで、ActivityConnector をインスタンス化
+
+```Kotlin
+class SomeActivity : UtMortalActivity, IUtActivityConnectorStore {
+    ...
+    val fileOpenPicker = FileOpenPicker(this.toDialogOwner(), "application/pdf") { uri->
+        if(uri!=null) {
+            // uriを使ってファイルにアクセス
+        }
+    }
+    ...
+}
 ```
