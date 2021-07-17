@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -241,6 +242,8 @@ abstract class UtDialog : UtDialogBase() {
     }
 
     interface IViewInflater {
+        val layoutInflater: LayoutInflater
+        val bodyContainer:ViewGroup
         fun inflate(@LayoutRes id:Int):View
     }
     protected abstract fun createBodyView(savedInstanceState:Bundle?, inflater: IViewInflater): View
@@ -425,7 +428,9 @@ abstract class UtDialog : UtDialogBase() {
 //        }
 //    }
 
-    data class ViewInflater(val dlg:Dialog, val bodyContainer:ViewGroup): IViewInflater {
+    data class ViewInflater(val dlg:Dialog, override val bodyContainer:ViewGroup): IViewInflater {
+        override val layoutInflater get() = dlg.layoutInflater
+
         override fun inflate(id: Int): View {
             return dlg.layoutInflater.inflate(id, bodyContainer, false)
         }
