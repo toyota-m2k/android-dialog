@@ -15,8 +15,10 @@ abstract class UtMortalActivity : AppCompatActivity() {
 
     /**
      * タスクの結果を受け取るハンドラ
+     * Activityがタスクの結果を知る必要がある場合はオーバーライドする。
+     * 素通しでよければ、オーバーライド不要。
      */
-    protected abstract fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo)
+    protected open fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {}
 
     /**
      * Activity終了時にタスクをdisposeするかどうかを返す。

@@ -16,9 +16,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
-class MainActivity : UtMortalActivity(), IUtDialogHost, IUtActivityConnectorStore {
+class MainActivity private constructor(private val dialogHostManager:UtDialogHostManager) : UtMortalActivity(), IUtDialogHost by dialogHostManager, IUtActivityConnectorStore {
+    constructor() : this(UtDialogHostManager())
     private val logger = UtLog("SAMPLE")
-    private val dialogHostManager = UtDialogHostManager()
+//    private val dialogHostManager = UtDialogHostManager()
 
     override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME, FileTestTask.TASK_NAME)
 
@@ -73,9 +74,13 @@ class MainActivity : UtMortalActivity(), IUtDialogHost, IUtActivityConnectorStor
         }
     }
 
-    override fun queryDialogResultReceptor(tag: String): IUtDialogResultReceptor? {
-        return dialogHostManager.queryDialogResultReceptor(tag)
+    override fun onDestroy() {
+        super.onDestroy()
     }
+
+//    override fun queryDialogResultReceptor(tag: String): IUtDialogResultReceptor? {
+//        return dialogHostManager.queryDialogResultReceptor(tag)
+//    }
 
     private fun flowTest() {
         val flow = MutableStateFlow(0)

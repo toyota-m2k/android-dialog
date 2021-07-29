@@ -1,20 +1,24 @@
-# Lifecycle の苦悩
+# DialogFragment - Lifecycle の苦悩
 
-もう10年くらいAndroidの開発に関わっているが、Android って、iOS や Windows に比べて、「異質（<-全力で控えめにした表現）」だと思う。はじめのころ、Activityを、iOSのViewController, Windows の WindowかPage(UWP)くらいに考えていた。そしてActivityやView がコロコロ入れ替わることに気づく。まるで、大地が消えてなくなるような感じ。コールバックして帰ってきたら、呼び出したActivityが死んでいる。会社から帰宅したら、家がなくなっているような感じ。
+iOS や Windows に比べて、Androidは何か様子がおかしい。はじめてのころ、Activityを、iOSのViewController, Windows の Window(WFP)かPage(UWP)くらいに考えてた。そして「普通に」作っていたら、デバイスを回転するだけで、「いろいろな不具合」が起きた。ActivityやView のインスタンスがコロコロ入れ替わる。コールバックして帰ってきたら、呼び出し元のActivityがもういない。仕事して帰宅したら、家がなくなっているような感じ。
 
-とりわけ、ダイアログやメッセージボックスを表示し、ユーザーの判断によって処理を分岐する、というありふれたフローの実装がやたらと難しいし手間がかかる。そのためか、いたるところに不適切な実装が見られる。Kotlinとかコルーチン、あるいは、ViewModel,LiveData,　Flow など、新しい仕掛けが次々に登場したが、ActivityやFragmentの本質的な気持ち悪さは一貫して変わっていない。
+なかでも、ダイアログやメッセージボックスを表示して、ユーザーの判断によって処理を分岐する、というありふれたフローの実装がやたらと難しく、いたるところに不適切な実装が見られる。Kotlinとかコルーチンとか、あるいは、ViewModel, LiveData といった、新しい仕掛けが次々に登場したが、ActivityやFragmentの本質的な気持ち悪さは一貫して変わっていない。
 
-では、どうすればよいのか、少しでもマシな方法は何なのか。
-というわけで、Dialogを（ほんの少し）作りやすくし、（少しでも）間違った実装をしなくて済むようなライブラリを作ることにした。
+では、ダイアログの結果を待ち受けるにはどうすればよいのか、何が正解なのか？
 
-このドキュメントでは、今回実装した、UtDialogとその関連クラスの背景を理解できるよう、この設計に至るまでの過程を少し遺しておこうと思う。
-## 【１】 始めてAndroidアプリを作る人やってしまいがちな失敗
+というわけで、AndroidでDialogをなんとかうまい具合に実装できないモノかと、さまざま模索、試行錯誤した結果、
+[公式のドキュメント](https://developer.android.com/guide/topics/ui/dialogs?hl=ja) に記載された方法が一番マシ、という結論に達したわけだが、この結論に至るまでの苦悩の過程を遺しておこうと思う。
+
+尚、ダイアログの結果を外部（Activityなど）から受け取ろうとするから苦労するのであって、ダイアログ内でユーザー判断後の処理が閉じている場合、すなわち、onDone()などの中で、ViewModel や、SharedPreferences を書き換える、といった処理なら、何も難しくない。逆に、それで済むように、ロジックを考えることが、一番の解決策かもしれない。
+
+## 【１】 最初の失敗・・・試行錯誤以前に、これはみんな知ってる前提だけど念のため
 
 MainActivity上のSubmitボタン（R.id.submit）が押されたら、「Are you ready? (ok/cancel)」というメッセージボックスを表示し、okが押されたら、次の処理（goAhead()）を実行したい、というとき、
-無邪気なAndroid開発初心者は、AlertDialogを使って、次のように実装してしまうかもしれない。というか、Android生まれのAndroid育ちの開発者以外、iOSとかWindowsとかの開発経験者なら、普通、こんな感じに書いてしまうんじゃないかな？
+無邪気なAndroid初心者が、AlertDialogを使って、次のように実装してしまった。
 
 ```Kotlin
-class MessageBox(val message:String, val callback:(Boolean)->Unit): DialogFragment(), DialogInterface.OnClickListener {
+class MessageBox(val message:String, val callback:(Boolean)->Unit): 
+    DialogFragment(), DialogInterface.OnClickListener {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return AlertDialog.Builder(activity)
             .setMessage(message)
@@ -33,7 +37,9 @@ class MainActivity:AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         ...
         findViewById<Button>(R.id.submit).setOnClickListener {
+            // MainActivity上のボタンを押されたらメッセージボックスを表示
             MessageBox("Are you ready?") { result->
+                // Okなら、次の処理へ進む
                 if(result) { goAhead() }
             }.show(supportFragmentManager, null)
         }
@@ -46,32 +52,20 @@ class MainActivity:AppCompatActivity() {
 }
 
 ```
+当然のことながら、このコードでは、メッセージを表示してから、デバイスを回転したり、他のアプリに切り替えて戻ってきたら死んでしまう。
+デバイスの回転、アプリの切り替えに際しては、ActivityやFragment が作り直される。。。つまり、その前後で、別のインスタンスに変わってしまう。だから、callback を呼び出したMainActivityインスタンスは、すでに死んでいる。死んだインスタンスのデータを操作しようとしたら例外が出る
 
-当然、このコードだと、メッセージを表示してから、デバイスを回転したり、他のアプリに切り替えて戻ってきたら死んでしまう。Androidあるあるだね。
-デバイスの回転、アプリの切り替えに際しては、ActivityやFragment が作り直される。。。つまり、その前後で、別のActivity や Fragmentに変わってしまう、ということを念頭に、上のコードの
-何がダメかというと、大きく２つ、
+もう一つ、本題から逸れるが、class MessageBox のコンストラクタで、messageやcallbackを渡している点もNG（たぶん、コンパイルエラーかワーニングがでるかと）。一般的に、Activity/Fragmentのコンストラクタに、引数を追加してはいけない。これらのインスタンスが OS によって再構築されるとき、カスタムな引数は無視されるからだ。つまり、この例なら、messageやcallbackが未初期化となってしまう。外部からデータを渡したければ、arguments(Bundle)か 、ViewModel を使うのが定石。
 
-1. onResultに渡したラムダの中から、this@MainActivityを参照している（goAhead()を呼んでいる）こと。
-2. MessageBoxクラスのコンストラクタに引数を渡していること。
-
-まず、MessageBoxを表示したときの this@MainActivity は、onResult()が呼ばれたときに生きているとは限らない。そのため、すでに onDestroy()されたMainActivity の goAhead()が呼ばれることになり、「なぜかビューが更新されない」とか、最悪の場合、 IllegalStateException などがスローされて、強制終了したりする。
-
-つぎに、DialogFragmentとかFragment を継承するクラスのコンストラクタに引数を渡すのは、やめた方がいい。Fragmentインスタンス自体が OS によって再構築されるとき、（少なくとも見かけ上）引数無しのコンストラクタが実行される。
-例えば、上のMessageBoxでは、messageもonResultも未初期化(==null)となり、それにアクセスしようとした時（＝okボタンかキャンセルボタンをタップしたとき）に即死する。
-ちなみに、Fragmentに外部からパラメータを渡したければ、arguments(Bundle)か 、ViewModel を使うのが定石。
-
-ややこしいことに、回転とかアプリ切り替えなどの操作で、
+さらにややこしいことに、回転とかアプリ切り替えなどの操作で、
 
 - ActivityやFragmentのインスタンスが再作成される場合（onDestroy/onCreate）
 - Fragmentのビューだけ再作成される場合(onDestroyView/onCreateView)
-- 再利用される場合（onStop/onStart) 
+- 同じインスタンスが再利用される場合（onStop/onStart) 
 
-など、いろいろなパターンがある。これは、Activityの起動オプション（Intent#flagなど）やActivityスタックの状態、操作方法などによって変化する。つまり、状態遷移のパターンが一通りではないので、ちょっと動いたからと言って安心してはいけない。特に、一番シビアな、インスタンスが再作成されるケースでちゃんと動くかどうかの確認を忘れずに。
+など、いろいろなパターンがある。これは、Activityの起動オプション（Intent#flagなど）やActivityスタックの状態、操作方法などによっても変化する。つまり、状態遷移のパターンが一通りではないので、ちょっと動いたからと言って安心してはいけない。特に、一番シビアな、インスタンスが再作成されるケースでちゃんと動くかどうかの確認を忘れずに。
 
-
-#### 寄り道：インスタンスが再作成されるケースの確認方法
-
-Android界では常識だから、書かなくてもみんな知ってるよね？
+#### お節介ついでに：インスタンスが再作成されるケースの確認方法
 
 - システム設定 - 「開発者向けオプション」で、「アクティビティを保持しない」のチェックをONにする。
 - ターゲットアプリを起動し、確認したい画面を表示する。
@@ -93,6 +87,7 @@ Android界では常識だから、書かなくてもみんな知ってるよね�
 
 ```Kotlin
 class MessageBox(): DialogFragment(), DialogInterface.OnClickListener {
+    // 呼び出し元に結果を返すためのi/f定義
     interface MessageBoxListener {
         fun onResult(result:Boolean)
     }
@@ -107,6 +102,8 @@ class MessageBox(): DialogFragment(), DialogInterface.OnClickListener {
             .create()
     }
 
+    // onAttach で context引数にActivity (implements MessageBoxListener) が渡ってくるので、
+    // これをメンバーに覚えておく。
     override fun onAttach(context: Context) {
         super.onAttach(context)
         listener = context as? MessageBoxListener
@@ -122,12 +119,17 @@ class MainActivity:AppCompatActivity(), MessageBox.MessageBoxListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         ...
         findViewById<Button>(R.id.submit).setOnClickListener {
+            // MainActivity上のボタンを押されたらメッセージボックスを表示
             MessageBox().show(supportFragmentManager, null)
         }
     }
 
+    /**
+     * MessageBoxの結果を受け取る (MessageBox.MessageBoxListenerの実装)
+     */
     override fun onResult(result:Boolean) {
         if(result) {
+            // Okなら嗣の処理へ進む
             goAhead()
         }
     }
@@ -140,22 +142,20 @@ class MainActivity:AppCompatActivity(), MessageBox.MessageBoxListener {
 
 ```
 ポイントは、
-- 結果を受け取るためのi/fを定義し、Activityで実装しておく。
-- onAttach()で、そのActivityをメンバに覚えておく
-- これで、ボタンクリックのタイミングで、必ず「結果を受け取るためのi/f」が使用可能となる。
+- 結果を受け取るためのi/fを定義し、MainActivityで実装しておいて、
+- onAttach()で、MainActivityをメンバに覚えるところ。onAttach()は、Activityが作成されるたびに、新しくAttachされるアクティビティを渡してくれるので、古いActivityを参照し続けることがない。
   
-うーん、めんどい。
-いくつものダイアログを使う場合はどうする？ onResultで分岐できるようにする？
-結局、それって、onActivityResult() と同じく、（ダイアログの）表示と、結果の処理が泣き別れるパターンで、書きにくいし読みにくい、イケてない実装になるよね。
+しかし。。。めんどい。
+いくつものダイアログを使う場合はどうする？ ダイアログ毎にi/f定義して、すべてを継承する？ または、１つのi/fだけ定義して、onResultで分岐できるようにする？ それって、ほぼ onActivityResult() だよね。（ダイアログの）表示と、結果の処理が泣き別れるパターンになって、書きにくいし読みにくいやつだよね。
 
-この ダイアログ（DialogFragment） から Activity（やFragment) に結果を返す実装のキモは、Activityから、ダイアログにコールバックポイントを渡すのではなく、「**ダイアログ側から何らかの方法で、コールバックポイントを見つけられるようにする**」という点。これを押さえつつ、別の方法を考えてみよう。
+この ダイアログ（DialogFragment） から Activity（やFragment) に結果を返す実装のキモは、ダイアログを表示するときにコールバックポイントを渡すのではなく、新しいActivityが生成されるたびに、ダイアログに結果を返す方法を設定すること。もう少し一般化するなら、「**ダイアログが結果を返すタイミングで、正しいコールバックポイントを見つけられるようにする方法**」ということになる。
 
 -----
 ## 【３】 ViewModel は救世主たりえるか？
 
 ViewModelは、ActivityやFragmentなどの lifecycleOwner に関連付けることができるデータオブジェクトで、ライフサイクルを越えて存在することができ、且つ、同じライフサイクルに属するActivityとFragment間でViewModelインスタンスを共有できる。ダイアログ側から見つけられる。昔、この仕掛けが初めて登場したとき、すべての問題を解決する救世主に見えたものだ。。。
 
-そこで、上の実装を ViewModel を使って、次のように書き換えてみる。
+そこで、上の実装例を ViewModel を使って、次のように書き換えてみる。
 
 ```Kotlin
 class MessageBoxViewModel: ViewModel() {
@@ -166,7 +166,8 @@ class MessageBoxViewModel: ViewModel() {
 class MessageBox(): DialogFragment(), DialogInterface.OnClickListener {
     lateinit var viewModel:MessageBoxViewModel
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        viewModel = ViewModelProvider(this,ViewModelProvider.NewInstanceFactory()).get(MessageBoxViewModel::class.java)
+        viewModel = ViewModelProvider(this,ViewModelProvider.NewInstanceFactory())
+                    　.get(MessageBoxViewModel::class.java)
         return AlertDialog.Builder(activity)
             .setMessage(viewModel.message)
             .setNegativeButton(R.string.cancel, this)
@@ -183,10 +184,15 @@ class MainActivity:AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         ...
         findViewById<Button>(R.id.submit).setOnClickListener {
+            // ボタンが押された
+            // ViewModelに callbackを設定
             ViewModelProvider(this,ViewModelProvider.NewInstanceFactory())
-            .get(MessageBoxViewModel::class.java)
-            .callback = {if(it){ goAhead() }}
+                .get(MessageBoxViewModel::class.java)
+                .callback = {if(it){ goAhead() }}
+
+            // メッセージボックスを表示
             MessageBox("Are you ready?") { result->
+                // Okなら次へ進む
                 if(result) { goAhead() }
             }.show(supportFragmentManager, null)
         }
@@ -200,28 +206,33 @@ class MainActivity:AppCompatActivity() {
 
 ```
 
-ダイアログからViewModelを見つけて、callback取り出せるので、一見、うまくいきそうだろ？。。。わざと間違えてみた。
+ダイアログからViewModelを見つけて、callback取り出せるので、うまくいきそうだろ？。。。はい、ダメ。
 ダメなのは、ボタンクリックのイベントハンドラ内で、callbackを設定している点。
 Activityが再作成されたとき、callbackが更新されないので、破棄済みのActivityにアクセスしてしまう。
 
+そこで、
 ```Kotlin
 class MainActivity:AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         ...
+        // 将来メッセージボックスを表示するかどうかには関係なく、
+        // あらかじめ ViewModelに callbackを設定
         ViewModelProvider(this, SavedStateViewModelFactory(this.requireActivity().application, this))
-        .get(MessageBoxViewModel::class.java)
-        .callback = {if(it){ goAhead() }}
+            .get(MessageBoxViewModel::class.java)
+            .callback = {if(it){ goAhead() }}
+        
         findViewById<Button>(R.id.submit).setOnClickListener {
+            // ボタンが押されたら、メッセージボックスを表示
             MessageBox("Are you ready?") { result->
+                // Okなら次へ進む
                 if(result) { goAhead() }
             }.show(supportFragmentManager, null)
         }
     }
 ```
-のように、ViewModelへのcallback設定を外に出し、onCreate()で必ず実行されるようにすれば、期待通り動作する。
-つまり、このMessageBoxを使うかどうかに関わらず、常に、このコールバックをViewModelに登録しておく必要があるわけだ。
-他にメッセージボックスやダイアログが複数あるなら、
-やはり、onCreate()で、それらのコールバックを（使うかどうかに関わらず）すべて登録しておく必要がある。うーん、[公式](https://developer.android.com/guide/topics/ui/dialogs?hl=ja) の推奨する Activityにinterfaceを仕込む方法より面倒になってないか？ メッセージボックスみたいなしょぼいダイアログにまでViewModelを持たせるのも、なんだかなぁ。
+のように、ViewModelへのcallback設定を外に出し、onCreate()で必ず実行されるようにすれば、期待通り動作する。[公式](https://developer.android.com/guide/topics/ui/dialogs?hl=ja) と同様に、「新しいActivityが生成されるたびに、ダイアログに結果を返す方法を設定する」ことになるからだ。
+
+うーん、[公式](https://developer.android.com/guide/topics/ui/dialogs?hl=ja) の方法と比べてみると、結果を受け取るコールバックを、DialogFragment::onAttachで設定する代わりに、Activity::onCreateで設定するように変わっただけじゃないか。それどころか、ViewModelが間に挟まった分、逆に面倒になってしまった。
 
 -----
 ## 【４】 Coroutine、真打登場!?
@@ -257,7 +268,10 @@ class MessageBox(): DialogFragment(), DialogInterface.OnClickListener {
             .create()
     }
 
+    // ダイアログの終了まで待機するためのcontinuationインスタンス
     lateinit var continuation: Continuation<Boolean>
+
+    // メッセージボックスを表示して、ok/cancelで閉じられるまで待機する
     suspend fun showMessage(fm:FragmentManager) {
         suspendCoroutine<Boolean> {
             continuation = it
@@ -266,6 +280,7 @@ class MessageBox(): DialogFragment(), DialogInterface.OnClickListener {
     }
 
     override fun onClick(dialog: DialogInterface?, which: Int) {
+        // 結果を返す
         continuation.resume(which==DialogInterface.BUTTON_POSITIVE)
     }
 }
@@ -276,6 +291,7 @@ class MainActivity:AppCompatActivity() {
         ...
         findViewById<Button>(R.id.submit).setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
+                // ボタンがクリックされたら メッセージボックスを表示し、結果を返すまで待機(suspend)
                 var result = MessageBox().showMessage(supportFragmentManager)
                 if(result) {
                     goAhead()
@@ -292,8 +308,8 @@ class MainActivity:AppCompatActivity() {
 
 ```
 
-これは素敵だ。だいたい動く、だいたい。。。
-DialogFragmentインスタンスが再作成されるケース（＝onDestroy/onCreateが呼ばれるケース）で、continuationフィールドがnullになって、NREで死ぬ。残念。continuationフィールドに相当するオブジェクトをダイアログ側から見つける方法がないと、コルーチンではダメなのだよ。
+これは素敵だ。そして、だいたい動く、うん、だいたい。
+DialogFragmentインスタンスが再作成されるケース（＝onDestroy/onCreateが呼ばれるケース）で、continuationフィールドがnullになって、NREで死ぬ。残念。だから、待ち受けるcontinuationフィールドはActivity側に持たせて、これをダイアログ側から見つける方法がないと、コルーチンではダメなのだよ。
 
 それでも諦めきれず、いろいろ調べてみると、
 [Coroutine時代のDialogFragment](https://qiita.com/idaisuke/items/b4f3c2e0a872544b97d0) という記事で、「Rxとコルーチンでダイアログの待ち合わせに成功した」というのを見つけた。これだ！
@@ -311,9 +327,11 @@ DialogFragmentインスタンスが再作成されるケース（＝onDestroy/on
 
 なにが起こっているかというと、まず「回転」の場合は、Fragmentインスタンスの再作成までは不要と判断したOSは、ビュー（DialogFragmentならDialogインスタンス）だけ再作成する。つまり、onDestroyView/onCreateView のライフサイクルをたどるパターンだ。このとき、
 onSaveInstanceState()でBundleに put された SingleSubject は、実際にはシリアライズ(=Parcelへの書き込み）されず、オンメモリのまま、onCreate() や onCreateDialog() に渡ってくる。
-だから、onCreateDialog()で、元のSingleSubjectがそのまま取り出せて、ちゃんと元のObserverを呼び出せる。
+だから、onCreateDialog()で、元のSingleSubjectがそのまま取り出せて、ちゃんと元のObserverを呼び出せる。上記の記事で、「うまくいった」ように見えたのは、この動作。
 
 一方、DialogFragmentインスタンスが再作成されるケースでは、onDestroy()の内部処理あたりで、メモリ上に保持できなくなるBundleの内容をParcelに書き込む処理が行われ、このときはじめてSingleSubjectがシリアライズできないことに気づき、例外を投げて強制終了する。だから、冒頭に書いた「ライフサイクル、状態遷移には、いくつかのパターンがあって、ちょっと動いたからといって安心してはいけない」、というのはこういうことだ。
+
+ちなみに、Androidアプリは強制終了すると、親切にもOSが再起動してくれる。そのため、この実装だと、他のアプリに切り替えて戻ってきたとき、実際にはアプリが１度死んで、再起動されているのだが、見かけ上は「なんかダイアログが閉じた」くらいにしか見えないので、この記事を書いた人は「うまくいっていない」ことに気づかなかったのだと思う。
 
 -----
 ## 【５】ContinuationをViewModelに覚えておけばイケんじゃね？
@@ -325,16 +343,18 @@ ViewModel の生存期間だけコルーチンを実行可能な viewModelScope 
 
 ```Kotlin
 class MessageBoxViewModel: ViewModel() {
+    // ダイアログの終了まで待機するためのcontinuationインスタンス
     lateinit var continuation: Continuation<Boolean>
-    
-    suspend fun showMessage(fm:FragmentManager, dlg:MessageBox):Boolean {
+
+    // メッセージボックスを表示して、ok/cancelで閉じられるまで待機する
+    private suspend fun showMessage(fm:FragmentManager, dlg:MessageBox):Boolean {
         return suspendCoroutine<Boolean> {
             continuation = it
             dlg.show(fm,null)
         }
     }
     
-    fun onSubmit(fm:FragmentManager) {
+    fun showMessage(fm:FragmentManager) {
         viewModelScope.launch { 
             val result = showMessage(fm, MessageBox())
             if(result) {
@@ -390,13 +410,26 @@ Coroutineとか、ViewModelとか、周辺事情は日々進化しているけ�
 ## 【６】 結局どうしたか
 
 思いつくこと、できそうなことは、すべて試した（と思う）。
-その結果、誠に遺憾ながら、公式ドキュメントに書いている方法が一番マシ、という結論しか導けなかった。
-ならば、これを、できるだけ抽象化・一般化して、汎用性・拡張性のある仕掛けを用意しようじゃないか、というのが最終的なアプローチ。
-できれば、少しでも書きやすく、読みやすいように。
+結局、ActivityやFragmentでダイアログの結果を受け取るには、公式ドキュメントに書いている方法がよい(マシ？)、というのが結論だ。
 
+で、これを、できるだけ抽象化・一般化して、汎用性・拡張性のある仕掛けをつくってみたのが、このライブラリ。
+
+このライブラリは、次の３つのインターフェースを定義するとともに、それぞれのコンクリートクラスを実装している。
+
+- IUtDialog
+    ダイアログ、メッセージボックスの i/f
+- IUtDialogResultReceptor
+    ダイアログから結果を受け取るi/f
 - IUtDialogHost
-  
+    適切な IUtDialogResultReceptor を探すためのi/f
+
+すなわち、IUtDialogから、（公式ドキュメントの通り）IUtDialogHost を実装したActivity/Fragmentを見つけて、そのi/fから、IUtDialogResultReceptor を取得して、呼び出せるようにした。IUtDialogResultReceptorを実装する（＝データを受け取る）のは、ActivityでもFragmentでもViewModelでも、その他のオブジェクトでも構わない。
+
+ちなみに、ViewModelによるActivity/FragmentとDialog間のデータ共有、という単純な方法も考えられた。しかし、数ある（かもしれない）ViewModelの中から、共有に使う ViewModel を選び出すあたりが、どうしてもダイアログ毎の実装になってしまうし、そもそも、MessageBoxごときにもViewModelが必須というのはいかがなものか、ということで、より柔軟で共通実装をまとめやすい i/f構成とした。
+
+参照：  
 [IUtDialog の結果を Activity/Fragment/ViewModel で受け取るには](./dialog_management.md)
+
 
 -----
 ## 【７】 Coroutine 再び
@@ -416,15 +449,16 @@ Coroutineとか、ViewModelとか、周辺事情は日々進化しているけ�
 対策として、まず最初に思いつくのは、ViewModelScope でログインを実行する方法。
 これなら、Activityが入れ替わってもViewModelが生きていれば、正しく動く。Activityが死ぬときは、ViewModelも死に、ログイン処理のコルーチンがキャンセルされるので、辻褄は合う。バックグランドタスクなので、【５】の場合と違って、宙ぶらりんで残ってしまうビューはないから大丈夫。
 だが、「ログインボタンを押した」というユーザー操作は、まるでなかったことにされてしまうが、それでよいか？
-ログイン程度の通信なら、やり直してください、で済むかもしれないが、大きいファイルのDLとか、もっと時間のかかる処理だったら？
+ログイン程度の操作なら、やり直してください、で済むかもしれないが、ウィザードのようなUIで、いろいろ入力した挙句、やり直してください、と言われたら、このクソアプリが、と悪態の一つもつきたくなる。
 
 こういう場合どうやるのが正解なのか？　と思って調べていると、[キャンセルしちゃダメ絶対なコルーチン＆パターン](https://medium.com/androiddevelopers/coroutines-patterns-for-work-that-shouldnt-be-cancelled-e26c40f142a) にたどり着いた。超絶要約すると、
 - アプリ（プロセス）の生存に関わらず、キャンセルしちゃダメな処理は、[WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager)を使いましょう。
 - アプリが生きている間だけ動作すればいい（アプリ終了時にキャンセルされてもいい、or キャンセルされるべき）処理は、アプリケーションスコープの CoroutineScope(SupervisorJob()) で、コルーチンを使いましょう。
 ということ。
 
-先ほどのログインの例などは、このアプリケーションスコープがぴったりくるな。ログインに時間がかかっているとき、他のアプリに切り替えて、しばらくして戻ったらログイン完了している。アプリを終了されたら、ログイン処理はキャンセル。うん、いい感じ。
-ちょっと待て。「コルーチンの生存期間と、DialogFragment などのライフサイクルが一致しない」問題が復活しているではないか！
+先ほどのログインの例などは、２つ目の「アプリケーションスコープ」がぴったりくる。ログインに時間がかかっているとき、他のアプリに切り替えて、しばらくして戻ったらログイン完了している。アプリを終了されたら、ログイン処理はキャンセル。うん、いい感じ。
+
+だが、ちょっと待て。「コルーチンの生存期間と、DialogFragment などのライフサイクルが一致しない」問題が復活しているではないか！
 
 状況を整理しよう。まず、生存期間に関して、２種類のオブジェクトが存在する。
 - アプリケーションスコープ上のコルーチンは、ライフサイクルを持たず、死なない。
@@ -434,13 +468,11 @@ Coroutineとか、ViewModelとか、周辺事情は日々進化しているけ�
 これらのオブジェクトの間で、実現したいのは、次の動作。
 
 - ImmortalObject（コルーチン）
-  - ダイアログを作る、表示する
-  - このとき親となる Activity/Fragment（MoratlObject）を取得する必要がある（※１）。
-  - ダイアログの完了を待つ（コルーチンのContinuation）
+  - ダイアログを作る、表示する・・・親となる Activity/Fragment（MoratlObject）を取得する必要がある（※１）。
+  - ダイアログの完了を待つ（suspendCoroutine）
 
 - MortalObject（ダイアログ）
-  - 完了を呼び出し元のImmortalに通知する。
-  - このとき、自分を待っているImmortalオブジェクト（のContinuation）を探す必要がある（※２）。
+  - 呼び出し元のImmortalObjectに完了通知・・・自分を待っているImmortalObject（のsuspendCoroutine）を取得する必要がある（※２）。
 
 したがって、新たに必要となるのは、※１、※２の仕掛け。
 
@@ -453,5 +485,6 @@ Coroutineとか、ViewModelとか、周辺事情は日々進化しているけ�
    - UtImmortalTaskManager
 
  
+参照：  
 [IUtDialogをバックグラウンドスレッド（Coroutine）から利用する方法](task.md)
 

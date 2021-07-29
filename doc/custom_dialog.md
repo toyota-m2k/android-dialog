@@ -1,18 +1,44 @@
 # UtDialog クラスを継承してカスタムダイアログを作る
 
-UtDialog は、タイトルバー（leftButton, titleView, rightButton)と、ダイアログボディ(bodyContainer, bodyView) から構成されており、新たにダイアログを作成する場合は、最低限、UtDialogを派生するクラスを作成し、bodyView を作成して返す createBodyView()メソッドをオーバーライドする。
+本ドキュメントでは、カスタムダイアログの実装方法について、いくつかのサンプルを使って説明する。
+UtDialogクラスの詳細（プロパティ、メソッドなど）は、[UtDialog リファレンス](./dialog_reference.md) を参照のこと。
+
+-----
+## ダイアログUIの構成
+
+UtDialog は、タイトルバー（leftButton, titleView, rightButton)と、ダイアログボディ(bodyContainer, bodyView) から構成されている。
+
+```
+UtDialog
+  |
+  +-- タイトルバー
+  |     |
+  |     +-- leftButton
+  |     +-- titleView
+  |     +-- rightButton
+  |
+  +-- bodyContainer
+        |
+        +-- bodyView <-- ここがカスタム
+```
+
+新たにダイアログを作成する場合は、最低限、UtDialogを派生するクラスを作成し、bodyView を作成して返すための createBodyView()メソッドをオーバーライドする。
 
 以下、ダイアログのサイズ（高さ）をどう扱うかを中心に、いくつかのサンプルを挙げて説明する。
 尚、これらのサンプルは、UtDialog派生クラスの作り方を説明するものであり、その目的以外の実装、デバイス回転時などの状態復元などは含んでいない。
 
+-----
 ## 【サンプル１】 最も簡単な例：高さ固定の小さいダイアログ
 
+![sample_compact_dialog](https://user-images.githubusercontent.com/11642381/126146104-5470a299-411e-4335-ba8e-2cece0b69d84.png)
+
+
 これは「名前」を入力させるEditTextが１つだけの、とても小さなダイアログで、HeightOption.COMPACT を使ったダイアログの実装例である。
-このように、PhoneのLandscapeに必ず収まる程度の高さの場合は HeightOption.COMPACT を使用する。
+このように、PhoneのLandscapeに必ず収まる程度の高さの場合は HeightOption.COMPACT (≒WRAP_CONTENT) を使用する。
 
 このオプションを使用する場合、bodyViewのルートViewGroupの layout_height は、必ず、wrap_content または、固定値（dp単位など）を指定する。
 
-尚、ダイアログの幅は、LIMIT (setLimitWidth)を使い、「400pxを最大として画面幅に合わせる」設定としている。Phoneを考慮したダイアログとする場合、常にこの設定だけで事足りるだろう。
+尚、ダイアログの幅は、LIMIT (setLimitWidth)を使い、「400pxを最大として画面幅に合わせる」設定としている。Phoneを考慮したダイアログとする場合、この設定だけで事足りるだろう。
 
 また、入力値の「名前」を呼び出し元に返すため、onPositive()をオーバーライドして、nameプロパティにセットする実装も示している。
 （※このあとのサンプル２以降は、値を返す実装は省略している。）
@@ -75,7 +101,10 @@ class CompactDialog : UtDialog() {
 </LinearLayout>
 ```
 
+-----
 ## 【サンプル２】 中身の高さに合わせて伸縮し、必要ならスクロールする
+
+![sample_auto_scroll_dialog](https://user-images.githubusercontent.com/11642381/126145836-0978343b-495d-4dd5-9a66-ce8b0494ffac.png)
 
 Prefernce設定など、たくさんの設定項目を縦に並べるダイアログの場合は、HeightOption.AUTO_SCROLL を使用する。このオプションを使うと、bodyViewの高さが小さいとき（＝画面内に収まるとき）は、そのサイズにあわせてダイアログの高さが調整され、bodyViewの高さが大きくなり、ダイアログの高さを画面いっぱいに拡大しても収まらなくなれば、bodyViewがスクロールするようになる。
 
@@ -156,7 +185,10 @@ class AutoScrollDialog : UtDialog() {
 </LinearLayout>
 ```
 
+-----
 ## 【サンプル３】 高さ固定のダイアログ ～ 伸縮・スクロールするビューを持つ場合
+
+![sample_fill_dialog](https://user-images.githubusercontent.com/11642381/126147024-6e3604f9-2564-400c-9acd-626c588a729f.png)
 
 ダイアログボディ内に、ListViewやRecycleView, あるいは、自前のScrollView などを持つ場合、HeightOption.AUTO_SCROLL は使えない。
 このような場合は、HeightOption.FILL または、CUSTOM を使用する。このサンプルは、bodyView内に、ListViewを持つダイアログで、HeightOption.FILL を使う場合の実装を示している。
@@ -217,7 +249,7 @@ class FillDialog : UtDialog() {
 }
 ```
 
-`sample_fill_dialog.kt`
+`sample_fill_dialog.xml`
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
@@ -261,7 +293,10 @@ class FillDialog : UtDialog() {
 </LinearLayout>
 ```
 
+-----
 ## 【サンプル４】 高さ可変のダイアログ ～ 伸縮・スクロールするビューを持つ場合
+
+![CustomDialog](https://user-images.githubusercontent.com/11642381/126147336-d08a8e7e-0328-4449-82d2-afe19f3dba7a.png)
 
 サンプル３では、ListViewを常に最大サイズで表示したが、
 「通常は、たかだか数個のアイテムを表示するだけ、まれに、スクロールするほどのアイテムを表示することもある」という場合には、ListViewをできるだけ小さく（中身が表示できる最小高さで）配置したくなる。このような場合は、少しコード量は増えるが、HeightOption.CUSTOM を指定し、calcCustomContainerHeight()をオーバーライドすることにより、AUTO_SCROLL の動作に似た、ListViewの中身にあわせて伸縮するダイアログが実現できる。尚、リストの高さが変化するとき（アイテムが増減するとき）に、updateCustomHeight()を呼んで再配置が必要であることを、UtDialogに伝えることを忘れずに。

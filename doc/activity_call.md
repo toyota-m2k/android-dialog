@@ -2,7 +2,7 @@
 
 「UIを表示して（ユーザーの操作を待って）結果を受け取る」という目的において、ダイアログとAcitivity呼び出し（startActivityForResut/onActivityResult）は共通しており、それぞれがライフサイクルを持つため、BundleやIntentなどシリアライズ可能なオブジェクトを介してデータを受け渡す点も同じである。決定的に異なるのは、ダイアログは、自身のアプリ内、つまり同じメモリ空間に属するオブジェクトなのに対して、Activityは、他のアプリ、他のメモリ空間に属している可能性がある点である。[IUtDialog](./dialog_management.md) の実装では、ダイアログにBundleでデータを渡すが、その結果は（メモリ上の）IUtDialogインスタンスから直接取り出せるので、呼び出したActivity/Fragmentはもちろん、[ImmortalTask](./task.md)でも結果を受け取れた。
 
-これに対して、Activity呼び出しの場合は、**結果を受け取れるのは呼び出したActivity(or Fragment)に限られる**。このため、Activity/Fragmentで結果を受け取る方法は、IUtDialogの場合と、ほとんど同じ形式にできる（というより、IUtDialogの仕掛けをstartActivcityForResultに寄せた、というべきか）が、ImmortalTask から呼び出す場合は、Activity経由で結果を受け取る必要があり、そのため、Activity、ImmortalTask双方に準備・仕掛けが必要となる。
+これに対して、Activity呼び出しの場合は、**結果を受け取れるのは呼び出したActivity(or Fragment)に限られる**。このため、Activity/Fragmentで結果を受け取る方法は、IUtDialogの場合と、ほとんど同じ（というより、IUtDialogの仕掛けをstartActivcityForResultに寄せた、というべきか）だが、ImmortalTask から呼び出す場合は、Activity経由で結果を受け取る必要があり、そのため、Activity、ImmortalTask双方に準備・仕掛けが必要となる。
 
 UtActivityConnector は、AndroidX のActivity/Fragment で導入された、registerForActivityResult() の単純なラッパーだが、これを UtActivityConnectorStore などと組み合わせることで、ImmortalTask から Activity を呼び出して結果を受け取るまでの一連のフローを実現する。
 また、UtActivityConnector は、呼び出すActivity（Intent.action）毎に継承クラスを実装し、処理内容(callback)毎にインスタンス化するので、あらかじめ利用するActivity用のUtActivityConnector 継承クラスを実装しておけば、再利用が容易になる。
