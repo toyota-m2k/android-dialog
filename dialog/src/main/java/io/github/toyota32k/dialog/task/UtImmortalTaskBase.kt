@@ -49,19 +49,25 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
     /**
      * タスクを開始する
      */
-    open fun fire() {
+    fun fire() {
         logger.debug()
-        UtImmortalTaskManager.attachTask(this)
         UtImmortalTaskManager.immortalTaskScope.launch {
-            val result = try {
-                logger.debug("to executed...")
-                execute()
-            } catch(e:Throwable) {
-                logger.stackTrace(e, "ImmortalTask:$taskName")
-                false
-            }
-            UtImmortalTaskManager.detachTask(this@UtImmortalTaskBase, result)
+            fireAsync()
         }
+    }
+
+    suspend fun fireAsync():Boolean {
+        logger.debug()
+        UtImmortalTaskManager.attachTask(this@UtImmortalTaskBase)
+        val result = try {
+            logger.debug("to executed...")
+            execute()
+        } catch(e:Throwable) {
+            logger.stackTrace(e, "ImmortalTask:$taskName")
+            false
+        }
+        UtImmortalTaskManager.detachTask(this@UtImmortalTaskBase, result)
+        return result
     }
 
     protected suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T {

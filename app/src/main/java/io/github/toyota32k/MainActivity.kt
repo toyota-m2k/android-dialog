@@ -16,9 +16,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
-class MainActivity private constructor(private val dialogHostManager:UtDialogHostManager) : UtMortalActivity(), IUtDialogHost by dialogHostManager, IUtActivityConnectorStore {
-    constructor() : this(UtDialogHostManager())
-    private val logger = UtLog("SAMPLE")
+class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
+    override val logger = UtLog("SAMPLE")
 //    private val dialogHostManager = UtDialogHostManager()
 
     override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME, FileTestTask.TASK_NAME)

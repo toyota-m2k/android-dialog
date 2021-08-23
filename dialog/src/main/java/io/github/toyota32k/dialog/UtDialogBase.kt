@@ -97,7 +97,8 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
 
     override fun onCancel(dialog: DialogInterface) {
         if(!status.finished) {
-            status = IUtDialog.Status.NEGATIVE
+//            status = IUtDialog.Status.NEGATIVE
+            onCancel()
         }
         super.onCancel(dialog)
     }

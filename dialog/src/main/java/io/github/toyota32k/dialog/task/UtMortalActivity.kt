@@ -2,12 +2,16 @@ package io.github.toyota32k.dialog.task
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
+import io.github.toyota32k.dialog.IUtDialogHost
+import io.github.toyota32k.dialog.UtDialogHostManager
 import io.github.toyota32k.dialog.toDialogOwner
 
 /**
  * ImmortalTask と協調動作するActivityの基本実装
  */
-abstract class UtMortalActivity : AppCompatActivity() {
+abstract class UtMortalActivity private constructor(protected val dialogHostManager: UtDialogHostManager) : AppCompatActivity(), IUtDialogHost by dialogHostManager {
+    constructor() : this(UtDialogHostManager())
+
     /**
      * タスク名のテーブル
      */
@@ -16,7 +20,7 @@ abstract class UtMortalActivity : AppCompatActivity() {
     /**
      * タスクの結果を受け取るハンドラ
      * Activityがタスクの結果を知る必要がある場合はオーバーライドする。
-     * 素通しでよければ、オーバーライド不要。
+     * 放置でよければ、オーバーライド不要。
      */
     protected open fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {}
 
@@ -59,7 +63,7 @@ abstract class UtMortalActivity : AppCompatActivity() {
      * - 終了ステータス以外は無視。
      * - 終了ステータスの場合は、notifyImmortalTaskResult()を呼ぶ
      */
-    open fun onImmortalTaskStateChanged(taskName:String, state:UtImmortalTaskState) {
+    private fun onImmortalTaskStateChanged(taskName:String, state:UtImmortalTaskState) {
         if(state.finished) {
             val task = UtImmortalTaskManager.taskOf(taskName) ?: return
             notifyImmortalTaskResult(task)
@@ -78,7 +82,5 @@ abstract class UtMortalActivity : AppCompatActivity() {
         }
     }
 
-    companion object {
-        val logger = UtImmortalTaskManager.logger
-    }
+    open val logger = UtImmortalTaskManager.logger
 }
