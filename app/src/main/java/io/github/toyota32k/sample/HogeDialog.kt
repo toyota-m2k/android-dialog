@@ -25,6 +25,9 @@ class HogeDialog : io.github.toyota32k.dialog.UtDialog(), View.OnClickListener,
         return inflater.inflate(R.layout.sample_hoge_dialog).apply {
             findViewById<Button>(R.id.first_button).setOnClickListener(this@HogeDialog)
             findViewById<Button>(R.id.second_button).setOnClickListener(this@HogeDialog)
+            findViewById<Button>(R.id.third_button).setOnClickListener { leftButton.isEnabled = !leftButton.isEnabled }
+            findViewById<Button>(R.id.forth_button).setOnClickListener { rightButton.isEnabled = !rightButton.isEnabled }
+            findViewById<Button>(R.id.fifth_button).setOnClickListener { progressRingOnTitleBar.visibility = if(progressRingOnTitleBar.visibility==View.VISIBLE) View.INVISIBLE else View.VISIBLE }
         }
     }
 

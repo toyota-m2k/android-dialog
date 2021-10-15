@@ -34,18 +34,39 @@
                 style="@style/dlg_left_button_style"
                 android:id="@+id/left_button"
                 android:background="@drawable/dlg_button_bg_white"
-                android:textColor="@color/dlg_white_button_text"
+                android:textColor="@color/dlg_button_fg_white"
                 tools:text="キャンセル"
                 />
-            <TextView
-                android:id="@+id/dialog_title"
-                style="@style/dlg_title_style"
-                tools:text="設定"/>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center|center_horizontal"
+                >
+                <ProgressBar
+                    android:id="@+id/progress_on_title_bar"
+                    android:layout_width="20dp"
+                    android:layout_height="16dp"
+                    android:visibility="invisible"
+                    tools:visibility="visible"
+                    style="?android:attr/progressBarStyleSmall"
+                    />
+                <TextView
+                    android:id="@+id/dialog_title"
+                    style="@style/dlg_title_style"
+                    tools:text="設定"/>
+                <Space
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"/>
+
+            </LinearLayout>
+
             <android.widget.Button
                 style="@style/dlg_right_button_style"
                 android:id="@+id/right_button"
                 android:background="@drawable/dlg_button_bg_blue"
-                android:textColor="@color/dlg_blue_button_text"
+                android:textColor="@color/dlg_button_fg_blue"
                 tools:text="完了"
                 />
         </FrameLayout>

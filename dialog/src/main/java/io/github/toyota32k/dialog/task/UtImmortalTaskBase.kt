@@ -4,6 +4,7 @@ import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.dialog.show
 import io.github.toyota32k.utils.UtLog
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.Continuation
@@ -12,12 +13,18 @@ import kotlin.coroutines.suspendCoroutine
 
 /**
  * ImmortalTask の基本実装
+ * @param taskName  タスクを一意に識別する名前
+ * @param parentContext 親タスクのタスクコンテキスト（ルートタスクならnull）
+ * parentContextを指定すると、親タスクのスコープ&タスク名で実行される。
  */
 @Suppress("unused")
-abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTask {
+abstract class UtImmortalTaskBase(taskName: String, val parentContext:IUtImmortalTaskContext? = null) : IUtImmortalTask {
 
     protected var continuation:Continuation<Any?>? = null
-    private var dialogOwnerTicket:Any? = null
+
+    private val rawTaskContext = parentContext ?: UtImmortalTaskContext(taskName)
+    override var immortalTaskContext: IUtImmortalTaskContext = rawTaskContext
+    override val taskName = rawTaskContext.taskName
 
     /**
      * ダイアログのcomplete待ち用
@@ -31,7 +38,9 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
      * タスク終了時にリソース解放が必要ならオーバーライドする
      */
     override fun close() {
-
+        if(rawTaskContext!==parentContext) {
+            (rawTaskContext as UtImmortalTaskContext).close()
+        }
     }
 
     /**
@@ -49,9 +58,9 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
     /**
      * タスクを開始する
      */
-    fun fire() {
+    fun fire(coroutineScope: CoroutineScope?=null) {
         logger.debug()
-        UtImmortalTaskManager.immortalTaskScope.launch {
+        (coroutineScope ?: UtImmortalTaskManager.immortalTaskScope).launch {
             fireAsync()
         }
     }
@@ -61,26 +70,21 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
         UtImmortalTaskManager.attachTask(this@UtImmortalTaskBase)
         val result = try {
             logger.debug("to executed...")
-            execute()
+            withContext(immortalCoroutineScope.coroutineContext) {
+                execute()
+            }
         } catch(e:Throwable) {
             logger.stackTrace(e, "ImmortalTask:$taskName")
             false
         }
         UtImmortalTaskManager.detachTask(this@UtImmortalTaskBase, result)
+        close()
         return result
     }
 
     protected suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T {
-        val orgTicket = dialogOwnerTicket
-        try {
-            return UtImmortalTaskManager.mortalInstanceSource.withOwner(dialogOwnerTicket) { ticket, owner ->
-                dialogOwnerTicket = ticket
-                fn(owner)
-            }
-        } finally {
-            if(orgTicket==null) {
-                dialogOwnerTicket = null
-            }
+        return UtImmortalTaskManager.mortalInstanceSource.withOwner { owner ->
+            fn(owner)
         }
     }
 
@@ -88,13 +92,13 @@ abstract class UtImmortalTaskBase(override val taskName: String) : IUtImmortalTa
      * タスク内からダイアログを表示し、complete()までsuspendする。
      */
     @Suppress("UNCHECKED_CAST")
-    protected suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D? where D:IUtDialog {
+    protected suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D where D:IUtDialog {
         val running = UtImmortalTaskManager.taskOf(taskName)
         if(running == null || running.task != this) {
             throw IllegalStateException("task($taskName) is not running")
         }
         logger.debug("dialog opening...")
-        val r = withContext<D?>(UtImmortalTaskManager.immortalTaskScope.coroutineContext) {
+        val r = withContext(UtImmortalTaskManager.immortalTaskScope.coroutineContext) {
             withOwner { owner->
                 suspendCoroutine<Any?> {
                     continuation = it

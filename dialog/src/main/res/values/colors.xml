@@ -11,7 +11,9 @@
     <color name="dlg_background">#ececec</color>
     <color name="dlg_background_border">#c1c1c1</color>
     <color name="dlg_blue_button_text">#FFFFFF</color>
+    <color name="dlg_blue_button_text_disabled">#a0a0a0</color>
     <color name="dlg_white_button_text">#323a45</color>
+    <color name="dlg_white_button_text_disabled">#a0a0a0</color>
     <color name="dlg_guard_background_dim">#50000000</color>
     <color name="dlg_guard_background_see_through">#50FFFFFF</color>
     <color name="dlg_guard_background_transparent">#00000000</color>

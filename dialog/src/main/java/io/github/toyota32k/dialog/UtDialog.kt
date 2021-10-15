@@ -15,6 +15,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
@@ -202,10 +203,10 @@ abstract class UtDialog : UtDialogBase() {
             button.text = getText(id)
             if(blue) {
                 button.background = ContextCompat.getDrawable(this, R.drawable.dlg_button_bg_blue)
-                button.setTextColor(getColor(R.color.dlg_blue_button_text))
+                button.setTextColor(getColorStateList(R.color.dlg_button_fg_blue))
             } else {
                 button.background = ContextCompat.getDrawable(this, R.drawable.dlg_button_bg_white)
-                button.setTextColor(getColor(R.color.dlg_white_button_text))
+                button.setTextColor(getColorStateList(R.color.dlg_button_fg_white))
             }
         }
     }
@@ -251,6 +252,7 @@ abstract class UtDialog : UtDialogBase() {
     lateinit var titleView:TextView
     lateinit var leftButton: Button
     lateinit var rightButton: Button
+    lateinit var progressRingOnTitleBar: ProgressBar
 
     lateinit var rootView: FrameLayout              // 全画面を覆う透過の背景となるダイアログのルート：
     lateinit var dialogView:ConstraintLayout        // ダイアログ画面としてユーザーに見えるビュー。rootView上で位置、サイズを調整する。
@@ -449,6 +451,7 @@ abstract class UtDialog : UtDialogBase() {
                 leftButton = rootView.findViewById(R.id.left_button)
                 rightButton = rootView.findViewById(R.id.right_button)
                 titleView = rootView.findViewById(R.id.dialog_title)
+                progressRingOnTitleBar = rootView.findViewById(R.id.progress_on_title_bar)
                 dialogView = rootView.findViewById(R.id.dialog_view)
                 title?.let { titleView.text = it }
                 if (heightOption == HeightOption.AUTO_SCROLL) {

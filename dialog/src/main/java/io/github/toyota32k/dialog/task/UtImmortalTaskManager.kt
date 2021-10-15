@@ -100,10 +100,15 @@ object UtImmortalTaskManager : Closeable  {
      */
     fun attachTask(task:IUtImmortalTask) {
         logger.debug(task.taskName)
-        val entry = taskTable[task.taskName] ?: throw IllegalStateException("no such task: ${task.taskName}")
-        if(entry.task!=null) throw IllegalStateException("task already running: ${task.taskName}")
-        entry.state.value = UtImmortalTaskState.RUNNING
-        entry.task = task
+        try {
+            val entry = taskTable[task.taskName] ?: throw IllegalStateException("no such task: ${task.taskName}")
+            if (entry.task != null) throw IllegalStateException("task already running: ${task.taskName}")
+            entry.state.value = UtImmortalTaskState.RUNNING
+            entry.task = task
+        } catch(e:Throwable) {
+            logger.stackTrace(e)
+            throw e
+        }
     }
 
     /**

@@ -17,17 +17,20 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"/>
 
-    <Button android:text="@string/app_name"
+    <Button android:text="@string/toggle_cancel"
+        android:id="@+id/third_button"
         android:layout_width="300dp"
         android:layout_height="100dp"
         android:layout_gravity="center_horizontal"/>
 
-    <Button android:text="@string/app_name"
+    <Button android:text="@string/toggle_done"
+        android:id="@+id/forth_button"
         android:layout_width="300dp"
         android:layout_height="100dp"
         android:layout_gravity="center_horizontal"/>
 
-    <Button android:text="@string/app_name"
+    <Button android:text="@string/toggle_busy"
+        android:id="@+id/fifth_button"
         android:layout_width="300dp"
         android:layout_height="100dp"
         android:layout_gravity="center_horizontal"/>

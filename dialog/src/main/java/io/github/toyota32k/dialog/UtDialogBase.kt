@@ -54,7 +54,7 @@ import java.lang.ref.WeakReference
 abstract class UtDialogBase : DialogFragment(), IUtDialog {
     val bundle = UtBundleDelegate { ensureArguments() }
 
-    final override fun ensureArguments():Bundle {
+    final override fun ensureArguments(): Bundle {
         return arguments ?: Bundle().apply { arguments = this }
     }
 
