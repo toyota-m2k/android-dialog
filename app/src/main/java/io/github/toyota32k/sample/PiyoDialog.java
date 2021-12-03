@@ -30,6 +30,7 @@ public class PiyoDialog extends UtDialog implements View.OnClickListener, IUtDia
         setHeightOption(HeightOption.FULL);
         setWidthOption(WidthOption.COMPACT);
         setCancellable(false);
+        setDraggable(true);
     }
 
     @NotNull

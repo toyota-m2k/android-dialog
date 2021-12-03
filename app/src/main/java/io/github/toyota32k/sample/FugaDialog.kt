@@ -17,6 +17,7 @@ class FugaDialog : io.github.toyota32k.dialog.UtDialog(), View.OnClickListener {
         widthOption = WidthOption.COMPACT
         cancellable = true
         scrollable = false
+        draggable = true
     }
     override fun createBodyView(
         savedInstanceState: Bundle?,

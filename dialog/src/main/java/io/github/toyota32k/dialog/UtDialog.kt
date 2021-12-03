@@ -1,16 +1,16 @@
 package io.github.toyota32k.dialog
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.Point
+import android.graphics.PointF
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.Button
@@ -27,7 +27,12 @@ import androidx.lifecycle.lifecycleScope
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
@@ -46,6 +51,9 @@ abstract class UtDialog : UtDialogBase() {
      */
     var scrollable:Boolean by bundle.booleanFalse
     var cancellable:Boolean by bundle.booleanTrue
+    var draggable:Boolean by bundle.booleanFalse
+    var clipVerticalOnDrag:Boolean by bundle.booleanTrue
+    var clipHorizontalOnDrag:Boolean by bundle.booleanTrue
 
     @Suppress("unused")
     enum class WidthOption(val param:Int) {
@@ -453,6 +461,9 @@ abstract class UtDialog : UtDialogBase() {
         }
     }
 
+//    private var gestureDetector:GestureDetector? = null
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // Dialogの第２引数でスタイルを渡したら、（そのスタイルの指定やダイアログ側のルートコンテナのlayout指定に関わらず）常に全画面のダイアログが開く。
         return Dialog(requireContext(), R.style.dlg_style).also { dlg ->
@@ -492,6 +503,18 @@ abstract class UtDialog : UtDialogBase() {
                 bodyContainer.addView(bodyView)
                 setupLayout()
                 dlg.setContentView(rootView)
+
+                if(draggable) {
+                    rootView.findViewById<FrameLayout>(R.id.header).setOnTouchListener { v, ev->
+                        if(ev.action == MotionEvent.ACTION_DOWN) {
+                            dragInfo.start(ev)
+                        } else if(ev.action == MotionEvent.ACTION_MOVE) {
+                            dragInfo.move(ev)
+                        }
+                        true
+                    }
+                }
+
             } catch(e:Throwable) {
                 // View作り中のエラーは、デフォルトでログに出る間もなく死んでしまうようなので、キャッチして出力する。throwし直すから死ぬけど。
                 logger.stackTrace(e)
@@ -499,6 +522,41 @@ abstract class UtDialog : UtDialogBase() {
             }
         }
     }
+
+    class DragInfoUnit(val dialogSize:Float, val screenSize:Float, val clip:Boolean) {
+        private var orgDialogPos:Float = 0f
+        private var dragStartPos:Float = 0f
+
+
+        fun start(dialogPos:Float, dragPos:Float) {
+            dragStartPos = dragPos
+            orgDialogPos = dialogPos
+        }
+
+        fun getPosition(dragPos:Float):Float {
+            val newPos = orgDialogPos + (dragPos-dragStartPos)
+            return if(clip) {
+                max(0f, min(newPos, screenSize - dialogSize))
+            } else {
+                newPos
+            }
+        }
+    }
+    inner class DragInfo {
+        val x = DragInfoUnit(dialogView.width.toFloat(), rootView.width.toFloat(),clipHorizontalOnDrag)
+        val y = DragInfoUnit(dialogView.height.toFloat(), rootView.height.toFloat(), clipVerticalOnDrag)
+
+        fun start(ev: MotionEvent) {
+            x.start(dialogView.x, ev.rawX)
+            y.start(dialogView.y, ev.rawY)
+        }
+
+        fun move(ev:MotionEvent) {
+            dialogView.x = x.getPosition(ev.rawX)
+            dialogView.y = y.getPosition(ev.rawY)
+        }
+    }
+    val dragInfo:DragInfo by lazy { DragInfo() }
 
     val rootDialog : UtDialog
         get() {
