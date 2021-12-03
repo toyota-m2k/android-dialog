@@ -23,9 +23,12 @@ import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
 
@@ -338,11 +341,20 @@ abstract class UtDialog : UtDialogBase() {
         onRootViewSizeChanged()
     }
 
+    /**
+     * コンテナ領域（ダイアログ領域ーヘッダー領域）にフィットするダミービュー
+     * （リサイズ時にコンテナ領域のサイズを知るためのリファレンスビュー）
+     */
+    private val refContainerView:View by lazy { rootView.findViewById(R.id.ref_container_view) }
+
+    /**
+     * リサイズ時の高さ調整
+     */
     private fun updateDynamicHeight(lp:ConstraintLayout.LayoutParams) : Boolean {
         if(heightOption== HeightOption.AUTO_SCROLL ||heightOption== HeightOption.CUSTOM) {
             val winHeight = screenSize.height
             if(winHeight==0) return false
-            val containerHeight = bodyContainer.height
+            val containerHeight = refContainerView.height
             val dlgHeight = dialogView.height
             val bodyHeight = bodyView.height
             val maxContainerHeight = winHeight - (dlgHeight - containerHeight)
@@ -362,6 +374,9 @@ abstract class UtDialog : UtDialogBase() {
         return false
     }
 
+    /**
+     * リサイズ時の幅調整
+     */
     private fun updateDynamicWidth(lp:ConstraintLayout.LayoutParams) : Boolean {
         if(widthOption== WidthOption.LIMIT) {
             val winWidth = screenSize.width
@@ -528,7 +543,10 @@ abstract class UtDialog : UtDialogBase() {
         applyGuardColor()
         val parent = parentDialog ?: return
         if (parentVisibilityOption != ParentVisibilityOption.NONE) {
-            parent.visible = false
+            lifecycleScope.launch {
+                delay(500)
+                parent.visible = false
+            }
         }
     }
 
@@ -591,4 +609,13 @@ abstract class UtDialog : UtDialogBase() {
         return true
     }
 
+//    inline fun <T> withProgressRing(fn:()->T):T {
+//        progressRingOnTitleBar.visibility = View.VISIBLE
+//        try {
+//            return fn()
+//        } finally {
+//            progressRingOnTitleBar.visibility = View.INVISIBLE
+//        }
+//    }
+//
 }

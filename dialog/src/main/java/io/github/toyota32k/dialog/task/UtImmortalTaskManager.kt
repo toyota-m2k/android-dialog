@@ -2,6 +2,7 @@ package io.github.toyota32k.dialog.task
 
 import androidx.lifecycle.*
 import io.github.toyota32k.dialog.UtDialogOwner
+import io.github.toyota32k.utils.NamedMutex
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.*
 import java.io.Closeable
@@ -48,21 +49,28 @@ object UtImmortalTaskManager : Closeable  {
     val mortalInstanceSource:IUiMortalInstanceSource = dialogOwnerStack
 
     /**
+     * （アクティブになった時に）タスクオーナー（ライフサイクルオーナー）を登録
+     */
+    fun registerOwner(owner:UtDialogOwner) {
+        dialogOwnerStack.push(owner)
+    }
+
+    /**
      * 名前をキーにタスクを取得
      */
     fun taskOf(name:String):ITaskInfo? {
-        return taskTable[name]
+        return synchronized(taskTable) {
+            taskTable[name]
+        }
     }
 
     /**
      * タスクを構築してテーブルに登録する
      */
-    fun createTask(name:String):ITaskInfo {
-        return TaskEntry(name).apply { taskTable[name]=this }
-    }
-
-    fun registerOwner(owner:UtDialogOwner) {
-        dialogOwnerStack.push(owner)
+    private fun createTask(name:String):ITaskInfo {
+        return synchronized(taskTable) {
+            TaskEntry(name).apply { taskTable[name]=this }
+        }
     }
 
     /**
@@ -72,7 +80,9 @@ object UtImmortalTaskManager : Closeable  {
      * attachTask()の前に実行しておく。Activity/Fragmentと協調する場合は、onResumed()から呼び出す。
      */
     fun reserveTask(name:String) : ITaskInfo {
-        return taskTable[name] ?: createTask(name)
+        return synchronized(taskTable) {
+            taskTable[name] ?: createTask(name)
+        }
     }
 
     /**
@@ -89,6 +99,20 @@ object UtImmortalTaskManager : Closeable  {
 //    }
 
     /**
+     * Activity/Fragment (MortalDialogOwner)と協調動作（タスクの結果をMortalDialogOwnerで受け取る）が必要な場合は、reserveTask()を使う。
+     * タスクだけで完結する場合は、このメソッドで内部的にタスク開始時に自動登録される。
+     */
+    private fun dynamicReserveTask(task:IUtImmortalTask):Boolean {
+        return synchronized(taskTable) {
+            if(taskTable[task.taskName]==null) {
+                logger.debug("open dynamic task: ${task.taskName}")
+                createTask(task.taskName)
+                true
+            } else false
+        }
+    }
+
+    /**
      * 実行中タスクのタスクテーブルへの登録
      *
      * タスクを起動するときに呼び出す。
@@ -98,13 +122,14 @@ object UtImmortalTaskManager : Closeable  {
      *  - これ以前に、reserveTask()されていない。
      *  - 同一タスクの多重起動しようとした。
      */
-    fun attachTask(task:IUtImmortalTask) {
+    private fun attachTask(task:IUtImmortalTask) {
         logger.debug(task.taskName)
         try {
             val entry = taskTable[task.taskName] ?: throw IllegalStateException("no such task: ${task.taskName}")
             if (entry.task != null) throw IllegalStateException("task already running: ${task.taskName}")
             entry.state.value = UtImmortalTaskState.RUNNING
             entry.task = task
+            logger.debug("attached: ${task.taskName}")
         } catch(e:Throwable) {
             logger.stackTrace(e)
             throw e
@@ -119,12 +144,83 @@ object UtImmortalTaskManager : Closeable  {
      * ある意味、意図的にリークさせているので、task.taskResultには、最小限の情報だけを残すようにする。
      * 本当に不要になれば、disposeTask()を呼び出す。
      */
-    fun detachTask(task:IUtImmortalTask, succeeded:Boolean) {
+    private fun detachTask(task:IUtImmortalTask, succeeded:Boolean) {
         logger.debug()
         val entry = taskTable[task.taskName] ?: return
         entry.result = task.taskResult
         entry.state.value = if(succeeded) UtImmortalTaskState.COMPLETED else UtImmortalTaskState.ERROR
         entry.task = null
+        logger.debug("detached: ${task.taskName}")
+    }
+
+    private suspend fun internalExecuteTask(task:IUtImmortalTask, execute:suspend ()->Boolean):Boolean {
+        val dyn = synchronized(taskTable) {
+            // タスク名が未登録なら動的登録
+            dynamicReserveTask(task).also {
+                // タスクをタスクエントリにアタッチ
+                attachTask(task)
+            }
+        }
+        val result = try {
+            // タスクの実行
+            execute()
+        } catch(e:Throwable) {
+            logger.stackTrace(e, "task error.")
+            false
+        }
+        // タスクをデタッチ
+        detachTask(task, result)
+        if(dyn) {
+            logger.debug("close dynamic task: ${task.taskName}")
+            // タスクをクローズ
+            withContext(Dispatchers.IO) {
+                @Suppress("BlockingMethodInNonBlockingContext")
+                try {
+                    task.close()
+                } catch(e:Throwable) {
+                    logger.stackTrace(e)
+                }
+            }
+            // 動的登録した場合は登録を解除しておく
+            synchronized(taskTable) {
+                taskTable.remove(task.taskName)
+            }
+        }
+        return result
+    }
+
+    /**
+     * タスクの実行を開始
+     * もし、同名タスクが実行中なら、それが終わるのを待ってから実行
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    suspend fun beginTaskSequentially(task:IUtImmortalTask, execute:suspend ()->Boolean):Boolean {
+        return NamedMutex.withLock(task.taskName, task) {
+            internalExecuteTask(task, execute)
+        }
+    }
+
+    /**
+     * タスクの実行を開始
+     * もし、同名のタスクが実行中なら、エラーとして、ただちにfalseを返す。
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    suspend fun beginTaskExclusively(task:IUtImmortalTask, execute:suspend ()->Boolean):Boolean {
+        if(!NamedMutex.tryLock(task.taskName, task)) {
+            logger.warn("already running: ${task.taskName}")
+            return false
+        }
+
+        return try {
+            internalExecuteTask(task, execute)
+        } finally {
+            NamedMutex.unlock(task.taskName, task)
+        }
+    }
+
+    suspend fun beginTask(sequential:Boolean, task:IUtImmortalTask, execute: suspend () -> Boolean):Boolean {
+        return if(sequential) beginTaskSequentially(task, execute)
+               else           beginTaskExclusively(task, execute)
     }
 
     /**
@@ -138,7 +234,16 @@ object UtImmortalTaskManager : Closeable  {
         entry.task?.close()
         entry.task = null
         taskTable.remove(name)
+        logger.debug("disposed: $name")
     }
+
+    /**
+     * タスクは実行中か？
+     */
+    fun isRunning(taskName:String):Boolean {
+        return taskOf(taskName)?.task != null
+    }
+
 
     /**
      * 全クリア ... 普通は呼ぶ必要はないとおもう。

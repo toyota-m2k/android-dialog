@@ -18,24 +18,39 @@ interface IUtImmortralTaskMutableContextSource : IUtImmortralTaskContextSource {
 interface IUtImmortalTaskContext: ViewModelStoreOwner {
     val taskName:String
     val coroutineScope:CoroutineScope
+    var clientData:Any?     // タスク実行中のみ利用可能な任意のデータ領域
+    val task : IUtImmortalTask? get() = UtImmortalTaskManager.taskOf(taskName)?.task
 }
 
-class UtImmortalTaskContext(override val taskName:String) : IUtImmortalTaskContext {
+class UtImmortalTaskContext(override val taskName:String, val parentContext:IUtImmortalTaskContext?) : IUtImmortalTaskContext {
     private var mScope: CoroutineScope? = null
     override val coroutineScope:CoroutineScope
-        get() {
-            return mScope ?: CoroutineScope(SupervisorJob() + Dispatchers.Main).apply { mScope=this }
-        }
+        get() = mScope ?: (parentContext?.coroutineScope ?: CoroutineScope(SupervisorJob() + Dispatchers.Main)).apply { mScope=this }
+    override var clientData: Any? = null
 
-    private var mViewModelStore: ViewModelStore? = null
+    private var mViewModelStore: ViewModelStore? = parentContext?.viewModelStore
+
+    init {
+        if(parentContext == this) {
+            throw IllegalArgumentException("recursive task chain.")
+        }
+    }
+
+    /**
+     * ViewModelStoreOwner i/f
+     */
+    @Suppress("RecursivePropertyAccessor")
     override fun getViewModelStore(): ViewModelStore {
-        return mViewModelStore ?: ViewModelStore().apply { mViewModelStore = this }
+        return mViewModelStore ?: (parentContext?.viewModelStore ?: ViewModelStore()).apply { mViewModelStore = this }
     }
 
     fun close() {
-        mScope?.cancel()
+        if(parentContext==null) {
+            mScope?.cancel()
+            mViewModelStore?.clear()
+        }
         mScope = null
-        mViewModelStore?.clear()
         mViewModelStore = null
+        clientData = null
     }
 }

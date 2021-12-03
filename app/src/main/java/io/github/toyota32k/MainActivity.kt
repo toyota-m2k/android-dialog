@@ -83,12 +83,12 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
 
     private fun flowTest() {
         val flow = MutableStateFlow(0)
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.Default).launch {
             val v = flow.filter { it>=5 }.first()
             logger.info("flow:$v")
         }
 
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.Default).launch {
             delay(500)
             for (n in 1..10) {
                 logger.info("emit:$n")
@@ -112,7 +112,7 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
     private val openMultiFilePicker = UtMultiFileOpenPicker(this.toDialogOwner(), arrayOf("application/*")) {
         logger.info("OpenMultipleFile: $it")
     }
-    private val createFilePicker = UtFileCreatePicker(this.toDialogOwner(), "test.txt") { uri->
+    private val createFilePicker = UtFileCreatePicker(this.toDialogOwner(), "test.txt", null) { uri->
         logger.info("CreateFile: $uri")
         if(uri!=null) {
             contentResolver.openOutputStream(uri)?.use { stream->

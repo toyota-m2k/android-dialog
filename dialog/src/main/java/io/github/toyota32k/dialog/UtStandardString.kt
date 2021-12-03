@@ -20,7 +20,7 @@ enum class UtStandardString(@StringRes val id:Int) {
         private var context:WeakReference<Context>? = null
         @JvmStatic
         fun setContext(context:Context) {
-            Companion.context = WeakReference(context)
+            this.context = WeakReference(context)
         }
     }
 }

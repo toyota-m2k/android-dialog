@@ -188,28 +188,31 @@ suspend fun UtActivityConnectorImmortalTaskBase.launchMultiContentPicker(connect
 /**
  * 作成用にファイルを選択
  */
-class UtFileCreatePicker(owner: UtDialogOwner, initialName: String, callback: ActivityResultCallback<Uri>)
-    : UtActivityConnector<String, Uri>(owner.registerForActivityResult(Contract(), callback), initialName) {
+class UtFileCreatePicker(owner: UtDialogOwner, initialName: String, mimeType:String?, callback: ActivityResultCallback<Uri>)
+    : UtActivityConnector<String, Uri>(owner.registerForActivityResult(Contract(mimeType), callback), initialName) {
 
-    private class Contract: ActivityResultContracts.CreateDocument() {
+    private class Contract(val mimeType:String?): ActivityResultContracts.CreateDocument() {
         override fun createIntent(context: Context, input: String): Intent {
             val intent = super.createIntent(context, input)
+            if(!mimeType.isNullOrEmpty()) {
+                intent.setTypeAndNormalize(mimeType)
+            }
             return Intent.createChooser(intent,null)
         }
     }
 
-    class Factory(immortalTaskName: String, connectorName:String, defArg:String)
+    class Factory(immortalTaskName: String, connectorName:String, defArg:String, val mimeType: String?)
         : UtActivityConnectorFactoryBank.ActivityConnectorFactory<String, Uri>(
         UtActivityConnectorKey(immortalTaskName,connectorName), defArg) {
         override fun createActivityConnector(owner: UtDialogOwner): UtActivityConnector<String, Uri> {
-            return createForImmortalTask(key.immortalTaskName, owner, defArg)
+            return createForImmortalTask(key.immortalTaskName, owner, defArg, mimeType)
         }
     }
 
     companion object {
         @JvmStatic
-        fun createForImmortalTask(immortalTaskName:String, owner: UtDialogOwner, initialName:String) : UtFileCreatePicker =
-            UtFileCreatePicker(owner, initialName, ImmortalResultCallback(immortalTaskName))
+        fun createForImmortalTask(immortalTaskName:String, owner: UtDialogOwner, initialName:String, mimeType: String?) : UtFileCreatePicker =
+            UtFileCreatePicker(owner, initialName, mimeType, ImmortalResultCallback(immortalTaskName))
 
     }
 }

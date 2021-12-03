@@ -64,6 +64,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     final override var immortalTaskName: String? by bundle.stringNullable
     final override val asFragment: DialogFragment
         get() = this
+    final override var dontResumeTask:Boolean by bundle.booleanFalse
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -115,8 +116,10 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     }
 
     private fun notifyResult() {
-        immortalTaskName?.let { UtImmortalTaskManager.taskOf(it) }?.task?.resumeTask(this)
-            ?:queryResultReceptor()?.onDialogResult(this)
+        val task = if(!dontResumeTask) {
+            immortalTaskName?.let { UtImmortalTaskManager.taskOf(it) }?.task
+        } else null
+        task?.resumeTask(this) ?: queryResultReceptor()?.onDialogResult(this)
     }
 
     /**
@@ -133,6 +136,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         logger.debug("$this")
         if(!status.finished) {
             status = IUtDialog.Status.NEGATIVE
+            onDialogClosing()
             notifyResult()
         }
     }
@@ -166,13 +170,14 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * setCanceledOnTouchOutside(true)なDialogなら、画面外タップでキャンセルされると思う。
      */
     override fun cancel() {
-        if(!status.finished) {
-            status = IUtDialog.Status.NEGATIVE
-            onDialogClosing()
-            notifyResult()
-            dialog?.cancel()
-            onCancel()  // dialog.cancel()を呼んだら自動的にonCancelが呼ばれるのかと思っていたが、よばれないので明示的に呼ぶ
-        }
+        dialog?.cancel()
+//        if(!status.finished) {
+//            status = IUtDialog.Status.NEGATIVE
+//            onDialogClosing()
+//            notifyResult()
+//            dialog?.cancel()
+//            onCancel()  // dialog.cancel()を呼んだら自動的にonCancelが呼ばれるのかと思っていたが、よばれないので明示的に呼ぶ
+//        }
     }
 
     override fun show(activity:FragmentActivity, tag:String?) {
@@ -186,7 +191,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     }
 
     companion object {
-        val logger = UtLog("DLG")
+        val logger = UtLog("DLG", null, "com.metamoji.")
     }
 
 }

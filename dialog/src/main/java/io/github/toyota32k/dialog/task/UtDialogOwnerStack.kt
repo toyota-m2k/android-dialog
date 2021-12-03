@@ -4,6 +4,7 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.LifecycleOwner
 import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.dialog.UtDialogWeakOwner
+import io.github.toyota32k.utils.Chronos
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -53,7 +54,7 @@ class UtDialogOwnerStack: IUiMortalInstanceSource {
     }
 
     override suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T {
-        val owner = peekOne()
+        val owner = Chronos(UtImmortalTaskManager.logger).measureAsync { peekOne() }
         return fn(owner)
     }
 

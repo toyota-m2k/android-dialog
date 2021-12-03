@@ -82,6 +82,22 @@
             android:layout_marginStart="1dp"
             android:layout_marginEnd="1dp"
             />
+
+        <!-- height option == AUTO_SCROLL の場合のサイズ計算の基準とするダミービュー -->
+        <View
+            android:id="@+id/ref_container_view"
+            android:layout_width="1dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/dlg_content_margin_top"
+            android:layout_marginBottom="@dimen/dlg_content_margin_bottom"
+            android:layout_marginStart="@dimen/dlg_content_margin_left"
+            android:layout_marginEnd="@dimen/dlg_content_margin_right"
+            android:visibility="invisible"
+            app:layout_constraintTop_toBottomOf="@+id/separator"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
         <!-- ダイアログのボディを配置する領域（スクロールなし）-->
         <FrameLayout
             android:id="@+id/body_container"

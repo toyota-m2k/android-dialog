@@ -87,10 +87,9 @@ open class UtRadioSelectionBox : UtMessageBox(), DialogInterface.OnClickListener
     override fun onClick(dialog: DialogInterface?, which: Int) {
         if(0<=which && which<items.size) {
             selectedIndex = which
-            complete(IUtDialog.Status.POSITIVE)
-        } else {
-            super.onClick(dialog, which)
+//            complete(IUtDialog.Status.POSITIVE)
         }
+        super.onClick(dialog, which)
     }
 
     companion object {
