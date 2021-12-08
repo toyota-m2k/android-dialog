@@ -72,6 +72,11 @@ class UtBundleDelegate(val namespace:String?, val source:()->Bundle) {
     val intMinusOne:ReadWriteProperty<Any,Int> by lazy { GenericDelegate<Int>{(it as? Int)?:-1} }
     fun intNonnull(def:Int) : ReadWriteProperty<Any,Int> { return GenericDelegate<Int>{(it as? Int)?:def} }
 
+    // Float
+    val floatNullable:ReadWriteProperty<Any,Float?> by lazy { GenericDelegate<Float?>{it as? Float} }
+    val floatZero:ReadWriteProperty<Any,Float> by lazy { GenericDelegate<Float>{ (it as? Float) ?: 0f }}
+    fun floatNonnull(def:Float) : ReadWriteProperty<Any,Float> { return GenericDelegate<Float>{ (it as? Float) ?: def }}
+
     // Boolean
     val booleanNullable:ReadWriteProperty<Any,Boolean?> by lazy { GenericDelegate<Boolean?>{it as? Boolean} }
     val booleanFalse:ReadWriteProperty<Any,Boolean> by lazy { GenericDelegate<Boolean>{(it as? Boolean)?:false} }
