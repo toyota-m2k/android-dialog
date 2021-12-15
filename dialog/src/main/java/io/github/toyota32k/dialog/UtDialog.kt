@@ -81,23 +81,24 @@ abstract class UtDialog : UtDialogBase() {
      * 幅指定フラグ
      */
     @Suppress("unused")
-    enum class WidthOption(val param:Int) {
-        COMPACT(WRAP_CONTENT),        // WRAP_CONTENT
-        FULL(MATCH_PARENT),           // フルスクリーンに対して、MATCH_PARENT
-        FIXED(WRAP_CONTENT),          // bodyの幅を、widthHint で与えられる値に固定
-        LIMIT(WRAP_CONTENT),          // フルスクリーンを最大値として、widthHint で指定されたサイズを超えないように調整される
+    enum class WidthOption(val param:Int, val isDynamicSizing:Boolean) {
+        COMPACT(WRAP_CONTENT,false),        // WRAP_CONTENT
+        FULL(MATCH_PARENT,false),           // フルスクリーンに対して、MATCH_PARENT
+        FIXED(WRAP_CONTENT,false),          // bodyの幅を、widthHint で与えられる値に固定
+        LIMIT(WRAP_CONTENT,true),          // FULLと同じだが、widthHintで与えられるサイズでクリップされる。
     }
 
     /**
      * 高さ指定フラグ
      */
     @Suppress("unused")
-    enum class HeightOption(val param:Int) {
-        COMPACT(WRAP_CONTENT),        // WRAP_CONTENT
-        FULL(MATCH_PARENT),           // フルスクリーンに対して、MATCH_PARENT
-        FIXED(WRAP_CONTENT),          // bodyの高さを、heightHint で与えられる値に固定
-        AUTO_SCROLL(WRAP_CONTENT),    // MATCH_PARENTを最大値として、コンテントが収まる高さに自動調整。収まらない場合はスクロールする。（bodyには MATCH_PARENTを指定)
-        CUSTOM(WRAP_CONTENT),         // AUTO_SCROLL 的な配置をサブクラスで実装する。その場合、calcCustomContainerHeight() をオーバーライドすること。
+    enum class HeightOption(val param:Int, val isDynamicSizing:Boolean) {
+        COMPACT(WRAP_CONTENT,false),        // WRAP_CONTENT
+        FULL(MATCH_PARENT,false),           // フルスクリーンに対して、MATCH_PARENT
+        FIXED(WRAP_CONTENT,false),          // bodyの高さを、heightHint で与えられる値に固定
+        LIMIT(WRAP_CONTENT,true),           // FULLと同じだが、heightHintで与えられるサイズでクリップされる。
+        AUTO_SCROLL(WRAP_CONTENT,true),    // MATCH_PARENTを最大値として、コンテントが収まる高さに自動調整。収まらない場合はスクロールする。（bodyには MATCH_PARENTを指定)
+        CUSTOM(WRAP_CONTENT,true),         // AUTO_SCROLL 的な配置をサブクラスで実装する。その場合、calcCustomContainerHeight() をオーバーライドすること。
     }
 
     /**
@@ -134,6 +135,18 @@ abstract class UtDialog : UtDialogBase() {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
         heightOption = HeightOption.FIXED
+        heightHint = height
+    }
+
+    /**
+     * ダイアログの高さを指定して、最大高さ指定付き可変高さモードにする。
+     * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
+     */
+    fun setLimitHeight(height:Int) {
+        if(dialog!=null) {
+            throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
+        }
+        heightOption = HeightOption.LIMIT
         heightHint = height
     }
 
@@ -677,7 +690,7 @@ abstract class UtDialog : UtDialogBase() {
      * draggable==true または、gravityOption == CUSTOM の場合は、位置補正（画面内にクリップ）のために、それぞれサイズ変更イベントをフックする。
      */
     private fun setupDynamicSize() {
-        if(widthOption== WidthOption.LIMIT || heightOption== HeightOption.AUTO_SCROLL || heightOption== HeightOption.CUSTOM || draggable || gravityOption == GravityOption.CUSTOM) {
+        if(widthOption.isDynamicSizing || heightOption.isDynamicSizing || draggable || gravityOption == GravityOption.CUSTOM) {
             // デバイス回転などによるスクリーンサイズ変更を検出するため、ルートビューのサイズ変更を監視する。
             rootView.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
                 if (or - ol != r - l || ob - ot != b - t) {
@@ -700,7 +713,7 @@ abstract class UtDialog : UtDialogBase() {
      * （HeightOption.AUTO_SCROLL, HeightOption.CUSTOMのための処理）
      */
     private fun updateDynamicHeight(lp:ConstraintLayout.LayoutParams) : Boolean {
-        if(heightOption== HeightOption.AUTO_SCROLL ||heightOption== HeightOption.CUSTOM) {
+        if(heightOption.isDynamicSizing) {
             val winHeight = rootView.height
             if(winHeight==0) return false
             val containerHeight = refContainerView.height
@@ -708,10 +721,11 @@ abstract class UtDialog : UtDialogBase() {
             val bodyHeight = bodyView.height
             val maxContainerHeight = winHeight - (dlgHeight - containerHeight)
 
-            val newContainerHeight = if(heightOption== HeightOption.AUTO_SCROLL) {
-                min(bodyHeight, maxContainerHeight)
-            } else {
-                calcCustomContainerHeight(bodyHeight,containerHeight,maxContainerHeight)
+            val newContainerHeight = when(heightOption) {
+                HeightOption.AUTO_SCROLL -> min(bodyHeight, maxContainerHeight)
+                HeightOption.LIMIT -> min(maxContainerHeight, requireContext().dp2px(heightHint))
+                HeightOption.CUSTOM-> calcCustomContainerHeight(bodyHeight,containerHeight,maxContainerHeight)
+                else-> return false
             }
 
 //            logger.info("window:${winHeight}, scroller:$scrHeight, dialogView:$dlgHeight, bodyHeight:$bodyHeight, maxScrHeight=$maxScrHeight, newScrHeight=$newScrHeight")
