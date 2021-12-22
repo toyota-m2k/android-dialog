@@ -64,7 +64,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     final override var immortalTaskName: String? by bundle.stringNullable
     final override val asFragment: DialogFragment
         get() = this
-    final override var dontResumeTask:Boolean by bundle.booleanFalse
+    final override var doNotResumeTask:Boolean by bundle.booleanFalse
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -116,7 +116,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     }
 
     private fun notifyResult() {
-        val task = if(!dontResumeTask) {
+        val task = if(!doNotResumeTask) {
             immortalTaskName?.let { UtImmortalTaskManager.taskOf(it) }?.task
         } else null
         task?.resumeTask(this) ?: queryResultReceptor()?.onDialogResult(this)

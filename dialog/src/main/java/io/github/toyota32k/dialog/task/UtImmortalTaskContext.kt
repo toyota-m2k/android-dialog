@@ -7,11 +7,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 
-interface IUtImmortralTaskContextSource {
+interface IUtImmortalTaskContextSource {
     val immortalTaskContext:IUtImmortalTaskContext
     val immortalCoroutineScope get() = immortalTaskContext.coroutineScope
 }
-interface IUtImmortralTaskMutableContextSource : IUtImmortralTaskContextSource {
+interface IUtImmortalTaskMutableContextSource : IUtImmortalTaskContextSource {
     override var immortalTaskContext:IUtImmortalTaskContext
 }
 

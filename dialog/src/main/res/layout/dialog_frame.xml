@@ -118,7 +118,7 @@
             >
         </FrameLayout>
 
-        <!-- ダイアログのボディを配置する領域（スクロールなし）-->
+        <!-- ダイアログのボディを配置する領域（スクロールあり）-->
         <ScrollView
             android:id="@+id/body_scroller"
             android:layout_height="0dp"
@@ -136,8 +136,27 @@
             tools:layout_height="200dp"
             tools:layout_width="300dp"
             >
-
         </ScrollView>
+
+        <!-- busyのときに、ダイアログコンテントをブロックするためのガードビュー-->
+        <View
+            android:id="@+id/body_guard_view"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/dlg_content_margin_top"
+            android:layout_marginBottom="@dimen/dlg_content_margin_bottom"
+            android:layout_marginStart="@dimen/dlg_content_margin_left"
+            android:layout_marginEnd="@dimen/dlg_content_margin_right"
+            android:visibility="invisible"
+            app:layout_constraintTop_toBottomOf="@+id/separator"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:background="#0000"
+            android:clickable="true"
+            android:focusable="true"
+            />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

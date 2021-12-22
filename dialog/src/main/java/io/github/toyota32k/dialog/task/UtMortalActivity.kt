@@ -9,7 +9,7 @@ import io.github.toyota32k.dialog.toDialogOwner
 /**
  * ImmortalTask と協調動作するActivityの基本実装
  */
-abstract class UtMortalActivity private constructor(protected val dialogHostManager: UtDialogHostManager) : AppCompatActivity(), IUtDialogHost by dialogHostManager {
+abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityCanBePrivate") val dialogHostManager: UtDialogHostManager) : AppCompatActivity(), IUtDialogHost by dialogHostManager {
     constructor() : this(UtDialogHostManager())
 
     /**

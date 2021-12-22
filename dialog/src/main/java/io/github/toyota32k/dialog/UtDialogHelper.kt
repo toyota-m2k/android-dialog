@@ -21,7 +21,7 @@ object UtDialogHelper {
         }
     }
     fun dialogChainToParent(leaf: IUtDialog) :Sequence<IUtDialog> {
-        return UtDialogHelper.dialogChainToParent(leaf.asFragment)
+        return dialogChainToParent(leaf.asFragment)
     }
 
     fun parentDialog(fragment: Fragment):IUtDialog? {
@@ -111,8 +111,7 @@ object UtDialogHelper {
      * このメソッドは、１つの親（Activity or Fragment, UtDialog）は、最大１つの子ダイアログを持つ直鎖を構成することを前提としており、
      * これが分岐する（１つの親から２つ以上の子ダイアログを同時に表示する）ことは想定しない。
      */
-    fun currentDialog(fm: FragmentManager):Sequence<IUtDialog> = sequence<IUtDialog> {
-        var leaf :IUtDialog? = null
+    fun currentDialog(fm: FragmentManager):Sequence<IUtDialog> = sequence {
         val children = dialogChildren(fm)
         for (d in children) {
             val descendant = dialogChildren(d.asFragment.childFragmentManager)

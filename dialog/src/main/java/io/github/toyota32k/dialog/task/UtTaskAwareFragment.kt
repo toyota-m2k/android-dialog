@@ -9,9 +9,9 @@ import io.github.toyota32k.dialog.UtBundleDelegate
 abstract class UtTaskAwareFragment: Fragment() {
     val bundle = UtBundleDelegate { ensureArguments() }
     var immortalTaskName: String? by bundle.stringNullable
-    val ownerTask:IUtImmortalTask? get() = immortalTaskName?.let { UtImmortalTaskManager.taskOf(it)?.task }
+    private val ownerTask:IUtImmortalTask? get() = immortalTaskName?.let { UtImmortalTaskManager.taskOf(it)?.task }
     protected fun <T> getViewModel(clazz:Class<T>):T? where T:ViewModel {
-        return ownerTask?.let { ViewModelProvider(it.immortalTaskContext, ViewModelProvider.NewInstanceFactory()).get(clazz) }
+        return ownerTask?.let { ViewModelProvider(it.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[clazz] }
     }
 }
 

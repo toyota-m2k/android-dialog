@@ -16,7 +16,7 @@ enum class UtImmortalTaskState(val finished:Boolean) {
 /**
  * 不死身タスクのi/f
  */
-interface IUtImmortalTask : Closeable, IUtImmortralTaskContextSource {
+interface IUtImmortalTask : Closeable, IUtImmortalTaskContextSource {
     val taskName: String
     val taskResult:Any?
     fun resumeTask(value:Any?)
@@ -26,6 +26,16 @@ interface IUtImmortalTask : Closeable, IUtImmortralTaskContextSource {
  * ライフサイクルオブジェクト（死んだり生き返ったりするオブジェクト:Activity/Fragment）を取得するための i/f
  */
 interface IUiMortalInstanceSource {
-    suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T
-    suspend fun <T> withOwner(clazzSpecified:Class<*>, fn: suspend (UtDialogOwner)->T):T
+//    suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T
+//    suspend fun <T> withOwner(clazzSpecified:Class<*>, fn: suspend (UtDialogOwner)->T):T
+    suspend fun getOwner() : UtDialogOwner
+    suspend fun getOwnerOf(clazz:Class<*>) : UtDialogOwner
+}
+
+suspend inline fun <T> IUiMortalInstanceSource.withOwner(fn:(UtDialogOwner)->T):T {
+    return fn(getOwner())
+}
+
+suspend inline fun <T> IUiMortalInstanceSource.withOwner(clazz:Class<*>, fn:(UtDialogOwner)->T):T {
+    return fn(getOwnerOf(clazz))
 }

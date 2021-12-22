@@ -49,6 +49,20 @@ abstract class UtDialog : UtDialogBase() {
      */
     var cancellable:Boolean by bundle.booleanTrue
 
+    fun updateCancellable(c:Boolean) {
+        if(cancellable!=c) {
+            cancellable = c
+            if(c) {
+                rootView.setOnClickListener(this::onBackgroundTapped)
+                dialogView.setOnClickListener(this::onBackgroundTapped)
+            } else {
+                rootView.setOnClickListener(null)
+                dialogView.setOnClickListener(null)
+            }
+            applyGuardColor()
+        }
+    }
+
     /**
      * Drag&Dropによるダイアログ移動を許可するか？
      * true:許可する
@@ -68,10 +82,17 @@ abstract class UtDialog : UtDialogBase() {
     /**
      * ドラッグ中に左右方向の位置を画面内にクリップするか？
      * true: クリップする（デフォルト）
-     * false:クリップしない
+     * false:クリップしない（とはいえ、操作できる程度にはクリップするよ。）
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
     var clipHorizontalOnDrag:Boolean by bundle.booleanTrue
+
+    /**
+     * ダイアログを開く/閉じるの動作にアニメション効果をつけるか？
+     * true: つける
+     * false:つけない
+     */
+    var animationEffect:Boolean by bundle.booleanTrue
 
     // endregion
 
@@ -167,7 +188,6 @@ abstract class UtDialog : UtDialogBase() {
      * ダイアログの幅を指定して、最大幅指定付き可変幅モードにする。
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    @Suppress("unused")
     fun setLimitWidth(width:Int) {
         if(dialog!=null) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
@@ -276,16 +296,7 @@ abstract class UtDialog : UtDialogBase() {
      */
     protected fun applyGuardColor() {
         val color = managedGuardColor()
-        if(Color.alpha(color)!=0) {
-            rootDialog.dialog?.window?.setBackgroundDrawable(ColorDrawable(color))
-        } else {
-            val parent = parentDialog
-            if(parent!=null) {
-                parent.applyGuardColor()
-            } else {
-                dialog?.window?.setBackgroundDrawable(ColorDrawable(color))
-            }
-        }
+        rootView.background = ColorDrawable(color)
     }
 
     // endregion
@@ -313,6 +324,27 @@ abstract class UtDialog : UtDialogBase() {
     var visible:Boolean
         get() = dialogView.visibility == View.VISIBLE
         set(v) { dialogView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
+
+    private val fadeInAnimation = UtFadeAnimation(true,200)
+    private val fadeOutAnimation = UtFadeAnimation(false, 300)
+
+    fun fadeIn(completed:(()->Unit)?=null) {
+        if(animationEffect) {
+            fadeInAnimation.start(rootView, completed)
+        } else {
+            visible = true
+            completed?.invoke()
+        }
+    }
+
+    fun fadeOut(completed:(()->Unit)?=null) {
+        if(animationEffect) {
+            fadeOutAnimation.start(rootView, completed)
+        } else {
+            visible = false
+            completed?.invoke()
+        }
+    }
 
     /**
      * ルートダイアログ（ダイアログチェーンの先頭）を取得
@@ -382,6 +414,8 @@ abstract class UtDialog : UtDialogBase() {
         CANCEL(UtStandardString.CANCEL, false, false),      // キャンセル
         BACK(UtStandardString.BACK, false, false),          // 戻る
         CLOSE_LEFT(UtStandardString.CLOSE, false, false),   // 閉じる
+
+        NONE(UtStandardString.NONE, false, false),          // ボタンなし
     }
 
     // 左ボタンのプロパティ (setLeftButton()で設定）
@@ -528,22 +562,45 @@ abstract class UtDialog : UtDialogBase() {
     /**
      * 軸方向毎のドラッグ情報を保持するクラス
      */
-    private class DragParam(val dialogSize:Float, val screenSize:Float, val clip:Boolean) {
+    private class DragParam {
+        private var dialogSize:Float = 0f
+        private var screenSize:Float = 0f
+        private var clip:Boolean = false
+        private var minPos:Float = 0f
+        private var maxPos:Float = 0f
+
         private var orgDialogPos:Float = 0f
         private var dragStartPos:Float = 0f
 
+        fun setup(dialogSize:Float, screenSize:Float, clip:Boolean, minPos:Float, maxPos:Float) {
+            this.dialogSize = dialogSize
+            this.screenSize = screenSize
+            this.clip = clip
+            this.minPos = minPos
+            this.maxPos = maxPos
+        }
 
         fun start(dialogPos:Float, dragPos:Float) {
             dragStartPos = dragPos
             orgDialogPos = dialogPos
         }
 
+        /**
+         * ドラッグ後の位置を取得
+         */
         fun getPosition(dragPos:Float):Float {
             val newPos = orgDialogPos + (dragPos-dragStartPos)
-            return if(clip) {
-                max(0f, min(newPos, screenSize - dialogSize))
+            return clipPosition(newPos)
+        }
+
+        /**
+         * ダイアログの位置を画面内にクリップする
+         */
+        fun clipPosition(pos:Float):Float {
+            return if (clip) {
+                max(0f, min(pos, screenSize - dialogSize))
             } else {
-                newPos
+                max(minPos, min(pos, screenSize - maxPos))
             }
         }
     }
@@ -553,15 +610,44 @@ abstract class UtDialog : UtDialogBase() {
      */
     inner class DragInfo {
         private var dragging:Boolean = false
-        private val x = DragParam(dialogView.width.toFloat(), rootView.width.toFloat(),clipHorizontalOnDrag)
-        private val y = DragParam(dialogView.height.toFloat(), rootView.height.toFloat(), clipVerticalOnDrag)
+        private val x = DragParam()
+        private val y = DragParam()
 
+        /**
+         * サイズ情報を初期化
+         */
+        private fun setup() {
+            val w = dialogView.width.toFloat()
+            x.setup(w, rootView.width.toFloat(),clipHorizontalOnDrag, -w/2f, w/2f)
+            y.setup(dialogView.height.toFloat(), rootView.height.toFloat(), clipVerticalOnDrag, 0f, requireContext().dp2px(50).toFloat())
+        }
+
+        /**
+         * D&Dまたは、GravityOption.CUSTOMの場合に、ダイアログが画面（rootView)内に収まるよう、座標位置を補正する。
+         */
+        fun adjustPosition(xp: Float?, yp: Float?) {
+            setup()
+            if(xp!=null) {
+                dialogView.x = x.clipPosition(xp)
+            }
+            if(yp!=null) {
+                dialogView.y = y.clipPosition(yp)
+            }
+        }
+
+        /**
+         * ドラッグ開始
+         */
         fun start(ev: MotionEvent) {
+            setup()
             x.start(dialogView.x, ev.rawX)
             y.start(dialogView.y, ev.rawY)
             dragging = true
         }
 
+        /**
+         * ドラッグによる位置移動
+         */
         fun move(ev:MotionEvent) {
             if(!dragging) return
             val x = x.getPosition(ev.rawX)
@@ -572,6 +658,9 @@ abstract class UtDialog : UtDialogBase() {
             customPositionY = y
         }
 
+        /**
+         * ドラッグ終了
+         */
         fun cancel() {
             dragging = false
         }
@@ -639,16 +728,14 @@ abstract class UtDialog : UtDialogBase() {
         private set
     lateinit var bodyView:View                      // UtDialogを継承するサブクラス毎に作成されるダイアログの中身  (createBodyView()で構築されたビュー）
         private set
-
-    /**
-     * コンテナ領域（ダイアログ領域ーヘッダー領域）にフィットするダミービュー
-     * （リサイズ時にコンテナ領域のサイズを知るためのリファレンスビュー）
-     */
-    private val refContainerView:View by lazy { rootView.findViewById(R.id.ref_container_view) }
+    lateinit var refContainerView:View              // コンテナ領域（ダイアログ領域ーヘッダー領域）にフィットするダミービュー
+        private set
+    lateinit var bodyGuardView:View                 // dialogContentへの操作をブロックするためのガードビュー
+        private set
 
     // endregion
 
-    // region レンダリング (Privates)
+    // region レンダリング
 
     /**
      * widthOption/heightOption/gravityOptionに従って、 bodyContainerのLayoutParamを設定する。
@@ -695,6 +782,13 @@ abstract class UtDialog : UtDialogBase() {
             rootView.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
                 if (or - ol != r - l || ob - ot != b - t) {
                     onRootViewSizeChanged()
+                }
+                adjustDialogPosition(customPositionX, customPositionY)
+            }
+            refContainerView.addOnLayoutChangeListener { _, l, _, r, _, ol, _, or, _ ->
+                logger.debug("x:org ${dialogView.x} layoutChanged")
+                if (or - ol != r - l) {
+                    onContainerHeightChanged()
                 }
             }
         }
@@ -758,21 +852,11 @@ abstract class UtDialog : UtDialogBase() {
     }
 
     /**
-     * D&Dまたは、GravityOption.CUSTOMの場合に、ダイアログが画面（rootView)内に収まるよう、座標位置を補正する。
-     */
-    private fun clipDialogPosition(dialogSize: Int, screenSize: Int, pos:Int):Int {
-        return max(0, min(pos, screenSize-dialogSize))
-    }
-
-    /**
      * 画面（rootView)内に収まるよう補正して、ダイアログ位置を設定
      */
     private fun adjustDialogPosition(x:Float?,y:Float?) {
-        if(x!=null && dialogView.translationX==0f) {
-            dialogView.x = clipDialogPosition(dialogView.width, rootView.width, x.toInt()).toFloat()
-        }
-        if(y!=null && dialogView.translationY==0f) {
-            dialogView.y = clipDialogPosition(dialogView.height, rootView.height, y.toInt()).toFloat()
+        if(x!=null||y!=null) {
+            dragInfo.adjustPosition(x,y)
         }
     }
 
@@ -786,7 +870,13 @@ abstract class UtDialog : UtDialogBase() {
         if(h||w) {
             bodyContainer.layoutParams = lp
         }
-        adjustDialogPosition(customPositionX, customPositionY)
+    }
+
+    private fun onContainerHeightChanged() {
+        val lp = bodyContainer.layoutParams as ConstraintLayout.LayoutParams
+        if(updateDynamicHeight(lp)) {
+            bodyContainer.layoutParams = lp
+        }
     }
 
     /**
@@ -864,6 +954,8 @@ abstract class UtDialog : UtDialogBase() {
                 titleView = rootView.findViewById(R.id.dialog_title)
                 progressRingOnTitleBar = rootView.findViewById(R.id.progress_on_title_bar)
                 dialogView = rootView.findViewById(R.id.dialog_view)
+                refContainerView = rootView.findViewById(R.id.ref_container_view)
+                bodyGuardView = rootView.findViewById(R.id.body_guard_view)
                 title?.let { titleView.text = it }
                 if (heightOption == HeightOption.AUTO_SCROLL) {
                     scrollable = true
@@ -891,6 +983,7 @@ abstract class UtDialog : UtDialogBase() {
                 if(draggable) {
                     enableDrag()
                 }
+                applyGuardColor()
             } catch(e:Throwable) {
                 // View作り中のエラーは、デフォルトでログに出る間もなく死んでしまうようなので、キャッチして出力する。throwし直すから死ぬけど。
                 logger.stackTrace(e)
@@ -903,17 +996,24 @@ abstract class UtDialog : UtDialogBase() {
 
     // region イベント
 
+    override fun dismiss() {
+        fadeOut {
+            super.dismiss()
+        }
+    }
+
     /**
      * ダイアログが表示されるときのイベントハンドラ
      */
     override fun onDialogOpening() {
-        applyGuardColor()
+        fadeIn()
         val parent = parentDialog ?: return
         if (parentVisibilityOption != ParentVisibilityOption.NONE) {
-            lifecycleScope.launch {
-                delay(500)
-                parent.visible = false
-            }
+            parent.fadeOut()
+//            lifecycleScope.launch {
+                //delay(500)
+                //parent.visible = false
+//            }
         }
     }
 
@@ -925,9 +1025,8 @@ abstract class UtDialog : UtDialogBase() {
         if(  parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW ||
             (parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE && status.negative) ||
             (parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW_ON_POSITIVE && status.positive)) {
-            parent.visible = true
+            parent.fadeIn()
         }
-        parent.applyGuardColor()
     }
 
     /**

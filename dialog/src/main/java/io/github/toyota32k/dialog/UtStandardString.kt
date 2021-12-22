@@ -11,7 +11,8 @@ enum class UtStandardString(@StringRes val id:Int) {
     DONE(R.string.done),
     YES(R.string.yes),
     NO(R.string.no),
-    BACK(R.string.back);
+    BACK(R.string.back),
+    NONE(0);
 
     val text : String
         get() = context?.get()?.getString(id) ?: ""

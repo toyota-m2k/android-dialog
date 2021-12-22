@@ -8,8 +8,8 @@ object UtImmortalViewModelHelper {
     /**
      * タスク開始時の初期化用
      */
-    fun <T> createBy(clazz: Class<T>, task: IUtImmortalTask, initialize:((T)->Unit)?=null) : T where T: ViewModel,T:IUtImmortralTaskMutableContextSource {
-        return ViewModelProvider(task.immortalTaskContext, ViewModelProvider.NewInstanceFactory()).get(clazz)
+    fun <T> createBy(clazz: Class<T>, task: IUtImmortalTask, initialize:((T)->Unit)?=null) : T where T: ViewModel,T:IUtImmortalTaskMutableContextSource {
+        return ViewModelProvider(task.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[clazz]
             .apply {
                 immortalTaskContext = task.immortalTaskContext
                 initialize?.invoke(this)
@@ -21,7 +21,7 @@ object UtImmortalViewModelHelper {
      */
     fun <T> instanceOf(clazz: Class<T>, taskName:String):T where T:ViewModel {
         val task = UtImmortalTaskManager.taskOf(taskName)?.task ?: throw IllegalStateException("no task")
-        return ViewModelProvider(task.immortalTaskContext, ViewModelProvider.NewInstanceFactory()).get(clazz)
+        return ViewModelProvider(task.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[clazz]
     }
     /**
      * ダイアログから取得する用

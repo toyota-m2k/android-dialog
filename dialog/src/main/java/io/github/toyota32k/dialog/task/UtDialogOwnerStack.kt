@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger
 class UtDialogOwnerStack: IUiMortalInstanceSource {
     private val list = mutableListOf<UtOwner>()
     private val ownerFlow = MutableStateFlow<UtOwner?>(null)
-    private val mutex = Mutex()
     inner class UtOwner(lifecycleOwner: LifecycleOwner): UtDialogWeakOwner(lifecycleOwner) {
         override fun dispose() {
             super.dispose()
@@ -25,11 +24,11 @@ class UtDialogOwnerStack: IUiMortalInstanceSource {
     }
     @MainThread
     fun push(owner: UtDialogOwner) {
-        UtOwner(owner.lifecycleOwner).also {
+        UtOwner(owner.lifecycleOwner).also { uo->
             if(list.find { it.lifecycleOwner === owner.lifecycleOwner }==null) {
-                list.add(it)
+                list.add(uo)
             }
-            ownerFlow.value = it
+            ownerFlow.value = uo
         }
     }
     @MainThread
@@ -49,23 +48,14 @@ class UtDialogOwnerStack: IUiMortalInstanceSource {
         return null
     }
 
-    private suspend fun peekOne(): UtDialogOwner {
+    override suspend fun getOwner(): UtDialogOwner {
         return ownerFlow.mapNotNull { it?.asDialogOwner }.first()
     }
 
-    override suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T {
-        val owner = Chronos(UtImmortalTaskManager.logger).measureAsync { peekOne() }
-        return fn(owner)
-    }
-
-    private suspend fun peekOne(clazz:Class<*>): UtDialogOwner {
+    override suspend fun getOwnerOf(clazz:Class<*>): UtDialogOwner {
         return ownerFlow.mapNotNull {
             val owner = it?.asDialogOwner
-            if (owner != null && owner::class.java == clazz) owner else null
+            if (owner != null && owner.lifecycleOwner::class.java == clazz) owner else null
         }.first()
-    }
-
-    override suspend fun <T> withOwner(clazzSpecified:Class<*>, fn: suspend (UtDialogOwner)->T):T {
-        return fn(peekOne(clazzSpecified))
     }
 }
