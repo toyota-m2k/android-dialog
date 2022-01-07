@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 /**
@@ -115,11 +116,36 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         return (parentFragment as? IUtDialogHost)?.queryDialogResultReceptor(tag) ?: dialogHost?.get()?.queryDialogResultReceptor(tag)
     }
 
-    private fun notifyResult() {
-        val task = if(!doNotResumeTask) {
-            immortalTaskName?.let { UtImmortalTaskManager.taskOf(it) }?.task
-        } else null
-        task?.resumeTask(this) ?: queryResultReceptor()?.onDialogResult(this)
+    /**
+     * フェードアウトアニメーションの終了を待つための dismiss
+     * UtDialogで実装する。
+     */
+    open suspend fun dismissAsync() {
+        dismiss()
+    }
+
+    private fun notifyResult(dismiss:Boolean) {
+        val task = immortalTaskName?.let { UtImmortalTaskManager.taskOf(it) }?.task
+
+        if(dismiss) {
+            if(task!=null) {
+                task.immortalCoroutineScope.launch {
+                    dismissAsync()
+                    if(!doNotResumeTask) {
+                        task.resumeTask(this@UtDialogBase)
+                    }
+                }
+                return
+            } else {
+                dismiss()
+            }
+        }
+
+        if(task!=null && !doNotResumeTask) {
+            task.resumeTask(this)
+        } else {
+            queryResultReceptor()?.onDialogResult(this)
+        }
     }
 
     /**
@@ -137,7 +163,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         if(!status.finished) {
             status = IUtDialog.Status.NEGATIVE
             onDialogClosing()
-            notifyResult()
+            notifyResult(dismiss=false)
         }
     }
 
@@ -159,8 +185,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
             this.status = status
             onDialogClosing()
             onComplete()
-            notifyResult()
-            dismiss()
+            notifyResult(dismiss = true)
         }
     }
 

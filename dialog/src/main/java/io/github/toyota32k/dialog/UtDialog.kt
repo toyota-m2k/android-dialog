@@ -25,8 +25,8 @@ import androidx.lifecycle.lifecycleScope
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.max
 import kotlin.math.min
 
@@ -343,6 +343,14 @@ abstract class UtDialog : UtDialogBase() {
         } else {
             visible = false
             completed?.invoke()
+        }
+    }
+
+    private suspend fun fadeOutAsync() {
+        suspendCoroutine<Unit> { cont->
+            fadeOut {
+                cont.resume(Unit)
+            }
         }
     }
 
@@ -996,8 +1004,25 @@ abstract class UtDialog : UtDialogBase() {
 
     // region イベント
 
+    /**
+     * ImmortalTaskを使わない（=ResultReceptorを使う）場合に呼ばれるdismiss
+     * 待ち合わせをしないので、オーナーのActivityがPauseするようなケースには正しくDismissされないので注意。
+     * ダイアログが閉じない、不具合が起きる場合は、ImmortalTaskを使うか、animationEffect = false として、アニメション効果を禁止すること。
+     */
     override fun dismiss() {
         fadeOut {
+            super.dismiss()
+        }
+    }
+
+    /**
+     * フェードアウトアニメーションが終わってからdismissする。
+     * ImmortalTaskを使う場合に呼ばれる。
+     */
+    override suspend fun dismissAsync() {
+        try {
+            fadeOutAsync()
+        } finally {
             super.dismiss()
         }
     }
