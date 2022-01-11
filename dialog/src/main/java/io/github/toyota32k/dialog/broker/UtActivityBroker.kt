@@ -43,7 +43,7 @@ abstract class UtActivityBroker<I,O>
         continuation = null
     }
 
-    suspend fun invoke(context: UtImmortalTaskContext, input:I): O {
+    suspend fun invoke(input:I): O {
         if(continuation!=null) {
             throw IllegalStateException("broker is busy.")
         }
