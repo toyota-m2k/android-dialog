@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.documentfile.provider.DocumentFile
 import io.github.toyota32k.dialog.*
+import io.github.toyota32k.dialog.broker.pickers.UtFilePickerStore
 import io.github.toyota32k.dialog.connector.*
+import io.github.toyota32k.dialog.task.UtImmortalTaskBase
 import io.github.toyota32k.sample.HogeDialog
 import io.github.toyota32k.sample.SamplePortalDialog
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
@@ -20,6 +22,8 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
     override val logger = UtLog("SAMPLE")
 //    private val dialogHostManager = UtDialogHostManager()
 
+    val filePickers = UtFilePickerStore()
+
     override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME, FileTestTask.TASK_NAME)
 
     override fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {
@@ -29,6 +33,7 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        filePickers.onCreate(this)
         UtStandardString.setContext(this)
         dialogHostManager["hoge"] = {
             logger.info("hoge:${it.status}")
@@ -66,7 +71,8 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
                         "Open Multiple Files",
                         "Create File",
                         "Select Folder",
-                        "Process in ImmortalTask"
+                        "Process in ImmortalTask",
+                        "Pickers with ActivityBroker"
                     )
                 }
             }
@@ -191,6 +197,58 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
         }
     }
 
+    class BrokerTestTask:UtImmortalTaskBase(TASK_NAME) {
+        companion object {
+            const val TASK_NAME = "BrokerTestTask"
+        }
+
+        override suspend fun execute(): Boolean {
+            withOwner(MainActivity::class.java) {
+                logger.info("openFilePicker")
+                val activity = it.asActivity() as MainActivity
+                val uri = activity.filePickers.openFilePicker.selectFile(arrayOf("image/png", "image/jpeg", "application/pdf"))
+                logger.info("openFilePicker: $uri")
+            }
+            withOwner(MainActivity::class.java) {
+                logger.info("openReadOnlyFilePicker")
+                val activity = it.asActivity() as MainActivity
+                val uri = activity.filePickers.openReadOnlyFilePicker.selectFile("image/png")
+                logger.info("openReadOnlyFilePicker: $uri")
+            }
+            withOwner(MainActivity::class.java) {
+                logger.info("openMultiFilePicker")
+                val activity = it.asActivity() as MainActivity
+                val uris = activity.filePickers.openMultiFilePicker.selectFiles(arrayOf("image/png", "image/jpeg", "application/pdf"))
+                logger.info("openMultiFilePicker: ${uris?.fold(StringBuilder()){builder,uri->
+                    builder.append("\n")
+                    builder.append(uri.toString())
+                }}")
+            }
+            withOwner(MainActivity::class.java) {
+                logger.info("openReadOnlyMultiFilePicker")
+                val activity = it.asActivity() as MainActivity
+                val uris = activity.filePickers.openReadOnlyMultiFilePicker.selectFiles("image/jpeg")
+                logger.info("openReadOnlyMultiFilePicker: ${uris?.fold(StringBuilder()){builder,uri->
+                    builder.append("\n")
+                    builder.append(uri.toString())
+                }}")
+            }
+            withOwner(MainActivity::class.java) {
+                logger.info("createFilePicker")
+                val activity = it.asActivity() as MainActivity
+                val uri = activity.filePickers.createFilePicker.selectFile("hoge.png","image/png")
+                logger.info("createFilePicker: $uri")
+            }
+            withOwner(MainActivity::class.java) {
+                logger.info("directoryPicker")
+                val activity = it.asActivity() as MainActivity
+                val uri = activity.filePickers.directoryPicker.selectDirectory()
+                logger.info("directoryPicker: $uri")
+            }
+            return true
+        }
+    }
+
     private val activityCallTestSelectionReceptor = dialogHostManager.register<UtSingleSelectionBox>("activityCallTestSelectionReceptor") {
         if(it.dialog.status.ok) {
             when (it.dialog.selectedIndex) {
@@ -199,6 +257,7 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
                 2 -> createFilePicker.launch()
                 3 -> direcotryPicker.launch()
                 4 -> FileTestTask().fire()
+                5 -> BrokerTestTask().fire()
                 else -> {}
             }
         }

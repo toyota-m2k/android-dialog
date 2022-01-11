@@ -84,6 +84,11 @@ abstract class UtImmortalTaskBase(
             fn(owner)
         }
     }
+    protected suspend fun <T> withOwner(clazz: Class<*>, fn: suspend (UtDialogOwner)->T):T {
+        return UtImmortalTaskManager.mortalInstanceSource.withOwner(clazz) { owner ->
+            fn(owner)
+        }
+    }
 
     protected suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D where D:IUtDialog {
         return showDialog(null, tag, dialogSource)
