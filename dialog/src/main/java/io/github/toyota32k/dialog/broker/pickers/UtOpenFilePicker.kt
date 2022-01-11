@@ -6,6 +6,8 @@ import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import io.github.toyota32k.dialog.broker.UtActivityBroker
+import io.github.toyota32k.dialog.task.UtImmortalTaskContext
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * 読み書き用にファイルを選択する
@@ -31,8 +33,8 @@ open class UtOpenFilePicker : UtActivityBroker<Array<String>,Uri?>() {
     override val contract: ActivityResultContract<Array<String>, Uri?>
         get() = Contract()
 
-    suspend fun selectFile(mimeTypes:Array<String> = defaultMimeTypes):Uri? {
-        return invoke(mimeTypes)
+    suspend fun selectFile(context: UtImmortalTaskContext, mimeTypes:Array<String> = defaultMimeTypes):Uri? {
+        return invoke(context, mimeTypes)
     }
 }
 

@@ -5,7 +5,9 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import java.lang.IllegalStateException
+import io.github.toyota32k.dialog.task.IUtImmortalTaskContext
+import io.github.toyota32k.dialog.task.UtImmortalTaskContext
+import io.github.toyota32k.utils.UtLog
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -17,27 +19,33 @@ import kotlin.coroutines.suspendCoroutine
 
 abstract class UtActivityBroker<I,O>
     : ActivityResultCallback<O>, IUtActivityBroker {
+    companion object {
+        val logger = UtLog("UtActivityBroker")
+        var continuation:Continuation<*>? = null
+    }
+
     abstract val contract: ActivityResultContract<I,O>
-    private var continuation:Continuation<O>? = null
     private lateinit var launcher: ActivityResultLauncher<I>
+    private var taskContext: IUtImmortalTaskContext? = null
 
     override fun register(owner: Fragment) {
+        logger.debug()
         launcher = owner.registerForActivityResult(contract, this)
     }
     override fun register(owner: FragmentActivity) {
+        logger.debug()
         launcher = owner.registerForActivityResult(contract, this)
     }
 
     override fun onActivityResult(result: O) {
-        continuation?.let {
-            continuation = null
-            it.resume(result)
-        }
+        @Suppress("UNCHECKED_CAST")
+        (continuation as? Continuation<O>)?.resume(result)
+        continuation = null
     }
 
-    suspend fun invoke(input:I): O {
+    suspend fun invoke(context: UtImmortalTaskContext, input:I): O {
         if(continuation!=null) {
-            throw IllegalStateException("broker is busy")
+            throw IllegalStateException("broker is busy.")
         }
         return suspendCoroutine {
             continuation = it

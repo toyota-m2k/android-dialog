@@ -6,6 +6,8 @@ import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import io.github.toyota32k.dialog.broker.UtActivityBroker
+import io.github.toyota32k.dialog.task.UtImmortalTaskContext
+import kotlinx.coroutines.flow.MutableStateFlow
 
 open class UtDirectoryPicker : UtActivityBroker<Uri?, Uri?>() {
     protected open fun prepareChooserIntent(intent:Intent):Intent {
@@ -20,7 +22,7 @@ open class UtDirectoryPicker : UtActivityBroker<Uri?, Uri?>() {
     override val contract: ActivityResultContract<Uri?, Uri?>
         get() = Contract()
 
-    suspend fun selectDirectory(initialPath:Uri?=null):Uri? {
-        return invoke(initialPath)
+    suspend fun selectDirectory(context: UtImmortalTaskContext, initialPath:Uri?=null):Uri? {
+        return invoke(context, initialPath)
     }
 }

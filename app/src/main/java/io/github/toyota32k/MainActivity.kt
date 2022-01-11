@@ -206,19 +206,19 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
             withOwner(MainActivity::class.java) {
                 logger.info("openFilePicker")
                 val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.openFilePicker.selectFile(arrayOf("image/png", "image/jpeg", "application/pdf"))
+                val uri = activity.filePickers.openFilePicker.selectFile(immortalTaskContext, arrayOf("image/png", "image/jpeg", "application/pdf"))
                 logger.info("openFilePicker: $uri")
             }
             withOwner(MainActivity::class.java) {
                 logger.info("openReadOnlyFilePicker")
                 val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.openReadOnlyFilePicker.selectFile("image/png")
+                val uri = activity.filePickers.openReadOnlyFilePicker.selectFile(immortalTaskContext, "image/png")
                 logger.info("openReadOnlyFilePicker: $uri")
             }
             withOwner(MainActivity::class.java) {
                 logger.info("openMultiFilePicker")
                 val activity = it.asActivity() as MainActivity
-                val uris = activity.filePickers.openMultiFilePicker.selectFiles(arrayOf("image/png", "image/jpeg", "application/pdf"))
+                val uris = activity.filePickers.openMultiFilePicker.selectFiles(immortalTaskContext, arrayOf("image/png", "image/jpeg", "application/pdf"))
                 logger.info("openMultiFilePicker: ${uris?.fold(StringBuilder()){builder,uri->
                     builder.append("\n")
                     builder.append(uri.toString())
@@ -227,7 +227,7 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
             withOwner(MainActivity::class.java) {
                 logger.info("openReadOnlyMultiFilePicker")
                 val activity = it.asActivity() as MainActivity
-                val uris = activity.filePickers.openReadOnlyMultiFilePicker.selectFiles("image/jpeg")
+                val uris = activity.filePickers.openReadOnlyMultiFilePicker.selectFiles(immortalTaskContext, "image/jpeg")
                 logger.info("openReadOnlyMultiFilePicker: ${uris?.fold(StringBuilder()){builder,uri->
                     builder.append("\n")
                     builder.append(uri.toString())
@@ -236,13 +236,13 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
             withOwner(MainActivity::class.java) {
                 logger.info("createFilePicker")
                 val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.createFilePicker.selectFile("hoge.png","image/png")
+                val uri = activity.filePickers.createFilePicker.selectFile(immortalTaskContext,"hoge.png","image/png")
                 logger.info("createFilePicker: $uri")
             }
             withOwner(MainActivity::class.java) {
                 logger.info("directoryPicker")
                 val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.directoryPicker.selectDirectory()
+                val uri = activity.filePickers.directoryPicker.selectDirectory(immortalTaskContext)
                 logger.info("directoryPicker: $uri")
             }
             return true
