@@ -3,11 +3,21 @@ package io.github.toyota32k.dialog.broker.pickers
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.FragmentActivity
+import io.github.toyota32k.dialog.broker.IUtActicityLauncher
 import io.github.toyota32k.dialog.broker.UtActivityBroker
 
 open class UtDirectoryPicker : UtActivityBroker<Uri?, Uri?>() {
+    companion object {
+        fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActicityLauncher<Uri?> {
+            return UtDirectoryPicker().apply {
+                register(owner, callback)
+            }
+        }
+    }
     protected open fun prepareChooserIntent(intent:Intent):Intent {
         return Intent.createChooser(intent, "Choose a folder")
     }

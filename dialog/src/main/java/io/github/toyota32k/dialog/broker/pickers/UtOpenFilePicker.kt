@@ -3,8 +3,11 @@ package io.github.toyota32k.dialog.broker.pickers
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.FragmentActivity
+import io.github.toyota32k.dialog.broker.IUtActicityLauncher
 import io.github.toyota32k.dialog.broker.UtActivityBroker
 
 /**
@@ -12,9 +15,15 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * ACTION_OPEN_DOCUMENT
  * データの編集を行うなど、長期間の永続的なアクセスが必要な場合に使用。
  */
-open class UtOpenFilePicker : UtActivityBroker<Array<String>,Uri?>() {
+open class UtOpenFilePicker : UtActivityBroker<Array<String>, Uri?>() {
     companion object {
         val defaultMimeTypes: Array<String> = arrayOf("*/*")
+
+        fun launcher(owner:FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActicityLauncher<Array<String>> {
+            return UtOpenFilePicker().apply {
+                register(owner, callback)
+            }
+        }
     }
 
     protected open fun prepareChooserIntent(intent:Intent):Intent {

@@ -22,7 +22,7 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
     override val logger = UtLog("SAMPLE")
 //    private val dialogHostManager = UtDialogHostManager()
 
-    val filePickers = UtFilePickerStore()
+    val filePickers = UtFilePickerStore(this)
 
     override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME, FileTestTask.TASK_NAME)
 
@@ -33,7 +33,6 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        filePickers.onCreate(this)
         UtStandardString.setContext(this)
         dialogHostManager["hoge"] = {
             logger.info("hoge:${it.status}")
@@ -206,19 +205,19 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
             withOwner(MainActivity::class.java) {
                 logger.info("openFilePicker")
                 val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.openFilePicker.selectFile(immortalTaskContext, arrayOf("image/png", "image/jpeg", "application/pdf"))
+                val uri = activity.filePickers.openFilePicker.selectFile(arrayOf("image/png", "image/jpeg", "application/pdf"))
                 logger.info("openFilePicker: $uri")
             }
             withOwner(MainActivity::class.java) {
                 logger.info("openReadOnlyFilePicker")
                 val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.openReadOnlyFilePicker.selectFile(immortalTaskContext, "image/png")
+                val uri = activity.filePickers.openReadOnlyFilePicker.selectFile("image/png")
                 logger.info("openReadOnlyFilePicker: $uri")
             }
             withOwner(MainActivity::class.java) {
                 logger.info("openMultiFilePicker")
                 val activity = it.asActivity() as MainActivity
-                val uris = activity.filePickers.openMultiFilePicker.selectFiles(immortalTaskContext, arrayOf("image/png", "image/jpeg", "application/pdf"))
+                val uris = activity.filePickers.openMultiFilePicker.selectFiles(arrayOf("image/png", "image/jpeg", "application/pdf"))
                 logger.info("openMultiFilePicker: ${uris?.fold(StringBuilder()){builder,uri->
                     builder.append("\n")
                     builder.append(uri.toString())
@@ -227,7 +226,7 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
             withOwner(MainActivity::class.java) {
                 logger.info("openReadOnlyMultiFilePicker")
                 val activity = it.asActivity() as MainActivity
-                val uris = activity.filePickers.openReadOnlyMultiFilePicker.selectFiles(immortalTaskContext, "image/jpeg")
+                val uris = activity.filePickers.openReadOnlyMultiFilePicker.selectFiles("image/jpeg")
                 logger.info("openReadOnlyMultiFilePicker: ${uris?.fold(StringBuilder()){builder,uri->
                     builder.append("\n")
                     builder.append(uri.toString())
@@ -236,13 +235,13 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
             withOwner(MainActivity::class.java) {
                 logger.info("createFilePicker")
                 val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.createFilePicker.selectFile(immortalTaskContext,"hoge.png","image/png")
+                val uri = activity.filePickers.createFilePicker.selectFile("hoge.png","image/png")
                 logger.info("createFilePicker: $uri")
             }
             withOwner(MainActivity::class.java) {
                 logger.info("directoryPicker")
                 val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.directoryPicker.selectDirectory(immortalTaskContext)
+                val uri = activity.filePickers.directoryPicker.selectDirectory()
                 logger.info("directoryPicker: $uri")
             }
             return true

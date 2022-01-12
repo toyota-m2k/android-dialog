@@ -3,8 +3,11 @@ package io.github.toyota32k.dialog.broker.pickers
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.FragmentActivity
+import io.github.toyota32k.dialog.broker.IUtActicityLauncher
 import io.github.toyota32k.dialog.broker.UtActivityBroker
 
 /**
@@ -12,6 +15,13 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * ACTION_GET_CONTENT
  */
 open class UtOpenReadOnlyMultiFilePicker : UtActivityBroker<String, List<Uri>?>() {
+    companion object {
+        fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<List<Uri>?>) : IUtActicityLauncher<String> {
+            return UtOpenReadOnlyMultiFilePicker().apply {
+                register(owner, callback)
+            }
+        }
+    }
 
     protected open fun prepareChooserIntent(intent: Intent): Intent {
         return Intent.createChooser(intent,"Choose files")
