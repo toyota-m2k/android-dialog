@@ -24,7 +24,7 @@ import kotlin.coroutines.suspendCoroutine
  */
 
 abstract class UtActivityBroker<I,O>
-    : ActivityResultCallback<O>, IUtActivityBroker, IUtActicityLauncher<I> {
+    : ActivityResultCallback<O>, IUtActivityBroker, IUtActivityLauncher<I> {
     companion object {
         val logger = UtLog("UtActivityBroker")
         var continuation:Continuation<*>? = null

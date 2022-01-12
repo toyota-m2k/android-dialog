@@ -7,7 +7,7 @@ import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
-import io.github.toyota32k.dialog.broker.IUtActicityLauncher
+import io.github.toyota32k.dialog.broker.IUtActivityLauncher
 import io.github.toyota32k.dialog.broker.UtActivityBroker
 
 /**
@@ -19,7 +19,7 @@ open class UtOpenFilePicker : UtActivityBroker<Array<String>, Uri?>() {
     companion object {
         val defaultMimeTypes: Array<String> = arrayOf("*/*")
 
-        fun launcher(owner:FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActicityLauncher<Array<String>> {
+        fun launcher(owner:FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActivityLauncher<Array<String>> {
             return UtOpenFilePicker().apply {
                 register(owner, callback)
             }
