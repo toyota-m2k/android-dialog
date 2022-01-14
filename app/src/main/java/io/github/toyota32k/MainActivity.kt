@@ -33,7 +33,7 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        UtStandardString.setContext(this)
+        UtStandardString.setContext(this, null)
         dialogHostManager["hoge"] = {
             logger.info("hoge:${it.status}")
         }

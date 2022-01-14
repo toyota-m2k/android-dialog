@@ -41,7 +41,7 @@ fun Bundle.put(key:String, value:Any?):Bundle {
     return this
 }
 
-@Suppress("RemoveExplicitTypeArguments")
+@Suppress("RemoveExplicitTypeArguments", "unused")
 class UtBundleDelegate(val namespace:String?, val source:()->Bundle) {
     constructor(source:()->Bundle):this(null,source)
 //    constructor(fragment:Fragment, namespace:String?=null): this(namespace, { fragment.arguments!! })

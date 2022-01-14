@@ -4,122 +4,65 @@ package io.github.toyota32k.dialog
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
+import io.github.toyota32k.utils.reverse
 
 object UtDialogHelper {
     /**
-     * leafからルートに向かって、ダイアログチェーン列挙する
-     * (leafも含む）
+     * スタックの先頭から、すべてのダイアログ(UtDialog)を列挙
      */
-    fun dialogChainToParent(leaf: Fragment) = sequence<IUtDialog> {
-        var dlg: Fragment? = leaf
-        while(dlg!=null) {
-            if(dlg is IUtDialog) {
-                yield(dlg)
-            }
-            dlg = dlg.parentFragment
+    fun allDialogs(activity: FragmentActivity) : List<UtDialog> {
+        return activity.supportFragmentManager.fragments.mapNotNull { it as? UtDialog }
+    }
+
+    /**
+     * スタックの先頭から、すべてのダイアログ（UtDialog)と、メッセージボックス(IUtDialog)を列挙する。
+     */
+    fun allDialogsAndMessageBoxes(activity: FragmentActivity) : List<IUtDialog> {
+        return activity.supportFragmentManager.fragments.mapNotNull { it as? IUtDialog }
+    }
+
+    /**
+     * dialogの親（スタックの一つ前）を取得
+     */
+    fun parentDialog(dialog: UtDialog):UtDialog? {
+        val list = allDialogs(dialog.asFragment.requireActivity())
+        val index = list.indexOf(dialog)
+        return if(index<=0) {
+            null
+        } else {
+            list[index-1]
         }
     }
-    fun dialogChainToParent(leaf: IUtDialog) :Sequence<IUtDialog> {
-        return dialogChainToParent(leaf.asFragment)
-    }
-
-    fun parentDialog(fragment: Fragment):IUtDialog? {
-        return dialogChainToParent(fragment).find { it.asFragment!==fragment }
-    }
-
-    fun parentDialog(dialog: IUtDialog):IUtDialog? {
-        return parentDialog(dialog.asFragment)
-    }
 
     /**
-     * fragmentManagerに属するダイアログを列挙する
+     * ルートダイアログ（ダイアログスタックの先頭）を取得
      */
-    fun dialogChildren(fm: FragmentManager) : List<IUtDialog> {
-        return fm.fragments.mapNotNull { it as? IUtDialog }
-    }
-
-    /**
-     * parentの子ダイアログを列挙する
-     */
-    fun dialogChildren(parent: IUtDialog):List<IUtDialog> {
-        return dialogChildren(parent.asFragment.childFragmentManager)
-    }
-
-    fun dialogDescendants(fm:FragmentManager):List<IUtDialog> {
-        val children = dialogChildren(fm)
-        return children + children.flatMap { dialogDescendants(it.asFragment.childFragmentManager) }
-    }
-
-    fun dialogDescendants(parent: FragmentActivity):List<IUtDialog> {
-        return dialogDescendants(parent.supportFragmentManager)
-    }
-
-    fun dialogDescendants(parent: IUtDialog):List<IUtDialog> {
-        return dialogDescendants(parent.asFragment.childFragmentManager)
-    }
-
-
-    /**
-     * ダイアログチェーンの先頭（ルートのダイアログ）を取得
-     */
-    fun dialogRoot(leaf: IUtDialog): IUtDialog {
-        return dialogChainToParent(leaf).last()
-    }
-
-    /**
-     * parentで与えられたダイアログと、その子ダイアログをキャンセルする
-     */
-    fun cancelChildren(parent: IUtDialog) {
-        for(c in dialogChildren(parent)) {
-            cancelChildren(c)
-        }
-        parent.cancel()
+    fun rootDialog(activity:FragmentActivity): UtDialog? {
+        return allDialogs(activity).firstOrNull()
     }
 
     /**
      * activityに属するダイアログをすべてキャンセルする。
      */
     fun cancelAllDialogs(activity:FragmentActivity) {
-        for(c in dialogChildren(activity.supportFragmentManager)) {
-            cancelChildren(c)
-        }
-    }
-
-    fun findChildDialog(fm:FragmentManager, tag:String) : IUtDialog? {
-        val list = dialogDescendants(fm)
-        return list.find { it.asFragment.tag == tag }
-    }
-
-    fun findChildDialog(activity: FragmentActivity, tag:String): IUtDialog? {
-        return findChildDialog(activity.supportFragmentManager, tag)
-    }
-    fun findChildDialog(fragment: Fragment, tag:String): IUtDialog? {
-        return findChildDialog(fragment.childFragmentManager, tag)
-    }
-
-    fun findChildDialog(owner: UtDialogOwner, tag:String):IUtDialog? {
-        return when(owner.lifecycleOwner) {
-            is FragmentActivity -> findChildDialog(owner.lifecycleOwner, tag)
-            is Fragment         -> findChildDialog(owner.lifecycleOwner, tag)
-            else -> null
+        val list = allDialogsAndMessageBoxes(activity)
+        for(d in list.reverse()) {
+            d.cancel()
         }
     }
 
     /**
-     * 現在アクティブなダイアログがあれば取得する。
-     * このメソッドは、１つの親（Activity or Fragment, UtDialog）は、最大１つの子ダイアログを持つ直鎖を構成することを前提としており、
-     * これが分岐する（１つの親から２つ以上の子ダイアログを同時に表示する）ことは想定しない。
+     * タグからダイアログを検索
      */
-    fun currentDialog(fm: FragmentManager):Sequence<IUtDialog> = sequence {
-        val children = dialogChildren(fm)
-        for (d in children) {
-            val descendant = dialogChildren(d.asFragment.childFragmentManager)
-            if(descendant.isEmpty()) {
-                yield(d)
-            } else {
-                yieldAll(currentDialog(d.asFragment.childFragmentManager))
-            }
+    fun findDialog(activity:FragmentActivity, tag:String):UtDialog? {
+        return activity.supportFragmentManager.fragments.mapNotNull { if(it.tag==tag) it as? UtDialog else null }.firstOrNull()
+    }
+
+    fun findDialog(owner: UtDialogOwner, tag:String):IUtDialog? {
+        return when(owner.lifecycleOwner) {
+            is FragmentActivity -> findDialog(owner.lifecycleOwner, tag)
+            is Fragment         -> findDialog(owner.lifecycleOwner.requireActivity(), tag)
+            else -> null
         }
     }
 }

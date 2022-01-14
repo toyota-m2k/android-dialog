@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
@@ -52,7 +51,7 @@ import java.lang.ref.WeakReference
 //    }
 //}
 
-abstract class UtDialogBase : DialogFragment(), IUtDialog {
+abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDialog {
     val bundle = UtBundleDelegate { ensureArguments() }
 
     final override fun ensureArguments(): Bundle {
@@ -178,13 +177,17 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * OK/Doneボタンなどから呼び出す
      */
     override fun complete(status: IUtDialog.Status) {
-        if (BuildConfig.DEBUG && !status.finished) {
-            error("Assertion failed")
+        if (!status.finished) {
+            error("already finished.")
         }
         if (!this.status.finished) {
             this.status = status
             onDialogClosing()
-            onComplete()
+            if(!status.negative) {
+                onComplete()
+            } else {
+                onCancel()
+            }
             notifyResult(dismiss = true)
         }
     }
@@ -195,7 +198,11 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * setCanceledOnTouchOutside(true)なDialogなら、画面外タップでキャンセルされると思う。
      */
     override fun cancel() {
-        dialog?.cancel()
+        if(isDialog) {
+            dialog?.cancel()
+        } else {
+            complete(IUtDialog.Status.NEGATIVE)
+        }
 //        if(!status.finished) {
 //            status = IUtDialog.Status.NEGATIVE
 //            onDialogClosing()
@@ -206,13 +213,16 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     }
 
     override fun show(activity:FragmentActivity, tag:String?) {
-        if(tag!=null && UtDialogHelper.findChildDialog(activity, tag) !=null) return
-        super.show(activity.supportFragmentManager, tag)
-    }
+        if(tag!=null && UtDialogHelper.findDialog(activity, tag) !=null) return
 
-    override fun show(fragment: Fragment, tag:String?) {
-        if(tag!=null && UtDialogHelper.findChildDialog(fragment, tag) !=null) return
-        super.show(fragment.childFragmentManager, tag)
+        if(isDialog) {
+            super.show(activity.supportFragmentManager, tag)
+        } else {
+            activity.supportFragmentManager.beginTransaction()
+                .add(android.R.id.content, this, tag)
+                .addToBackStack(null)
+                .commit()
+        }
     }
 
     companion object {

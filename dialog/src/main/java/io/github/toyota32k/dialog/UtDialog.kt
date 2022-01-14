@@ -20,8 +20,6 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
@@ -31,7 +29,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-abstract class UtDialog : UtDialogBase() {
+abstract class UtDialog : UtDialogBase(isDialog = false) {
     // region 動作/操作モード
 
     /**
@@ -325,7 +323,7 @@ abstract class UtDialog : UtDialogBase() {
         get() = dialogView.visibility == View.VISIBLE
         set(v) { dialogView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
 
-    private val fadeInAnimation = UtFadeAnimation(true,200)
+    private val fadeInAnimation = UtFadeAnimation(true,400)
     private val fadeOutAnimation = UtFadeAnimation(false, 300)
 
     fun fadeIn(completed:(()->Unit)?=null) {
@@ -357,34 +355,15 @@ abstract class UtDialog : UtDialogBase() {
     /**
      * ルートダイアログ（ダイアログチェーンの先頭）を取得
      */
-    val rootDialog : UtDialog
-        get() {
-            var dlg:UtDialog = this
-            var fragment: Fragment = dlg
-            while(true) {
-                fragment = fragment.parentFragment ?: break
-                if(fragment is UtDialog) {
-                    dlg = fragment
-                }
-            }
-            return dlg
-        }
+    val rootDialog : UtDialog?
+        get() = UtDialogHelper.rootDialog(requireActivity())
 
     /**
      * 親ダイアログを取得
      * 自身がルートならnullを返す。
      */
     val parentDialog : UtDialog?
-        get() {
-            var fragment: Fragment? = this.parentFragment
-            while(fragment!=null) {
-                if(fragment is UtDialog) {
-                    return fragment
-                }
-                fragment = fragment.parentFragment
-            }
-            return null
-        }
+        get() = UtDialogHelper.parentDialog(this)
 
     // endregion
 
@@ -938,65 +917,71 @@ abstract class UtDialog : UtDialogBase() {
     /**
      * IViewInflaterの実装クラス
      */
-    private data class ViewInflater(val dlg:Dialog, val bodyContainer:ViewGroup): IViewInflater {
-        val layoutInflater get() = dlg.layoutInflater
-
+    private data class ViewInflater(val layoutInflater:LayoutInflater, val bodyContainer:ViewGroup): IViewInflater {
         override fun inflate(id: Int): View {
-            return dlg.layoutInflater.inflate(id, bodyContainer, false)
+            return layoutInflater.inflate(id, bodyContainer, false)
         }
     }
 
 //    private var gestureDetector:GestureDetector? = null
 
+    /**
+     * isDialog == true の場合に呼ばれる。
+     */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        // Dialogの第２引数でスタイルを渡したら、（そのスタイルの指定やダイアログ側のルートコンテナのlayout指定に関わらず）常に全画面のダイアログが開く。
-        return Dialog(requireContext(), R.style.dlg_style).also { dlg ->
-            try {
-                preCreateBodyView()
-                // ダイアログの背景を透過させる。
-                // ダイアログテーマとかdialog_frameのルートコンテナの背景を透過させても効果がないので注意。
-                dlg.window?.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
-                rootView = View.inflate(requireContext(), R.layout.dialog_frame, null) as FrameLayout
-                leftButton = rootView.findViewById(R.id.left_button)
-                rightButton = rootView.findViewById(R.id.right_button)
-                titleView = rootView.findViewById(R.id.dialog_title)
-                progressRingOnTitleBar = rootView.findViewById(R.id.progress_on_title_bar)
-                dialogView = rootView.findViewById(R.id.dialog_view)
-                refContainerView = rootView.findViewById(R.id.ref_container_view)
-                bodyGuardView = rootView.findViewById(R.id.body_guard_view)
-                title?.let { titleView.text = it }
-                if (heightOption == HeightOption.AUTO_SCROLL) {
-                    scrollable = true
-                } else if (heightOption == HeightOption.CUSTOM) {
-                    scrollable = false
-                }
-                bodyContainer = if (scrollable) {
-                    rootView.findViewById(R.id.body_scroller)
-                } else {
-                    rootView.findViewById(R.id.body_container)
-                }
-                bodyContainer.visibility = View.VISIBLE
-                leftButton.setOnClickListener(this::onLeftButtonTapped)
-                rightButton.setOnClickListener(this::onRightButtonTapped)
-                if (cancellable) {
-                    rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
-                    dialogView.setOnClickListener(this@UtDialog::onBackgroundTapped)
-                }
-                updateLeftButton()
-                updateRightButton()
-                bodyView = createBodyView(savedInstanceState, ViewInflater(dlg, bodyContainer))
-                bodyContainer.addView(bodyView)
-                setupLayout()
-                dlg.setContentView(rootView)
-                if(draggable) {
-                    enableDrag()
-                }
-                applyGuardColor()
-            } catch(e:Throwable) {
-                // View作り中のエラーは、デフォルトでログに出る間もなく死んでしまうようなので、キャッチして出力する。throwし直すから死ぬけど。
-                logger.stackTrace(e)
-                throw e
+        return Dialog(requireContext(), R.style.dlg_style)
+    }
+
+    /**
+     * コンテントビュー生成処理
+     */
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        try {
+            preCreateBodyView()
+            rootView = inflater.inflate(R.layout.dialog_frame, container, false) as FrameLayout
+            leftButton = rootView.findViewById(R.id.left_button)
+            rightButton = rootView.findViewById(R.id.right_button)
+            titleView = rootView.findViewById(R.id.dialog_title)
+            progressRingOnTitleBar = rootView.findViewById(R.id.progress_on_title_bar)
+            dialogView = rootView.findViewById(R.id.dialog_view)
+            refContainerView = rootView.findViewById(R.id.ref_container_view)
+            bodyGuardView = rootView.findViewById(R.id.body_guard_view)
+            title?.let { titleView.text = it }
+            if (heightOption == HeightOption.AUTO_SCROLL) {
+                scrollable = true
+            } else if (heightOption == HeightOption.CUSTOM) {
+                scrollable = false
             }
+            bodyContainer = if (scrollable) {
+                rootView.findViewById(R.id.body_scroller)
+            } else {
+                rootView.findViewById(R.id.body_container)
+            }
+            bodyContainer.visibility = View.VISIBLE
+            leftButton.setOnClickListener(this::onLeftButtonTapped)
+            rightButton.setOnClickListener(this::onRightButtonTapped)
+            if (cancellable) {
+                rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
+                dialogView.setOnClickListener(this@UtDialog::onBackgroundTapped)
+            }
+            updateLeftButton()
+            updateRightButton()
+            bodyView = createBodyView(savedInstanceState, ViewInflater(inflater, bodyContainer))
+            bodyContainer.addView(bodyView)
+            setupLayout()
+//            dlg?.setContentView(rootView)
+            if (draggable) {
+                enableDrag()
+            }
+            applyGuardColor()
+            if(animationEffect) {
+                rootView.visibility = View.INVISIBLE
+            }
+            return rootView
+        } catch (e: Throwable) {
+            // View作り中のエラーは、デフォルトでログに出る間もなく死んでしまうようなので、キャッチして出力する。throwし直すから死ぬけど。
+            logger.stackTrace(e)
+            throw e
         }
     }
 

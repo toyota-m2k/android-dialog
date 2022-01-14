@@ -225,20 +225,15 @@ class UtDialogHostManager: IUtDialogHost {
          */
         @JvmOverloads
         fun showDialog(activity: FragmentActivity, clientData:Any?=null, creator:(NamedReceptor<D>)->D) {
-            if(UtDialogHelper.findChildDialog(activity, tag) !=null) return
+            if(UtDialogHelper.findDialog(activity, tag) !=null) return
             creator(this).apply{
                 attachDialog(this, clientData)
                 show(activity, tag)
             }
         }
         @JvmOverloads
-        fun showDialog(fragment: Fragment, clientData:Any?=null, creator:(NamedReceptor<D>)->D) {
-            if(UtDialogHelper.findChildDialog(fragment, tag) !=null) return
-            creator(this).apply{
-                attachDialog(this, clientData)
-                show(fragment, tag)
-            }
-        }
+        fun showDialog(fragment: Fragment, clientData:Any?=null, creator:(NamedReceptor<D>)->D)
+            = showDialog(fragment.requireActivity(), clientData, creator)
 
         private fun attachDialog(dlg: IUtDialog, clientData:Any?) {
             dialogRef = WeakReference(dlg)

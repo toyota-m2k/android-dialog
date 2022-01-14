@@ -44,7 +44,7 @@ interface IUtDialog {
      * ダイアログを表示する
      */
     fun show(activity: FragmentActivity, tag:String?)
-    fun show(fragment: Fragment, tag:String?)
+//    fun show(fragment: Fragment, tag:String?)
 
     /**
      * ダイアログ状態をセットして閉じる

@@ -79,12 +79,12 @@ abstract class UtImmortalTaskBase(
         }
     }
 
-    protected suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T {
+    suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T {
         return UtImmortalTaskManager.mortalInstanceSource.withOwner { owner ->
             fn(owner)
         }
     }
-    protected suspend fun <T> withOwner(clazz: Class<*>, fn: suspend (UtDialogOwner)->T):T {
+    suspend fun <T> withOwner(clazz: Class<*>, fn: suspend (UtDialogOwner)->T):T {
         return UtImmortalTaskManager.mortalInstanceSource.withOwner(clazz) { owner ->
             fn(owner)
         }
@@ -109,7 +109,7 @@ abstract class UtImmortalTaskBase(
                 suspendCoroutine<Any?> {
                     continuation = it
                     val parent = if(parentDialogTag!=null) {
-                        UtDialogHelper.findChildDialog(owner, parentDialogTag)?.asFragment?.toDialogOwner() ?: owner
+                        UtDialogHelper.findDialog(owner, parentDialogTag)?.asFragment?.toDialogOwner() ?: owner
                     } else owner
                     dialogSource(owner).apply { immortalTaskName = taskName }.show(parent, tag)
                 } as D

@@ -66,7 +66,7 @@ fun Fragment.toDialogOwner() = UtDialogOwner(this)
 fun IUtDialog.show(owner: UtDialogOwner, tag:String) {
     when(owner.lifecycleOwner) {
         is FragmentActivity -> show(owner.lifecycleOwner, tag)
-        is Fragment         -> show(owner.lifecycleOwner, tag)
+        is Fragment         -> show(owner.lifecycleOwner.requireActivity(), tag)
     }
 }
 

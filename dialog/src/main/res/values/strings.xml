@@ -1,9 +1,9 @@
 <resources>
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
-    <string name="close">Close</string>
-    <string name="back">Back</string>
-    <string name="done">Done</string>
+    <string name="ut_dialog_ok">OK</string>
+    <string name="ut_dialog_cancel">Cancel</string>
+    <string name="ut_dialog_yes">Yes</string>
+    <string name="ut_dialog_no">No</string>
+    <string name="ut_dialog_close">Close</string>
+    <string name="ut_dialog_back">Back</string>
+    <string name="ut_dialog_done">Done</string>
 </resources>
