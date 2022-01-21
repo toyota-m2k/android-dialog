@@ -19,7 +19,7 @@ open class UtOpenFilePicker : UtActivityBroker<Array<String>, Uri?>() {
     companion object {
         val defaultMimeTypes: Array<String> = arrayOf("*/*")
 
-        fun launcher(owner:FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActivityLauncher<Array<String>> {
+        fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActivityLauncher<Array<String>> {
             return UtOpenFilePicker().apply {
                 register(owner, callback)
             }

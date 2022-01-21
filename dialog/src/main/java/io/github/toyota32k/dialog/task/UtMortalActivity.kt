@@ -3,6 +3,7 @@ package io.github.toyota32k.dialog.task
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
 import io.github.toyota32k.dialog.IUtDialogHost
+import io.github.toyota32k.dialog.UtDialogHelper
 import io.github.toyota32k.dialog.UtDialogHostManager
 import io.github.toyota32k.dialog.toDialogOwner
 
@@ -15,7 +16,7 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
     /**
      * タスク名のテーブル
      */
-    protected abstract val immortalTaskNameList:Array<String>
+    protected open val immortalTaskNameList:Array<String> = emptyArray()
 
     /**
      * タスクの結果を受け取るハンドラ
@@ -56,6 +57,13 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
                 UtImmortalTaskManager.disposeTask(name,toDialogOwner())
             }
         }
+    }
+
+    override fun onBackPressed() {
+        if(UtDialogHelper.cancelCurrentDialog(this)) {
+            return
+        }
+        super.onBackPressed()
     }
 
     /**

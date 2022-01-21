@@ -15,6 +15,7 @@ import kotlin.coroutines.suspendCoroutine
  * @param taskName  タスクを一意に識別する名前
  * @param parentContext 親タスクのタスクコンテキスト（ルートタスクならnull）
  *                      parentContextを指定すると、親タスクのコルーチンスコープで実行される。
+ *                      ViewModelも、親タスクのライフサイクル内で動作する。
  * @param allowSequential true:同名のタスクが実行中なら、それが終わるのを待って実行 / false:同名のタスクが実行中ならエラー
  */
 @Suppress("unused")
@@ -90,31 +91,24 @@ abstract class UtImmortalTaskBase(
         }
     }
 
-    protected suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D where D:IUtDialog {
-        return showDialog(null, tag, dialogSource)
-    }
-
     /**
      * タスク内からダイアログを表示し、complete()までsuspendする。
      */
-    @Suppress("UNCHECKED_CAST")
-    protected suspend fun <D> showDialog(parentDialogTag:String?, tag:String, dialogSource:(UtDialogOwner)-> D) : D where D:IUtDialog {
+    suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D where D:IUtDialog {
         val running = UtImmortalTaskManager.taskOf(taskName)
         if(running == null || running.task != this) {
             throw IllegalStateException("task($taskName) is not running")
         }
         logger.debug("dialog opening...")
+        @Suppress("UNCHECKED_CAST")
         val r = withContext(UtImmortalTaskManager.immortalTaskScope.coroutineContext) {
             withOwner { owner->
                 suspendCoroutine<Any?> {
                     continuation = it
-                    val parent = if(parentDialogTag!=null) {
-                        UtDialogHelper.findDialog(owner, parentDialogTag)?.asFragment?.toDialogOwner() ?: owner
-                    } else owner
-                    dialogSource(owner).apply { immortalTaskName = taskName }.show(parent, tag)
-                } as D
+                    dialogSource(owner).apply { immortalTaskName = taskName }.show(owner, tag)
+                }
             }
-        }
+        } as D
         logger.debug("dialog closed")
         return r
     }

@@ -26,8 +26,6 @@ interface IUtImmortalTask : Closeable, IUtImmortalTaskContextSource {
  * ライフサイクルオブジェクト（死んだり生き返ったりするオブジェクト:Activity/Fragment）を取得するための i/f
  */
 interface IUiMortalInstanceSource {
-//    suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T
-//    suspend fun <T> withOwner(clazzSpecified:Class<*>, fn: suspend (UtDialogOwner)->T):T
     suspend fun getOwner() : UtDialogOwner
     suspend fun getOwnerOf(clazz:Class<*>) : UtDialogOwner
 }

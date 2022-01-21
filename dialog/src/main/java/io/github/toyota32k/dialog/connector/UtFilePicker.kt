@@ -12,6 +12,7 @@ import io.github.toyota32k.dialog.UtDialogOwner
 /**
  * 読み書き用にファイルを選択する
  */
+@Deprecated("use broker.pickers.UtOpenFilePicker instead.")
 class UtFileOpenPicker(owner: UtDialogOwner, mimeTypes: Array<String>, callback: ActivityResultCallback<Uri>)
     : UtActivityConnector<Array<String>, Uri>(owner.registerForActivityResult(Contract(), callback), mimeTypes) {
 
@@ -30,12 +31,14 @@ class UtFileOpenPicker(owner: UtDialogOwner, mimeTypes: Array<String>, callback:
     }
 }
 
+@Deprecated("use broker.pickers.UtOpenFilePicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchFileOpenPicker(connectorName:String):Uri? {
     return launchActivityConnector(connectorName) {
         val connector = it as? UtFileOpenPicker ?: throw IllegalStateException("connector is not an instance of UtFileOpenPicker")
         connector.launch()
     } as? Uri
 }
+@Deprecated("use broker.pickers.UtOpenFilePicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchFileOpenPicker(connectorName:String, mimeTypes:Array<String>):Uri? {
     return launchActivityConnector(connectorName) {
         val connector = it as? UtFileOpenPicker ?: throw IllegalStateException("connector is not an instance of UtFileOpenPicker")
@@ -51,6 +54,7 @@ suspend fun UtActivityConnectorImmortalTaskBase.launchFileOpenPicker(connectorNa
  * アイテムを長押し選択すると、チェックボックスが現れ、右上に「選択」または、「開く」 などのボタンが表示される。
  * この状態で、アイテムを選択すると、チェックボックスのon/off がトグルして、複数選択が可能になる。
  */
+@Deprecated("use broker.pickers.UtOpenMultiFilePicker instead.")
 class UtMultiFileOpenPicker(owner: UtDialogOwner, mimeTypes: Array<String>, callback: ActivityResultCallback<List<Uri>>)
     : UtActivityConnector<Array<String>, List<Uri>>(owner.registerForActivityResult(Contract(), callback), mimeTypes) {
 
@@ -76,6 +80,7 @@ class UtMultiFileOpenPicker(owner: UtDialogOwner, mimeTypes: Array<String>, call
     }
 }
 
+@Deprecated("use broker.pickers.UtOpenMultiFilePicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchMultiFileOpenPicker(connectorName:String):List<Uri>? {
     @Suppress("UNCHECKED_CAST")
     return launchActivityConnector(connectorName) {
@@ -83,6 +88,8 @@ suspend fun UtActivityConnectorImmortalTaskBase.launchMultiFileOpenPicker(connec
         connector.launch()
     } as? List<Uri>
 }
+
+@Deprecated("use broker.pickers.UtOpenMultiFilePicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchMultiFileOpenPicker(connectorName:String, mimeTypes:Array<String>):List<Uri>? {
     @Suppress("UNCHECKED_CAST")
     return launchActivityConnector(connectorName) {
@@ -102,6 +109,7 @@ suspend fun UtActivityConnectorImmortalTaskBase.launchMultiFileOpenPicker(connec
  *
  * おそらく、GET_CONTENT で取得した URI は、そのコールバック内でのみ有効（読み取り可能）なのだろうと思う。
  */
+@Deprecated("use broker.pickers.UtOpenReadOnlyFilePicker instead.")
 class UtContentPicker(owner: UtDialogOwner, mimeType: String, callback: ActivityResultCallback<Uri>)
     : UtActivityConnector<String, Uri>(owner.registerForActivityResult(Contract(), callback), mimeType) {
 
@@ -127,12 +135,15 @@ class UtContentPicker(owner: UtDialogOwner, mimeType: String, callback: Activity
     }
 }
 
+@Deprecated("use broker.pickers.UtOpenReadOnlyFilePicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchContentPicker(connectorName:String):Uri? {
     return launchActivityConnector(connectorName) {
         val connector = it as? UtContentPicker ?: throw IllegalStateException("connector is not an instance of UtContentPicker")
         connector.launch()
     } as? Uri
 }
+
+@Deprecated("use broker.pickers.UtOpenReadOnlyFilePicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchContentPicker(connectorName:String, mimeType:String):Uri? {
     return launchActivityConnector(connectorName) {
         val connector = it as? UtContentPicker ?: throw IllegalStateException("connector is not an instance of UtContentPicker")
@@ -145,6 +156,7 @@ suspend fun UtActivityConnectorImmortalTaskBase.launchContentPicker(connectorNam
  * 複数ファイル選択
  * ACTION_OPEN_DOCUMENT の代わりに、ACTION_GET_CONTENT を使うようにしてみたが、やはり１ファイルしか選択できない。
  */
+@Deprecated("use broker.pickers.UtOpenReadOnlyMultiFilePicker instead.")
 class UtMultiContentPicker(owner: UtDialogOwner, mimeType: String, callback: ActivityResultCallback<List<Uri>>)
     : UtActivityConnector<String, List<Uri>>(owner.registerForActivityResult(Contract(), callback), mimeType) {
 
@@ -170,6 +182,7 @@ class UtMultiContentPicker(owner: UtDialogOwner, mimeType: String, callback: Act
     }
 }
 
+@Deprecated("use broker.pickers.UtOpenReadOnlyMultiFilePicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchMultiContentPicker(connectorName:String):List<Uri>? {
     @Suppress("UNCHECKED_CAST")
     return launchActivityConnector(connectorName) {
@@ -177,6 +190,8 @@ suspend fun UtActivityConnectorImmortalTaskBase.launchMultiContentPicker(connect
         connector.launch()
     } as? List<Uri>
 }
+
+@Deprecated("use broker.pickers.UtOpenReadOnlyMultiFilePicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchMultiContentPicker(connectorName:String, mimeType: String):List<Uri>? {
     @Suppress("UNCHECKED_CAST")
     return launchActivityConnector(connectorName) {
@@ -188,6 +203,7 @@ suspend fun UtActivityConnectorImmortalTaskBase.launchMultiContentPicker(connect
 /**
  * 作成用にファイルを選択
  */
+@Deprecated("use broker.pickers.UtCreateFilePicker instead.")
 class UtFileCreatePicker(owner: UtDialogOwner, initialName: String, mimeType:String?, callback: ActivityResultCallback<Uri>)
     : UtActivityConnector<String, Uri>(owner.registerForActivityResult(Contract(mimeType), callback), initialName) {
 
@@ -217,12 +233,15 @@ class UtFileCreatePicker(owner: UtDialogOwner, initialName: String, mimeType:Str
     }
 }
 
+@Deprecated("use broker.pickers.UtCreateFilePicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchFileCreatePicker(connectorName:String):Uri? {
     return launchActivityConnector(connectorName) {
         val connector = it as? UtFileCreatePicker ?: throw IllegalStateException("connector is not an instance of UtFileCreatePicker")
         connector.launch()
     } as? Uri
 }
+
+@Deprecated("use broker.pickers.UtCreateFilePicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchFileCreatePicker(connectorName:String, initialName: String):Uri? {
     return launchActivityConnector(connectorName) {
         val connector = it as? UtFileCreatePicker ?: throw IllegalStateException("connector is not an instance of UtFileCreatePicker")
@@ -233,6 +252,7 @@ suspend fun UtActivityConnectorImmortalTaskBase.launchFileCreatePicker(connector
 /**
  * ディレクトリを選択
  */
+@Deprecated("use broker.pickers.UtDirectoryPicker instead.")
 class UtDirectoryPicker(owner: UtDialogOwner, initialPath: Uri?, callback: ActivityResultCallback<Uri>)
     : UtActivityConnector<Uri?, Uri>(owner.registerForActivityResult(Contract(), callback), initialPath) {
 
@@ -257,12 +277,15 @@ class UtDirectoryPicker(owner: UtDialogOwner, initialPath: Uri?, callback: Activ
     }
 }
 
+@Deprecated("use broker.pickers.UtDirectoryPicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchDirectoryPicker(connectorName:String):Uri? {
     return launchActivityConnector(connectorName) {
         val connector = it as? UtDirectoryPicker ?: throw IllegalStateException("connector is not an instance of UtDirectoryPicker")
         connector.launch()
     } as? Uri
 }
+
+@Deprecated("use broker.pickers.UtDirectoryPicker instead.")
 suspend fun UtActivityConnectorImmortalTaskBase.launchDirectoryPicker(connectorName:String, initialPath: Uri?):Uri? {
     return launchActivityConnector(connectorName) {
         val connector = it as? UtDirectoryPicker ?: throw IllegalStateException("connector is not an instance of UtDirectoryPicker")

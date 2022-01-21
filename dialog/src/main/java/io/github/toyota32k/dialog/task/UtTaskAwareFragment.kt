@@ -6,6 +6,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.dialog.UtBundleDelegate
 
+/**
+ * オーナーのタスク名を保持しておくことにより、同じオーナーに属するフラグメント間で、タスクのライフサイクルを持つビューモデルを共有できるようにしたフラグメントクラス。
+ * 初期化のタイミングで、親タスクのタスク名を immortalTaskName にセットしておく。
+ * 例）
+ * class FooFragment()      // 引数なしのプライマリコンストラクタ（osの要求により必須）
+ *  : UtTaskAwareFragment() {
+ *  constructor(taskName:String) : this() { immortalTaskName = taskName }   // セカンダリコンストラクタ（インスタンス作成時は、こちらを使用）
+ * }
+ *
+ * fun bar() {
+ *    val fragment = FooFragment("SomeTaskName")
+ * }
+ */
 abstract class UtTaskAwareFragment: Fragment() {
     val bundle = UtBundleDelegate { ensureArguments() }
     var immortalTaskName: String? by bundle.stringNullable

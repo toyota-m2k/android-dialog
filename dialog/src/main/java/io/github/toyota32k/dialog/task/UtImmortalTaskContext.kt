@@ -22,6 +22,13 @@ interface IUtImmortalTaskContext: ViewModelStoreOwner {
     val task : IUtImmortalTask? get() = UtImmortalTaskManager.taskOf(taskName)?.task
 }
 
+/**
+ * タスク実行中にタスクに関する情報を保持し、ダイアログなどから利用できるようにする情報クラス
+ * @param taskName  タスク名
+ * @param parentContext 親タスクのコンテキスト（サブタスクの場合のみ）
+ *        親のコンテキストを渡すことで、親のViewModelStoreが使用され、親タスクのライフサイクル内で動作する。
+ *        つまり、親タスクが生きている間は、（子タスクが終了しても）ViewModelは温存される。
+ */
 class UtImmortalTaskContext(override val taskName:String, val parentContext:IUtImmortalTaskContext?) : IUtImmortalTaskContext {
     private var mScope: CoroutineScope? = null
     override val coroutineScope:CoroutineScope

@@ -5,6 +5,7 @@ package io.github.toyota32k.dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
+import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
@@ -64,11 +65,11 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
     final override var immortalTaskName: String? by bundle.stringNullable
     final override val asFragment: DialogFragment
         get() = this
-    final override var doNotResumeTask:Boolean by bundle.booleanFalse
+    final override var doNotResumeTask: Boolean by bundle.booleanFalse
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if(context is IUtDialogHost) {
+        if (context is IUtDialogHost) {
             dialogHost = WeakReference(context)
         }
     }
@@ -85,10 +86,15 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
     protected open fun onDialogClosing() {
     }
 
+    protected open fun onDialogClosed() {
+    }
 
-    override fun onStart() {
-        super.onStart()
-        onDialogOpening()
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        if(savedInstanceState==null) {
+            onDialogOpening()
+        }
     }
 
     override fun onDetach() {
@@ -98,7 +104,6 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
 
     override fun onCancel(dialog: DialogInterface) {
         if(!status.finished) {
-//            status = IUtDialog.Status.NEGATIVE
             onCancel()
         }
         super.onCancel(dialog)
@@ -133,6 +138,7 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
                     if(!doNotResumeTask) {
                         task.resumeTask(this@UtDialogBase)
                     }
+                    onDialogClosed()
                 }
                 return
             } else {
@@ -145,6 +151,7 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
         } else {
             queryResultReceptor()?.onDialogResult(this)
         }
+        onDialogClosed()
     }
 
     /**
@@ -158,8 +165,8 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
      * キャンセル時に呼び出される
      */
     protected open fun onCancel() {
-        logger.debug("$this")
         if(!status.finished) {
+            logger.debug("$this")
             status = IUtDialog.Status.NEGATIVE
             onDialogClosing()
             notifyResult(dismiss=false)
@@ -178,7 +185,7 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
      */
     override fun complete(status: IUtDialog.Status) {
         if (!status.finished) {
-            error("already finished.")
+            throw IllegalStateException("complete must finish dialog.")
         }
         if (!this.status.finished) {
             this.status = status
@@ -218,10 +225,15 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
         if(isDialog) {
             super.show(activity.supportFragmentManager, tag)
         } else {
-            activity.supportFragmentManager.beginTransaction()
-                .add(android.R.id.content, this, tag)
-                .addToBackStack(null)
+            activity.supportFragmentManager.apply {
+                beginTransaction()
+                .add(android.R.id.content, this@UtDialogBase, tag)
+//                .addToBackStack(null)     // スタックには積まず、UtMortalDialog経由で自力で何とかする。
                 .commit()
+                if(UtDialogConfig.showDialogImmediately) {
+                    executePendingTransactions()
+                }
+            }
         }
     }
 

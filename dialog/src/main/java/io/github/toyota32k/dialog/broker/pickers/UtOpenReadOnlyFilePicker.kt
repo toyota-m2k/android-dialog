@@ -17,7 +17,8 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  */
 open class UtOpenReadOnlyFilePicker : UtActivityBroker<String, Uri?>()  {
     companion object {
-        val defaultMimeType: String = "*/*"
+        const val defaultMimeType: String = "*/*"
+        @JvmStatic
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActivityLauncher<String> {
             return UtOpenReadOnlyFilePicker().apply {
                 register(owner, callback)

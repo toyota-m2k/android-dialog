@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.annotation.StringRes
 import java.lang.ref.WeakReference
 
-
 interface IUtStringTable {
     @StringRes
     fun resId(type: UtStandardString): Int
@@ -35,7 +34,8 @@ enum class UtStandardString(@StringRes private val resId:Int) {
         private var context:WeakReference<Context>? = null
         private var table:IUtStringTable? = null
         @JvmStatic
-        fun setContext(context:Context, table:IUtStringTable?) {
+        @JvmOverloads
+        fun setContext(context:Context, table:IUtStringTable?=null) {
             this.context = WeakReference(context)
             this.table = table
         }

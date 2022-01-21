@@ -43,23 +43,41 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      * ダイアログ外をタップしてキャンセル可能にするか？
      * true:キャンセル可能（デフォルト）
      * false:キャンセル不可
-     * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    var cancellable:Boolean by bundle.booleanTrue
+    private var lightCancelable:Boolean by bundle.booleanTrue
+    var cancellable:Boolean
+        get() = lightCancelable
+        set(c) { updateCancelable(c) }
 
-    fun updateCancellable(c:Boolean) {
-        if(cancellable!=c) {
-            cancellable = c
-            if(c) {
-                rootView.setOnClickListener(this::onBackgroundTapped)
-                dialogView.setOnClickListener(this::onBackgroundTapped)
-            } else {
-                rootView.setOnClickListener(null)
-                dialogView.setOnClickListener(null)
+    fun updateCancelable(c:Boolean) {
+        if(lightCancelable!=c) {
+            lightCancelable = c
+            if(this::rootView.isInitialized) {
+//                if (c) {
+//                    rootView.setOnClickListener(this::onBackgroundTapped)
+////                dialogView.setOnClickListener(this::onBackgroundTapped)
+//                } else {
+//                    rootView.setOnClickListener(null)
+////                dialogView.setOnClickListener(null)
+//                }
+                applyGuardColor()
             }
-            applyGuardColor()
         }
     }
+
+    /**
+     * DialogFragmentが isCancelable というプロパティを持っていていることに気づいた。
+     * ダイアログの場合、あっちのは使わないから、そっとオーバーライドしておく。
+     */
+    override fun setCancelable(cancelable: Boolean) {
+//        super.setCancelable(cancelable)
+        updateCancelable(cancelable)
+    }
+
+    override fun isCancelable(): Boolean {
+        return lightCancelable
+    }
+
 
     /**
      * Drag&Dropによるダイアログ移動を許可するか？
@@ -150,7 +168,7 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      */
     @Suppress("unused")
     fun setFixedHeight(height:Int) {
-        if(dialog!=null) {
+        if(isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
         heightOption = HeightOption.FIXED
@@ -162,7 +180,7 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
     fun setLimitHeight(height:Int) {
-        if(dialog!=null) {
+        if(isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
         heightOption = HeightOption.LIMIT
@@ -175,7 +193,7 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      */
     @Suppress("unused")
     fun setFixedWidth(width:Int) {
-        if(dialog!=null) {
+        if(isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
         widthOption = WidthOption.FIXED
@@ -187,7 +205,7 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
     fun setLimitWidth(width:Int) {
-        if(dialog!=null) {
+        if(isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
         widthOption = WidthOption.LIMIT
@@ -257,7 +275,8 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
         TRANSPARENT(Color.argb(0,0xFF,0xFF,0xFF)),          // 透明（通常、 cancellable == true のとき用）
         DIM(Color.argb(0x40,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
         @Suppress("unused")
-        SEE_THROUGH(Color.argb(0x40,0xFF, 0xFF, 0xFF));     // 白っぽいやつ　（好みで）
+        SEE_THROUGH(Color.argb(0x40,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
+        SOLID_GRAY(Color.rgb(0xc1,0xc1,0xc1)),
     }
 
     /**
@@ -283,8 +302,9 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
     @ColorInt
     private fun managedGuardColor():Int {
         return when {
+            UtDialogConfig.solidBackgroundOnPhone && isPhone -> GuardColor.SOLID_GRAY.color
             hasGuardColor -> guardColor
-            !cancellable-> GuardColor.DIM.color
+            !lightCancelable-> GuardColor.DIM.color
             else-> GuardColor.TRANSPARENT.color
         }
     }
@@ -320,14 +340,16 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      * ダイアログの表示/非表示
      */
     var visible:Boolean
-        get() = dialogView.visibility == View.VISIBLE
-        set(v) { dialogView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
+        get() = rootView.visibility == View.VISIBLE
+        set(v) { rootView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
 
     private val fadeInAnimation = UtFadeAnimation(true,400)
     private val fadeOutAnimation = UtFadeAnimation(false, 300)
 
     fun fadeIn(completed:(()->Unit)?=null) {
-        if(animationEffect) {
+        if(!this::rootView.isInitialized) {
+            completed?.invoke()         // onCreateViewでnullを返す（開かないでcancelされる）ダイアログの場合、ここに入ってくる
+        } else if(animationEffect) {
             fadeInAnimation.start(rootView, completed)
         } else {
             visible = true
@@ -336,7 +358,9 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
     }
 
     fun fadeOut(completed:(()->Unit)?=null) {
-        if(animationEffect) {
+        if(!this::rootView.isInitialized) {
+            completed?.invoke()
+        } else if(animationEffect) {
             fadeOutAnimation.start(rootView, completed)
         } else {
             visible = false
@@ -370,17 +394,19 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
     // region タイトルバー
 
     /**
-     * タイトル： createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットしておく
-     * ダイアログ表示後に動的にタイトルを変える場合は、replaceTitle()を呼ぶ。
+     * タイトル
      */
-    var title:String? by bundle.stringNullable
+    private var privateTitle:String? by bundle.stringNullable
+    var title:String?
+        get() = privateTitle
+        set(v) = replaceTitle(v)
 
     /**
      * ダイアログ構築後に（動的に）ダイアログタイトルを変更する。
      */
-    fun replaceTitle(title:String) {
-        this.title = title
-        if(dialog!=null) {
+    open fun replaceTitle(title:String?) {
+        this.privateTitle = title
+        if(this::titleView.isInitialized) {
             titleView.text = title
         }
     }
@@ -433,6 +459,9 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
         leftButtonText = id
         leftButtonPositive = positive
         leftButtonBlue = blue
+        if(isViewInitialized) {
+            updateLeftButton()
+        }
     }
 
     /**
@@ -440,9 +469,6 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      */
     fun setLeftButton(type: BuiltInButtonType) {
         setLeftButton(type.string.id, type.positive, type.blueColor)
-        if(dialog!=null) {
-            updateLeftButton()
-        }
     }
 
     /**
@@ -457,7 +483,7 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
         rightButtonText = id
         rightButtonPositive = positive
         rightButtonBlue = blue
-        if(dialog!=null) {
+        if(isViewInitialized) {
             updateRightButton()
         }
     }
@@ -707,11 +733,11 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
     lateinit var progressRingOnTitleBar: ProgressBar
         private set
 
-    lateinit var rootView: FrameLayout              // 全画面を覆う透過の背景となるダイアログのルート：
-        private set
-    lateinit var dialogView:ConstraintLayout        // ダイアログ画面としてユーザーに見えるビュー。rootView上で位置、サイズを調整する。
-        private set
-    lateinit var bodyContainer:FrameLayout          // bodyViewの入れ物
+    lateinit var rootView: ViewGroup              // 全画面を覆う透過の背景となるダイアログのルート：
+        protected set
+    lateinit var dialogView:ViewGroup        // ダイアログ画面としてユーザーに見えるビュー。rootView上で位置、サイズを調整する。
+        protected set
+    lateinit var bodyContainer:ViewGroup          // bodyViewの入れ物
         private set
     lateinit var bodyView:View                      // UtDialogを継承するサブクラス毎に作成されるダイアログの中身  (createBodyView()で構築されたビュー）
         private set
@@ -886,6 +912,9 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
 
     // region ダイアログの構築
 
+    val isViewInitialized:Boolean
+       get() = this::rootView.isInitialized
+
     /**
      * ダイアログ構築前の処理
      * titleViewなど、UtDialog側のビューを構築するまえに行うべき初期化処理を行う。
@@ -937,6 +966,9 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      */
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         try {
+            if(UtDialogConfig.solidBackgroundOnPhone && isPhone) {
+                animationEffect = false
+            }
             preCreateBodyView()
             rootView = inflater.inflate(R.layout.dialog_frame, container, false) as FrameLayout
             leftButton = rootView.findViewById(R.id.left_button)
@@ -960,10 +992,11 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
             bodyContainer.visibility = View.VISIBLE
             leftButton.setOnClickListener(this::onLeftButtonTapped)
             rightButton.setOnClickListener(this::onRightButtonTapped)
-            if (cancellable) {
-                rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
-                dialogView.setOnClickListener(this@UtDialog::onBackgroundTapped)
-            }
+            rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
+//          画面外タップで閉じるかどうかにかかわらず、リスナーをセットする。そうしないと、ダイアログ外のビューで操作できてしまう。
+//            if (lightCancelable) {
+//                rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
+//            }
             updateLeftButton()
             updateRightButton()
             bodyView = createBodyView(savedInstanceState, ViewInflater(inflater, bodyContainer))
@@ -974,8 +1007,17 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
                 enableDrag()
             }
             applyGuardColor()
-            if(animationEffect) {
-                rootView.visibility = View.INVISIBLE
+            if(savedInstanceState==null) {
+                // 新しくダイアログを開く
+                // アニメーションして開くときは、初期状態を非表示にしておく。
+                if (animationEffect) {
+                    this.visible = false
+                }
+            } else {
+                // 回転などによる状態復元
+                if (parentVisibilityOption != ParentVisibilityOption.NONE) {
+                    parentDialog?.visible = false
+                }
             }
             return rootView
         } catch (e: Throwable) {
@@ -1017,13 +1059,8 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      */
     override fun onDialogOpening() {
         fadeIn()
-        val parent = parentDialog ?: return
         if (parentVisibilityOption != ParentVisibilityOption.NONE) {
-            parent.fadeOut()
-//            lifecycleScope.launch {
-                //delay(500)
-                //parent.visible = false
-//            }
+            parentDialog?.fadeOut()
         }
     }
 
@@ -1043,7 +1080,7 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      * 背景（ガードビュー）がタップされたときのハンドラ
      */
     protected open fun onBackgroundTapped(view:View) {
-        if(view==rootView && cancellable) {
+        if(view==rootView && lightCancelable) {
             onNegative()
         }
     }

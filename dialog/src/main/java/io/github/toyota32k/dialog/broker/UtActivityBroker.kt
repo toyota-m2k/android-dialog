@@ -43,6 +43,7 @@ abstract class UtActivityBroker<I,O>
         logger.debug()
         launcher = owner.registerForActivityResult(contract, this)
     }
+
     override fun onActivityResult(result: O) {
         @Suppress("UNCHECKED_CAST")
         (continuation as? Continuation<O>)?.resume(result)

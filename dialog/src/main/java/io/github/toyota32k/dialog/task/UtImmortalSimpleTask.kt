@@ -8,7 +8,7 @@ import kotlinx.coroutines.Job
  */
 class UtImmortalSimpleTask(
     taskName:String,
-    val callback:UtImmortalSimpleTask.()->Boolean
+    val callback:suspend UtImmortalSimpleTask.()->Boolean
 ) : UtImmortalTaskBase(taskName) {
     companion object {
         const val defTaskName = "UtImmortalSimpleTask"
@@ -16,14 +16,14 @@ class UtImmortalSimpleTask(
         /**
          * やりっぱなしタスク
          */
-        fun run(taskName: String = defTaskName, coroutineScope: CoroutineScope?=null, callback:UtImmortalSimpleTask.()->Boolean) : Job {
+        fun run(taskName: String = defTaskName, coroutineScope: CoroutineScope?=null, callback:suspend UtImmortalSimpleTask.()->Boolean) : Job {
             return UtImmortalSimpleTask(taskName, callback).fire(coroutineScope)
         }
 
         /**
          * タスクの結果(bool)を待つ
          */
-        suspend fun runAsync(taskName: String = defTaskName, callback:UtImmortalSimpleTask.()->Boolean):Boolean {
+        suspend fun runAsync(taskName: String = defTaskName, callback:suspend UtImmortalSimpleTask.()->Boolean):Boolean {
             return UtImmortalSimpleTask(taskName, callback).fireAsync()
         }
     }
