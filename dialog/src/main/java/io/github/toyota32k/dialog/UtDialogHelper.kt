@@ -27,12 +27,32 @@ object UtDialogHelper {
      * dialogの親（スタックの一つ前）を取得
      */
     fun parentDialog(dialog: UtDialog): UtDialog? {
-        val list = allDialogs(dialog.asFragment.requireActivity())
-        val index = list.indexOf(dialog)
-        return if (index <= 0) {
+        return try {
+            val list = allDialogs(dialog.asFragment.requireActivity())
+            val index = list.indexOf(dialog)
+            if (index <= 0) {
+                null
+            } else {
+                list[index - 1]
+            }
+        } catch(e:Throwable) {
+            logger.stackTrace(e)
             null
-        } else {
-            list[index - 1]
+        }
+    }
+
+    fun parentDialogHost(dialog:IUtDialog): IUtDialogHost? {
+        return try {
+            val list = allDialogsAndMessageBoxes(dialog.asFragment.requireActivity())
+            val index = list.indexOf(dialog)
+            if (index <= 0) {
+                null
+            } else {
+                list[index - 1] as? IUtDialogHost
+            }
+        } catch(e:Throwable) {
+            logger.stackTrace(e)
+            null
         }
     }
 
@@ -75,6 +95,21 @@ object UtDialogHelper {
         }
     }
 
+    fun childrenOf(dialog:UtDialog) : List<UtDialog> {
+        return try {
+            val list = allDialogs(dialog.requireActivity())
+            val current = list.indexOf(dialog)
+            if (current >= 0) {
+                list.drop(current + 1)
+            } else {
+                emptyList()
+            }
+        } catch(e:Throwable) {
+            logger.stackTrace(e)
+            emptyList()
+        }
+    }
+
     /**
      * タグからダイアログを検索
      */
@@ -92,7 +127,7 @@ object UtDialogHelper {
     fun findDialog(owner: UtDialogOwner, tag: String): IUtDialog? {
         return when (owner.lifecycleOwner) {
             is FragmentActivity -> findDialog(owner.lifecycleOwner, tag)
-            is Fragment -> findDialog(owner.lifecycleOwner.requireActivity(), tag)
+            is Fragment -> try { findDialog(owner.lifecycleOwner.requireActivity(), tag) } catch(e:Throwable) { logger.stackTrace(e); null }
             else -> null
         }
     }

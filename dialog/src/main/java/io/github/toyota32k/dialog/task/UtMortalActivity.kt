@@ -1,11 +1,9 @@
 package io.github.toyota32k.dialog.task
 
+import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
-import io.github.toyota32k.dialog.IUtDialogHost
-import io.github.toyota32k.dialog.UtDialogHelper
-import io.github.toyota32k.dialog.UtDialogHostManager
-import io.github.toyota32k.dialog.toDialogOwner
+import io.github.toyota32k.dialog.*
 
 /**
  * ImmortalTask と協調動作するActivityの基本実装
@@ -59,12 +57,47 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
         }
     }
 
-    override fun onBackPressed() {
-        if(UtDialogHelper.cancelCurrentDialog(this)) {
-            return
-        }
-        super.onBackPressed()
+    /**
+     * UtMortalActivityを継承するActivityは、onKeyDownを直接オーバーライドしないで、必要なら、handleKeyEventをオーバーライドする。
+     *
+     */
+    open fun handleKeyEvent(keyCode: Int, event: KeyEvent?):Boolean {
+        return false
     }
+
+    /**
+     * KeyDownイベントハンドラ（オーバーライド禁止）
+     * - ダイアログ表示中なら、ダイアログにイベントを渡す。
+     * - ダイアログ表示中でなければ、handleKeyEvent()を呼び出す。
+     * - handleKeyEvent()がfalseを返したら、親クラス(FragmentActivity）の onKeyDownを呼ぶ。
+     */
+    final override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        val currentDialog: UtDialog? = UtDialogHelper.currentDialog(this)
+        if (currentDialog != null) {
+            logger.debug { "key event consumed by dialog: $keyCode (${event}) : ${currentDialog.javaClass.simpleName}" }
+            if(currentDialog.onKeyDown(keyCode, event)) {
+                // ダイアログがイベントを処理した
+                return true
+            }
+            if(!currentDialog.isDialog) {
+                // フラグメントモードの場合は、ダイアログでイベントを処理しなくても、消費したことにする（ダイアログの後ろで、Activityが操作されてしまうのを防止）
+                return true
+            }
+        }
+        // サブクラスの処理を呼ぶ
+        if(handleKeyEvent(keyCode, event)) {
+            return true
+        }
+        // イベントを消費しなかったなら、親クラスへ
+        return super.onKeyDown(keyCode, event)
+    }
+
+//    override fun onBackPressed() {
+//        if(UtDialogHelper.cancelCurrentDialog(this)) {
+//            return
+//        }
+//        super.onBackPressed()
+//    }
 
     /**
      * ImmortalTask の状態変化を受け取るハンドラ

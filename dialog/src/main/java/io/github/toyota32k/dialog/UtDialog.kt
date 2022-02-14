@@ -2,6 +2,7 @@ package io.github.toyota32k.dialog
 
 import android.annotation.SuppressLint
 import android.app.Dialog
+import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -11,6 +12,7 @@ import android.os.Looper
 import android.view.*
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ProgressBar
@@ -23,6 +25,7 @@ import androidx.core.content.ContextCompat
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
+import io.github.toyota32k.utils.setMargin
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.max
@@ -48,6 +51,13 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
     var cancellable:Boolean
         get() = lightCancelable
         set(c) { updateCancelable(c) }
+
+    /**
+     * 画面外をタップしてダイアログを閉じるとき、Positive()扱いにするか？
+     * true: positive扱い
+     * false: negative扱い（デフォルト）
+     */
+    protected var positiveCancellable:Boolean by bundle.booleanFalse
 
     fun updateCancelable(c:Boolean) {
         if(lightCancelable!=c) {
@@ -109,6 +119,22 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      * false:つけない
      */
     var animationEffect:Boolean by bundle.booleanTrue
+
+    /**
+     * ヘッダ（ok/cancelボタンやタイトル）無しにするか？
+     * true: ヘッダなし
+     * false: ヘッダあり（デフォルト）
+     */
+    var noHeader:Boolean by bundle.booleanFalse
+
+    /**
+     * bodyContainerのマージン
+     * ボディ部分だけのメッセージ的ダイアログを作る場合に、noHeader=true と組み合わせて使うことを想定
+     * 上下左右を個別にカスタマイズするときは、onViewCreated()で、bodyContainerのマージンを直接操作する。
+     * -1: デフォルト（8dp)
+     * >=0: カスタムマージン(dp)
+     */
+    var bodyContainerMargin:Int by bundle.intMinusOne
 
     // endregion
 
@@ -347,6 +373,7 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
     private val fadeOutAnimation = UtFadeAnimation(false, 300)
 
     fun fadeIn(completed:(()->Unit)?=null) {
+//        logger.debug("$this")
         if(!this::rootView.isInitialized) {
             completed?.invoke()         // onCreateViewでnullを返す（開かないでcancelされる）ダイアログの場合、ここに入ってくる
         } else if(animationEffect) {
@@ -358,6 +385,7 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
     }
 
     fun fadeOut(completed:(()->Unit)?=null) {
+//        logger.debug("$this")
         if(!this::rootView.isInitialized) {
             completed?.invoke()
         } else if(animationEffect) {
@@ -971,6 +999,10 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
             }
             preCreateBodyView()
             rootView = inflater.inflate(R.layout.dialog_frame, container, false) as FrameLayout
+            if(noHeader) {
+                rootView.findViewById<View>(R.id.header).visibility = View.GONE
+                rootView.findViewById<View>(R.id.separator).visibility = View.GONE
+            }
             leftButton = rootView.findViewById(R.id.left_button)
             rightButton = rootView.findViewById(R.id.right_button)
             titleView = rootView.findViewById(R.id.dialog_title)
@@ -978,6 +1010,7 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
             dialogView = rootView.findViewById(R.id.dialog_view)
             refContainerView = rootView.findViewById(R.id.ref_container_view)
             bodyGuardView = rootView.findViewById(R.id.body_guard_view)
+            dialogView.isClickable = true   // これをセットしておかないと、ヘッダーなどのクリックで rootViewのonClickが呼ばれて、ダイアログが閉じてしまう。
             title?.let { titleView.text = it }
             if (heightOption == HeightOption.AUTO_SCROLL) {
                 scrollable = true
@@ -989,10 +1022,17 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
             } else {
                 rootView.findViewById(R.id.body_container)
             }
+            val margin = bodyContainerMargin
+            if(margin>=0) {
+                bodyContainer.setMargin(margin, margin, margin, margin)
+            }
             bodyContainer.visibility = View.VISIBLE
             leftButton.setOnClickListener(this::onLeftButtonTapped)
             rightButton.setOnClickListener(this::onRightButtonTapped)
+
             rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
+//            rootView.isFocusableInTouchMode = true
+//            rootView.setOnKeyListener(this@UtDialog::onBackgroundKeyListener)
 //          画面外タップで閉じるかどうかにかかわらず、リスナーをセットする。そうしないと、ダイアログ外のビューで操作できてしまう。
 //            if (lightCancelable) {
 //                rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
@@ -1060,14 +1100,33 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
     override fun onDialogOpening() {
         fadeIn()
         if (parentVisibilityOption != ParentVisibilityOption.NONE) {
-            parentDialog?.fadeOut()
+            parentDialog?.let { parent->
+                if(!parent.status.finished) {   // parentのcompleteハンドラの中から別のダイアログを開く場合、parentのfadeOutが完了する前に、ここからfadeOutの追撃が行われ、completeハンドラがクリアされて親ダイアログが閉じられなくなってしまう
+                    parent.fadeOut()
+                }
+            }
         }
     }
+
+    val immService: InputMethodManager?
+        get() = try { requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        } catch(_:Throwable) { null }
 
     /**
      * ダイアログが閉じる前のイベントハンドラ
      */
     override fun onDialogClosing() {
+        if(!isViewInitialized) {
+            // onDialogOpening (≒ onViewCreated)が呼ばれずに onDialogClosing()が呼ばれた
+            return
+        }
+
+        // Android7/8 でダイアログが閉じてもSoftware Keyboardが閉じない事例あり
+        immService?.hideSoftInputFromWindow(rootView.windowToken, 0)
+        // Chromebookで、HWキーボードの候補ウィンドウが残ってしまうのを防止
+        rootView.requestFocusFromTouch()
+
+        // 親ダイアログの表示状態を復元
         val parent = parentDialog ?: return
         if(  parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW ||
             (parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE && status.negative) ||
@@ -1081,9 +1140,40 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
      */
     protected open fun onBackgroundTapped(view:View) {
         if(view==rootView && lightCancelable) {
-            onNegative()
+            if(positiveCancellable) {
+                onPositive()
+            } else {
+                onNegative()
+            }
         }
     }
+
+    /**
+     * キーイベントハンドラ
+     * これは、FragmentやDialogFragmentのメソッドではなく、オリジナルのやつ。UtMortalActivity#onKeyDown()ががんばって呼び出している。
+     * デフォルトでは、BACK, CANCELでダイアログを閉じる。
+     * @return  true:イベントを消費した / false:消費しなかった
+     */
+    open fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (!isDialog && keyCode==KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE) {
+            cancel()
+            return true
+        }
+        return false
+    }
+
+    // rootViewで、Backキーによるダイアログキャンセルを行い、
+    // かつ、ダイアログ表示中に、親Activityがキーイベントを拾ってしまうのを防止できれば、と考えたが、
+    // フォーカスがない状態では、onKeyListenerが呼ばれないので、役に立たなかった。残念。
+//    protected open fun onBackgroundKeyListener(view:View, keyCode: Int, keyEvent: KeyEvent?): Boolean {
+//        if(keyCode==KeyEvent.KEYCODE_BACK) {
+//            if(!status.finished) {
+//                cancel()
+//            }
+//        }
+//        return true
+//    }
+
 
     /**
      * 左ボタンがタップされたときのハンドラ

@@ -52,7 +52,9 @@ import java.lang.ref.WeakReference
 //    }
 //}
 
-abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDialog {
+abstract class UtDialogBase(
+    val isDialog:Boolean=true       // true:ダイアログモード（MessageBox類）/ false:フラグメントモード(UtDialog)
+    ) : DialogFragment(), IUtDialog {
     val bundle = UtBundleDelegate { ensureArguments() }
 
     final override fun ensureArguments(): Bundle {
@@ -92,9 +94,40 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewDestroyed = false
         if(savedInstanceState==null) {
             onDialogOpening()
         }
+    }
+
+    // dismiss()を呼んでから、viewがdestroyされるまで、少し時間があり、
+    // リソースを解放するための onDialogClose()を呼ぶタイミングとしては、dismiss()後のonDestroyView()が適当だ。
+    // デバイス回転などによるView再構築のための onDestroyView()と区別するため、
+    // dismiss で dialogClosed フラグを立て、onDestroyViewで、dialogClosed == trueなら、onDialogClosed()を呼ぶことにする。
+    // ビューが破棄された状態（onDestroyView()が呼ばれて、onViewCreated()が呼ばれる前）に dismiss()されるケースも考慮しておく。
+    protected var viewDestroyed = false
+        private set(v) {
+            if(v!=field) {
+                field = v
+                if(v && dialogClosed) {
+                    onDialogClosed()
+                }
+            }
+        }
+    protected var dialogClosed = false
+        private set(v) {
+            if(v && !field) {
+                field = true
+                if(viewDestroyed) {
+                    onDialogClosed()
+                }
+            }
+        }
+
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        viewDestroyed = true
     }
 
     override fun onDetach() {
@@ -117,7 +150,29 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
 
     private fun queryResultReceptor(): IUtDialogResultReceptor? {
         val tag = this.tag ?: return null
-        return (parentFragment as? IUtDialogHost)?.queryDialogResultReceptor(tag) ?: dialogHost?.get()?.queryDialogResultReceptor(tag)
+
+        return UtDialogHelper.parentDialogHost(this)?.queryDialogResultReceptor(tag)
+                ?: dialogHost?.get()?.queryDialogResultReceptor(tag)
+    }
+
+    override fun dismissAllowingStateLoss() {
+        if(!status.finished) {
+            this.status = IUtDialog.Status.NEGATIVE
+            onDialogClosing()
+            notifyResult(dismiss = false)
+        }
+        super.dismissAllowingStateLoss()
+        dialogClosed = true
+    }
+
+    override fun dismiss() {
+        if(!status.finished) {
+            this.status = IUtDialog.Status.NEGATIVE
+            onDialogClosing()
+            notifyResult(dismiss = false)
+        }
+        super.dismiss()
+        dialogClosed = true
     }
 
     /**
@@ -138,7 +193,6 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
                     if(!doNotResumeTask) {
                         task.resumeTask(this@UtDialogBase)
                     }
-                    onDialogClosed()
                 }
                 return
             } else {
@@ -151,7 +205,6 @@ abstract class UtDialogBase(val isDialog:Boolean=true) : DialogFragment(), IUtDi
         } else {
             queryResultReceptor()?.onDialogResult(this)
         }
-        onDialogClosed()
     }
 
     /**

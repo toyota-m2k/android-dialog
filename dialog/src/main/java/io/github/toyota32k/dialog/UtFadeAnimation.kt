@@ -15,8 +15,10 @@ import kotlin.coroutines.suspendCoroutine
 class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationListener{
     private var view:View? = null
     private var completed:(()->Unit)? = null
+//    private var who:Any? = null
 
     override fun onAnimationStart(animation: Animation?) {
+//        UtDialogBase.logger.debug("$who")
         val view = this.view ?: return
         if(show) {
             view.visibility = View.VISIBLE
@@ -24,6 +26,7 @@ class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationList
     }
 
     override fun onAnimationEnd(animation: Animation?) {
+//        UtDialogBase.logger.debug("$who")
         val view = this.view ?: return
         if(!show) {
             view.visibility = View.INVISIBLE
@@ -46,7 +49,8 @@ class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationList
      * @param view  VISIBLE/INVISIBLEを切り替えるビュー
      * @param completed 完了ハンドラ
      */
-    fun start(view:View, completed:(()->Unit)? = null) {
+    fun start(view:View, /*who:Any,*/ completed:(()->Unit)? = null) {
+//        this.who = who
         this.completed = completed
         this.view = view
         view.startAnimation(animation)
@@ -55,11 +59,11 @@ class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationList
     /**
      * サスペンド関数版
      */
-    suspend fun startAsync(view:View) {
-        suspendCoroutine<Unit> { cont->
-            start(view) {
-                cont.resume(Unit)
-            }
-        }
-    }
+//    suspend fun startAsync(view:View, who:Any) {
+//        suspendCoroutine<Unit> { cont->
+//            start(view,who) {
+//                cont.resume(Unit)
+//            }
+//        }
+//    }
 }
