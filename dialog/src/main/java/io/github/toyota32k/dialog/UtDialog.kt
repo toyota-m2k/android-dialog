@@ -523,6 +523,11 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
         setRightButton(type.string.id, type.positive)
     }
 
+    private val themedContext:Context by lazy { ContextThemeWrapper(super.getContext(), UtDialogConfig.dialogTheme) }
+    override fun getContext(): Context {
+        return themedContext
+    }
+
     /**
      * ボタンプロパティを、ビュー(Button)に反映する
      */
@@ -530,12 +535,13 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
         activity?.apply {
             button.text = getText(id)
             if(blue) {
-                button.background = ContextCompat.getDrawable(this, R.drawable.dlg_button_bg_blue)
-                button.setTextColor(getColorStateList(R.color.dlg_button_fg_blue))
+                button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_blue)
+                button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_blue))
             } else {
-                button.background = ContextCompat.getDrawable(this, R.drawable.dlg_button_bg_white)
-                button.setTextColor(getColorStateList(R.color.dlg_button_fg_white))
+                button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_white)
+                button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_white))
             }
+
         }
     }
 
@@ -992,8 +998,9 @@ abstract class UtDialog : UtDialogBase(isDialog = false) {
     /**
      * コンテントビュー生成処理
      */
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(orgInflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         try {
+            val inflater = orgInflater.cloneInContext(context)
             if(UtDialogConfig.solidBackgroundOnPhone && isPhone) {
                 animationEffect = false
             }

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.UtDialog" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Colors for Dialog Body -->
+        <item name="color_dlg_bg">?attr/colorSurface</item>
+        <item name="color_dlg_border">?attr/colorPrimary</item>
+
+        <!-- Colors for Dialog Title bar -->
+        <item name="color_dlg_title_bg">?attr/colorPrimary</item>
+        <item name="color_dlg_title_text">?attr/colorOnPrimary</item>
+        <item name="color_dlg_title_separator_upper">@color/transparent</item>
+        <item name="color_dlg_title_separator_lower">@color/transparent</item>
+
+        <!-- Colors for DONE button -->
+        <item name="color_dlg_button_bg_normal">?attr/colorSecondary</item>
+        <item name="color_dlg_button_bg_pressed">@color/color_secondary_70</item>
+        <item name="color_dlg_button_bg_disabled">@color/color_on_surface_30</item>
+
+        <item name="color_dlg_button_border_normal">@color/color_secondary_70</item>
+        <item name="color_dlg_button_border_pressed">@color/color_secondary_70</item>
+        <item name="color_dlg_button_border_disabled">@color/color_on_surface_50</item>
+
+        <item name="color_dlg_button_text_normal">?attr/colorOnSecondary</item>
+        <item name="color_dlg_button_text_pressed">@color/color_on_secondary_70</item>
+        <item name="color_dlg_button_text_disabled">@color/color_on_surface_70</item>
+
+        <!-- Colors for Cancel button -->
+        <item name="color_dlg_white_button_bg_normal">?attr/colorSurface</item>
+        <item name="color_dlg_white_button_bg_pressed">@color/color_on_surface_50</item>
+        <item name="color_dlg_white_button_bg_disabled">@color/color_on_surface_30</item>
+
+        <item name="color_dlg_white_button_border_normal">@color/color_on_surface_50</item>
+        <item name="color_dlg_white_button_border_pressed">@color/color_on_surface_50</item>
+        <item name="color_dlg_white_button_border_disabled">@color/color_on_surface_50</item>
+
+        <item name="color_dlg_white_button_text_normal">?attr/colorOnSurface</item>
+        <item name="color_dlg_white_button_text_pressed">?attr/colorOnSurface</item>
+        <item name="color_dlg_white_button_text_disabled">@color/color_on_surface_70</item>
+    </style>
+</resources>

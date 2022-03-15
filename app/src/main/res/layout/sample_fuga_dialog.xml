@@ -1,21 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="300dp"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     >
-    <Button android:text="@string/app_name"
-        android:id="@+id/first_button"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"/>
 
-    <Button android:text="@string/app_name"
-        android:id="@+id/second_button"
-        android:layout_width="300dp"
+    <TextView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"/>
-
+        android:text="colorPrimary"
+        android:background="?attr/colorPrimary"
+        android:textColor="?attr/colorOnPrimary"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="colorPrimaryDark"
+        android:background="?attr/colorPrimaryDark"
+        android:textColor="?attr/colorOnPrimary"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="colorSecondary"
+        android:background="?attr/colorSecondary"
+        android:textColor="?attr/colorOnSecondary"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="colorSurface"
+        android:background="?attr/colorSurface"
+        android:textColor="?attr/colorOnSurface"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="surface70 on surface50"
+        android:background="@color/color_on_surface_50"
+        android:textColor="@color/color_on_surface_70"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="onSurface50 on surface 30"
+        android:background="@color/color_on_surface_30"
+        android:textColor="@color/color_on_surface_50"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="onSurface30 on surface 10"
+        android:background="@color/color_on_surface_10"
+        android:textColor="@color/color_on_surface_30"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="surface 10"
+        android:background="?attr/colorSurface"
+        android:textColor="@color/color_on_surface_10"
+        />
 
 </LinearLayout>

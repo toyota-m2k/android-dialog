@@ -13,4 +13,9 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <style name="Theme.MMJDialog" parent="Theme.UtDialog">
+        <item name="color_dlg_bg">#F00</item>
+    </style>
+
 </resources>

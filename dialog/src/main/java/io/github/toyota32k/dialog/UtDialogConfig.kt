@@ -17,4 +17,9 @@ object UtDialogConfig {
      * true にすると、UtDialog.isPhone==true のとき、ダイアログの背景をGuardColor.SOLID_GRAY にする。
      */
     var solidBackgroundOnPhone:Boolean = true
+
+    /**
+     * ダイアログのスタイル
+     */
+    var dialogTheme: Int = R.style.Theme_UtDialog
 }
