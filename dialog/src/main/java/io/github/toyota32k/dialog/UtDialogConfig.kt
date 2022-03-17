@@ -21,5 +21,4 @@ object UtDialogConfig {
     /**
      * ダイアログのスタイル
      */
-    var dialogTheme: Int = R.style.Theme_UtDialog
-}
+    var dialogTheme: Int = R.style.UtDialogTheme}

@@ -20,4 +20,13 @@
 <!--    <color name="dlg_window_background">#00FFFFFF</color>-->
 
     <color name="transparent">#00FFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="gray80">#FF333333</color>
+    <color name="gray60">#FF666666</color>
+    <color name="gray50">#FF808080</color>
+    <color name="gray40">#FF999999</color>
+    <color name="gray30">#FFb4b4b4</color>
+    <color name="gray20">#FFCCCCCC</color>
+    <color name="gray10">#FFE6E6E6</color>
 </resources>

@@ -34,33 +34,38 @@
         android:background="?attr/colorSurface"
         android:textColor="?attr/colorOnSurface"
         />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="surface70 on surface50"
-        android:background="@color/color_on_surface_50"
-        android:textColor="@color/color_on_surface_70"
-        />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="onSurface50 on surface 30"
-        android:background="@color/color_on_surface_30"
-        android:textColor="@color/color_on_surface_50"
-        />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="onSurface30 on surface 10"
-        android:background="@color/color_on_surface_10"
-        android:textColor="@color/color_on_surface_30"
-        />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="surface 10"
-        android:background="?attr/colorSurface"
-        android:textColor="@color/color_on_surface_10"
-        />
+<!--    <View-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="25dp"-->
+<!--        android:background="@drawable/on_surface_50"-->
+<!--        />-->
+<!--    <TextView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="surface70 on surface50"-->
+<!--        android:background="@drawable/on_surface_50"-->
+<!--        android:textColor="@color/on_surface_70"-->
+<!--        />-->
+<!--    <TextView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="onSurface50 on surface 30"-->
+<!--        android:background="@drawable/on_surface_30"-->
+<!--        android:textColor="@color/on_surface_50"-->
+<!--        />-->
+<!--    <TextView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="onSurface30 on surface 10"-->
+<!--        android:background="@drawable/on_surface_10"-->
+<!--        android:textColor="@color/on_surface_30"-->
+<!--        />-->
+<!--    <TextView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="surface 10"-->
+<!--        android:background="@drawable/on_surface"-->
+<!--        android:textColor="@color/on_surface_10"-->
+<!--        />-->
 
 </LinearLayout>

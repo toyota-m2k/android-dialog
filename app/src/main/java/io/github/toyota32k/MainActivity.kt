@@ -32,7 +32,7 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        UtDialogConfig.dialogTheme = R.style.Theme_MMJDialog
+//        UtDialogConfig.dialogTheme = R.style.UtDialogAlternativeTheme
         super.onCreate(savedInstanceState)
         UtStandardString.setContext(this, null)
         dialogHostManager["hoge"] = {
