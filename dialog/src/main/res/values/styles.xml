@@ -7,7 +7,7 @@
     <style name="dlg_style">
 <!--        <item name="android:windowFrame">@null</item>-->
         <item name="android:windowTitleStyle">@null</item>
-        <item name="android:windowBackground">@color/dlg_window_background</item>
+<!--        <item name="android:windowBackground">@color/dlg_window_background</item>-->
         <item name="android:windowIsFloating">false</item>
 <!--        <item name="android:windowContentOverlay">@null</item>-->
 <!--        <item name="android:windowAnimationStyle">@style/Animation.Holo.Dialog</item>-->
@@ -61,7 +61,7 @@
         <item name="android:layout_weight">1</item>
         <item name="android:layout_gravity">center_horizontal|center</item>
         <item name="android:gravity">center</item>
-        <item name="android:textColor">#0a0a0a</item>
+        <item name="android:textColor">?attr/color_dlg_title_text</item>
         <item name="android:textStyle">bold</item>
     </style>
 

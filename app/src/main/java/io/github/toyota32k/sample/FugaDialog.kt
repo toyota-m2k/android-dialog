@@ -7,7 +7,7 @@ import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogHelper
 
-class FugaDialog : io.github.toyota32k.dialog.UtDialog(), View.OnClickListener {
+class FugaDialog : io.github.toyota32k.dialog.UtDialog() {
     init {
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
@@ -24,11 +24,7 @@ class FugaDialog : io.github.toyota32k.dialog.UtDialog(), View.OnClickListener {
         inflater: IViewInflater
     ): View {
         return inflater.inflate(R.layout.sample_fuga_dialog).apply {
-            findViewById<Button>(R.id.first_button).setOnClickListener(this@FugaDialog)
         }
     }
 
-    override fun onClick(v: View?) {
-        io.github.toyota32k.dialog.UtDialogHelper.cancelAllDialogs(requireActivity())
-    }
 }
