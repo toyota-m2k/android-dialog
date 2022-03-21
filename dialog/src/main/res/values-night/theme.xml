@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="UtDialogTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="UtDialogTheme">
         <!-- Colors for Dialog Body -->
         <item name="color_dlg_bg">?attr/colorSurface</item>
         <item name="color_dlg_border">?attr/colorPrimary</item>

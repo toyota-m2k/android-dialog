@@ -32,7 +32,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-abstract class UtDialog : UtDialogBase(isDialog = false) {
+abstract class UtDialog(isDialog:Boolean=false) : UtDialogBase(isDialog) {
     // region 動作/操作モード
 
     /**
