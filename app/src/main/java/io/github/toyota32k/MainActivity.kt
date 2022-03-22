@@ -35,6 +35,9 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
 //        UtDialogConfig.dialogTheme = R.style.UtDialogAlternativeTheme
         super.onCreate(savedInstanceState)
         UtStandardString.setContext(this, null)
+        UtDialogConfig.solidBackgroundOnPhone = false       // true: Phoneのとき背景灰色(default) / false: tabletの場合と同じ
+        UtDialogConfig.showInDialogModeAsDefault = true     // true: ダイアログモード / false:フラグメントモード(default)
+
         dialogHostManager["hoge"] = {
             logger.info("hoge:${it.status}")
         }

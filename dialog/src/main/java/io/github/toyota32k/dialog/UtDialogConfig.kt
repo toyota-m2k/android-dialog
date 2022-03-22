@@ -5,6 +5,11 @@ package io.github.toyota32k.dialog
  */
 object UtDialogConfig {
     /**
+     * UtDialogのisDialog引数を省略したときに、isDialogをtrueにするかどうか？
+     */
+    var showInDialogModeAsDefault = false
+
+    /**
      * UtDialog.show()の動作指定フラグ
      * true: UtDialog#show()で、FragmentManager#executePendingTransactions()を呼ぶ
      * false: FragmentManagerのスケジューリングに任せる。

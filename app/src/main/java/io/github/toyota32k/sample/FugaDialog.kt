@@ -15,7 +15,7 @@ class FugaDialog : io.github.toyota32k.dialog.UtDialog() {
         gravityOption = GravityOption.RIGHT_TOP
         heightOption = HeightOption.COMPACT
         widthOption = WidthOption.COMPACT
-        cancellable = true
+        cancellable = false
         scrollable = false
         draggable = true
     }
