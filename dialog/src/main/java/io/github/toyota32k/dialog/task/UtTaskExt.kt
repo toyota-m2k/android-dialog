@@ -1,6 +1,10 @@
 package io.github.toyota32k.dialog.task
 
+import android.app.Application
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.dialog.UtMessageBox
 import io.github.toyota32k.dialog.UtStandardString
 
@@ -24,4 +28,24 @@ suspend fun UtImmortalTaskBase.showYesNoMessageBox(title:String?, message:String
  */
 suspend fun UtImmortalTaskBase.getActivity():FragmentActivity? {
     return UtImmortalTaskManager.mortalInstanceSource.getOwner().asActivity()
+}
+
+inline fun <reified VM> UtImmortalTaskBase.createViewModel(application: Application): VM where VM : AndroidViewModel, VM:IUtImmortalTaskMutableContextSource {
+    return ViewModelProvider(this.immortalTaskContext, ViewModelProvider.AndroidViewModelFactory(application))[VM::class.java].also { vm->
+        vm.immortalTaskContext = this.immortalTaskContext
+    }
+}
+
+inline fun <reified VM> UtImmortalTaskBase.createViewModel(): VM where VM : ViewModel, VM:IUtImmortalTaskMutableContextSource {
+    return ViewModelProvider(this.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[VM::class.java].also { vm->
+        vm.immortalTaskContext = this.immortalTaskContext
+    }
+}
+
+inline fun <reified VM:ViewModel> IUtImmortalTaskContext.getViewModel():VM  {
+    return ViewModelProvider(this, ViewModelProvider.NewInstanceFactory())[VM::class.java]
+}
+
+inline fun <reified VM:AndroidViewModel> IUtImmortalTaskContext.getViewModel(application: Application):VM  {
+    return ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))[VM::class.java]
 }

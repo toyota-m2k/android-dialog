@@ -26,6 +26,18 @@ class UtImmortalSimpleTask(
         suspend fun runAsync(taskName: String = defTaskName, callback:suspend UtImmortalSimpleTask.()->Boolean):Boolean {
             return UtImmortalSimpleTask(taskName, callback).fireAsync()
         }
+
+        /**
+         * コールバックの結果を待つ
+         */
+        suspend fun <T> executeAsync(taskName:String=defTaskName, callback:suspend UtImmortalSimpleTask.()->T): T? {
+            var r:T? = null
+            UtImmortalSimpleTask(taskName) {
+                r = callback()
+                true
+            }.fireAsync()
+            return r
+        }
     }
 
     override suspend fun execute(): Boolean {

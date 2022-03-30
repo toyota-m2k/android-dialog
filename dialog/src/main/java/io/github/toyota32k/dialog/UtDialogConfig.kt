@@ -6,6 +6,8 @@ package io.github.toyota32k.dialog
 object UtDialogConfig {
     /**
      * UtDialogのisDialog引数を省略したときに、isDialogをtrueにするかどうか？
+     * true: ダイアログモード (新しいwindowを生成して配置）
+     * false: フラグメントモード (ActivityのWindow上に配置）
      */
     var showInDialogModeAsDefault = false
 

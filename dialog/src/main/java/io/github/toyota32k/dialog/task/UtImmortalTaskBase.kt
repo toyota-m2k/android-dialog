@@ -26,7 +26,7 @@ abstract class UtImmortalTaskBase(
 
     protected var continuation:Continuation<Any?>? = null
 
-    override var immortalTaskContext =  UtImmortalTaskContext(taskName, parentContext)
+    override val immortalTaskContext =  UtImmortalTaskContext(taskName, parentContext)
 
     /**
      * ダイアログのcomplete待ち用

@@ -291,7 +291,7 @@ abstract class UtDialogBase(
     }
 
     companion object {
-        val logger = UtLog("DLG", null, "com.metamoji.")
+        val logger = UtLog("DLG", null, "io.github.toyota32k.dialog.")
     }
 
 }

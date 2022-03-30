@@ -32,6 +32,11 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
+/**
+ * @param isDialog  ダイアログモード or フラグメントモード
+ *  true: ダイアログモード (新しいwindowを生成して配置）
+ *  false: フラグメントモード (ActivityのWindow上に配置）
+ */
 abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefault) : UtDialogBase(isDialog) {
     // region 動作/操作モード
 
@@ -1106,9 +1111,11 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      */
     override fun onDialogOpening() {
         fadeIn()
-        if (parentVisibilityOption != ParentVisibilityOption.NONE) {
-            parentDialog?.let { parent->
-                if(!parent.status.finished) {   // parentのcompleteハンドラの中から別のダイアログを開く場合、parentのfadeOutが完了する前に、ここからfadeOutの追撃が行われ、completeハンドラがクリアされて親ダイアログが閉じられなくなってしまう
+        parentDialog?.let { parent ->
+            if (!parent.status.finished) {   // parentのcompleteハンドラの中から別のダイアログを開く場合、parentのfadeOutが完了する前に、ここからfadeOutの追撃が行われ、completeハンドラがクリアされて親ダイアログが閉じられなくなってしまう
+                // 子ダイアログが開いた後、親ダイアログが開いたソフトウェアキーボードが残ってしまうと嫌なので、明示的に閉じておく
+                parent.hideSoftwareKeyboard()
+                if (parentVisibilityOption != ParentVisibilityOption.NONE) {
                     parent.fadeOut()
                 }
             }
@@ -1119,6 +1126,9 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         get() = try { requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         } catch(_:Throwable) { null }
 
+    fun hideSoftwareKeyboard() {
+       immService?.hideSoftInputFromWindow(rootView.windowToken, 0);
+    }
     /**
      * ダイアログが閉じる前のイベントハンドラ
      */
@@ -1129,7 +1139,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         }
 
         // Android7/8 でダイアログが閉じてもSoftware Keyboardが閉じない事例あり
-        immService?.hideSoftInputFromWindow(rootView.windowToken, 0)
+        hideSoftwareKeyboard()
+
         // Chromebookで、HWキーボードの候補ウィンドウが残ってしまうのを防止
         rootView.requestFocusFromTouch()
 
