@@ -5,8 +5,10 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtMessageBox
 import io.github.toyota32k.dialog.UtStandardString
+import java.lang.IllegalStateException
 
 /**
  * ImmortalTask内からメッセージボックスを表示するための拡張関数
@@ -28,6 +30,16 @@ suspend fun UtImmortalTaskBase.showYesNoMessageBox(title:String?, message:String
  */
 suspend fun UtImmortalTaskBase.getActivity():FragmentActivity? {
     return UtImmortalTaskManager.mortalInstanceSource.getOwner().asActivity()
+}
+
+val UtDialog.immortalTask:IUtImmortalTask get() {
+    val taskName = immortalTaskName ?: throw IllegalStateException("no task name")
+    return UtImmortalTaskManager.taskOf(taskName)?.task ?: throw IllegalStateException("no such task: $taskName")
+}
+
+val UtDialog.immortalTaskContext: IUtImmortalTaskContext get() {
+    val taskName = immortalTaskName ?: throw IllegalStateException("no task name")
+    return UtImmortalTaskManager.taskOf(taskName)?.task?.immortalTaskContext ?: throw IllegalStateException("no such task: $taskName")
 }
 
 inline fun <reified VM> UtImmortalTaskBase.createViewModel(application: Application): VM where VM : AndroidViewModel, VM:IUtImmortalTaskMutableContextSource {
