@@ -6,7 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import io.github.toyota32k.R
+import io.github.toyota32k.bindit.Binder
+import io.github.toyota32k.bindit.Command
+import io.github.toyota32k.bindit.ListViewBinding
 import io.github.toyota32k.bindit.list.ListViewAdapter
+import io.github.toyota32k.bindit.list.ObservableList
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.setLayoutHeight
 
@@ -19,32 +23,43 @@ class CustomDialog : io.github.toyota32k.dialog.UtDialog() {
         setRightButton(BuiltInButtonType.DONE)
     }
 
-    private class ListAdapter(val context: Context): ListViewAdapter<String>() {
-        override fun createItemView(parent: ViewGroup?): View {
-            return TextView(context)
-        }
-
-        override fun updateItemView(itemView: View, position: Int) {
-            (itemView as TextView).text = this[position]
-        }
-    }
+//    private class ListAdapter(val context: Context): ListViewAdapter<String>() {
+//        override fun createItemView(parent: ViewGroup?): View {
+//            return TextView(context)
+//        }
+//
+//        override fun updateItemView(itemView: View, position: Int) {
+//            (itemView as TextView).text = this[position]
+//        }
+//    }
 
     var count:Int = 0
 
     lateinit var listView: ListView
+    val binder = Binder()
+    val observableList = ObservableList<String>()   // 本当はViewModelに実装しないといけないんだが。
+
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         return inflater.inflate(R.layout.sample_fill_dialog).apply {
             listView = findViewById(R.id.list_view)
-            listView.adapter = ListAdapter(requireContext())
 
-            findViewById<Button>(R.id.add_item_button).setOnClickListener {
-                count++
-                (listView.adapter as ListAdapter).add("Item - $count")
-                updateCustomHeight()
-            }
-            findViewById<Button>(R.id.del_item_button).setOnClickListener {
-                (listView.adapter as ListAdapter).removeLastOrNull()
-            }
+            binder.register (
+                ListViewBinding.create(listView, observableList, R.layout.string_list_item) { binder, view, text->
+                    view.findViewById<TextView>(R.id.text_view).text = text
+                },
+                Command().connectAndBind(this@CustomDialog, findViewById(R.id.add_item_button)) {
+                    count++
+                    observableList.add("Item - $count")
+                    updateCustomHeight()
+                },
+                Command().connectAndBind(this@CustomDialog, findViewById(R.id.del_item_button)) {
+                    observableList.removeLastOrNull()
+                    updateCustomHeight()
+                },
+                Command().connectAndBind(this@CustomDialog, findViewById(R.id.sub_dialog_button)) {
+                    SubCompactDialog.open()
+                },
+            )
         }
     }
 
