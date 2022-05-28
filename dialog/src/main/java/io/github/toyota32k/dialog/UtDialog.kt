@@ -399,7 +399,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             completed?.invoke()
         } else if(animationEffect) {
             logger.debug("fade-out :start")
-            fadeOutAnimation.start(rootView) {
+            fadeOutAnimation.start(dialogView) {
                 logger.debug("fade-out :end")
                 visible = false
                 completed?.invoke()
@@ -1105,7 +1105,12 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         }
     }
 
-    /**
+    override fun dismissAllowingStateLoss() {
+        fadeOut {
+            super.dismissAllowingStateLoss()
+        }
+    }
+        /**
      * フェードアウトアニメーションが終わってからdismissする。
      * ImmortalTaskを使う場合に呼ばれる。
      */
