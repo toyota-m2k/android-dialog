@@ -94,7 +94,7 @@ abstract class UtDialogBase(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewDestroyed = false
+//        viewDestroyed = false
         if(savedInstanceState==null) {
             onDialogOpening()
         }
@@ -105,41 +105,34 @@ abstract class UtDialogBase(
     // デバイス回転などによるView再構築のための onDestroyView()と区別するため、
     // dismiss で dialogClosed フラグを立て、onDestroyViewで、dialogClosed == trueなら、onDialogClosed()を呼ぶことにする。
     // ビューが破棄された状態（onDestroyView()が呼ばれて、onViewCreated()が呼ばれる前）に dismiss()されるケースも考慮しておく。
-    protected var viewDestroyed = false
-        private set(v) {
-            if(v!=field) {
-                field = v
-                if(v && dialogClosed) {
-                    onDialogClosed()
-                }
-            }
-        }
-    protected var dialogClosed = false
-        private set(v) {
-            if(v && !field) {
-                field = true
-                if(viewDestroyed) {
-                    onDialogClosed()
-                }
-            }
-        }
+//    protected var viewDestroyed = false
+//        private set(v) {
+//            if(v!=field) {
+//                field = v
+//                if(v && dialogClosed) {
+//                    onDialogClosed()
+//                }
+//            }
+//        }
+//    protected var dialogClosed = false
+//        private set(v) {
+//            if(v && !field) {
+//                field = true
+//                if(viewDestroyed) {
+//                    onDialogClosed()
+//                }
+//            }
+//        }
 
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        viewDestroyed = true
-    }
+//    override fun onDestroyView() {
+//        super.onDestroyView()
+//        viewDestroyed = true
+//    }
 
     override fun onDetach() {
         super.onDetach()
         dialogHost = null
-    }
-
-    override fun onCancel(dialog: DialogInterface) {
-        if(!status.finished) {
-            onCancel()
-        }
-        super.onCancel(dialog)
     }
 
 //    override fun onDismiss(dialog: DialogInterface) {
@@ -155,56 +148,26 @@ abstract class UtDialogBase(
                 ?: dialogHost?.get()?.queryDialogResultReceptor(tag)
     }
 
-    override fun dismissAllowingStateLoss() {
-        if(!status.finished) {
-            this.status = IUtDialog.Status.NEGATIVE
-            onDialogClosing()
-            notifyResult(dismiss = false)
-        }
-        super.dismissAllowingStateLoss()
-        dialogClosed = true
-    }
-
-    override fun dismiss() {
-        if(!status.finished) {
-            this.status = IUtDialog.Status.NEGATIVE
-            onDialogClosing()
-            notifyResult(dismiss = false)
-        }
-        super.dismiss()
-        dialogClosed = true
+    /**
+     * FragmentDialog#onCancel
+     * dialog.cancel() 時にシステムから呼び出される。
+     * UtDialogでは、Backボタンで戻るようなケースに呼び出されることがあるが、これは、UtDialogの管理外の操作となり、アニメーションは行わない。
+     */
+    override fun onCancel(dialog: DialogInterface) {
+        logger.debug()
+        setFinishingStatus(IUtDialog.Status.NEGATIVE)
+        super.onCancel(dialog)
     }
 
     /**
-     * フェードアウトアニメーションの終了を待つための dismiss
-     * UtDialogで実装する。
+     * FragmentDialog#onDismiss
+     * ダイアログが閉じる時に、システムから呼び出される。
      */
-    open suspend fun dismissAsync() {
-        dismiss()
-    }
-
-    private fun notifyResult(dismiss:Boolean) {
-        val task = immortalTaskName?.let { UtImmortalTaskManager.taskOf(it) }?.task
-
-        if(dismiss) {
-            if(task!=null) {
-                task.immortalCoroutineScope.launch {
-                    dismissAsync()
-                    if(!doNotResumeTask) {
-                        task.resumeTask(this@UtDialogBase)
-                    }
-                }
-                return
-            } else {
-                dismiss()
-            }
-        }
-
-        if(task!=null && !doNotResumeTask) {
-            task.resumeTask(this)
-        } else {
-            queryResultReceptor()?.onDialogResult(this)
-        }
+    override fun onDismiss(dialog: DialogInterface) {
+        logger.debug()
+        setFinishingStatus(IUtDialog.Status.NEGATIVE)
+        super.onDismiss(dialog)
+        onDialogClosed()
     }
 
     /**
@@ -218,29 +181,29 @@ abstract class UtDialogBase(
      * キャンセル時に呼び出される
      */
     protected open fun onCancel() {
-        if(!status.finished) {
-            logger.debug("$this")
-            status = IUtDialog.Status.NEGATIVE
-            onDialogClosing()
-            notifyResult(dismiss=false)
+        logger.debug("$this")
+    }
+
+    /**
+     * ダイアログの終了をタスクやdialogHostに通知する
+     */
+    private fun notifyResult() {
+        val task = immortalTaskName?.let { UtImmortalTaskManager.taskOf(it) }?.task
+        if(task!=null && !doNotResumeTask) {
+            task.resumeTask(this)
+        } else {
+            queryResultReceptor()?.onDialogResult(this)
         }
     }
 
     /**
-     * ok/cancelに関わらず、ダイアログが閉じるときに呼び出される。
+     * ダイアログを閉じる前に、必要な処理をまとめて行うメソッド
      */
-//    protected open fun onClosed() {
-//        logger.debug("$this")
-//    }
-
-    /**
-     * OK/Doneボタンなどから呼び出す
-     */
-    override fun complete(status: IUtDialog.Status) {
+    private fun setFinishingStatus(status:IUtDialog.Status):Boolean {
         if (!status.finished) {
-            throw IllegalStateException("complete must finish dialog.")
+            throw IllegalStateException("${status}: finishing status is required.")
         }
-        if (!this.status.finished) {
+        return if (!this.status.finished) {
             this.status = status
             onDialogClosing()
             if(!status.negative) {
@@ -248,7 +211,25 @@ abstract class UtDialogBase(
             } else {
                 onCancel()
             }
-            notifyResult(dismiss = true)
+            notifyResult()
+            true
+        } else false
+    }
+
+    /**
+     * ダイアログを閉じる処理の本体
+     * fade in/out のようなアニメーションを実装する場合に、サブクラスでオーバーライドする。
+     */
+    protected open fun internalCloseDialog() {
+        dismiss()
+    }
+
+    /**
+     * OK/Doneボタンなどから呼び出す
+     */
+    override fun complete(status: IUtDialog.Status) {
+        if(setFinishingStatus(status)) {
+            internalCloseDialog()
         }
     }
 
@@ -258,20 +239,12 @@ abstract class UtDialogBase(
      * setCanceledOnTouchOutside(true)なDialogなら、画面外タップでキャンセルされると思う。
      */
     override fun cancel() {
-        if(isDialog) {
-            dialog?.cancel()
-        } else {
-            complete(IUtDialog.Status.NEGATIVE)
-        }
-//        if(!status.finished) {
-//            status = IUtDialog.Status.NEGATIVE
-//            onDialogClosing()
-//            notifyResult()
-//            dialog?.cancel()
-//            onCancel()  // dialog.cancel()を呼んだら自動的にonCancelが呼ばれるのかと思っていたが、よばれないので明示的に呼ぶ
-//        }
+        complete(IUtDialog.Status.NEGATIVE)
     }
 
+    /**
+     * ダイアログを表示する
+     */
     override fun show(activity:FragmentActivity, tag:String?) {
         if(tag!=null && UtDialogHelper.findDialog(activity, tag) !=null) return
 
@@ -295,10 +268,4 @@ abstract class UtDialogBase(
     }
 
 }
-
-//open class UtGenericDialog(val createDialogCallback: (context: Context, savedInstanceState:Bundle?)-> Dialog) : UtDialogBase() {
-//    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-//        return createDialogCallback(requireContext(), savedInstanceState)
-//    }
-//}
 

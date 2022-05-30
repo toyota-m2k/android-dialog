@@ -29,4 +29,7 @@ object UtDialogConfig {
      * ダイアログのスタイル
      */
     var dialogTheme: Int = R.style.UtDialogTheme
+
+    var fadeInDuration:Long = 300L
+    var fadeOutDuraton:Long = 400L
 }

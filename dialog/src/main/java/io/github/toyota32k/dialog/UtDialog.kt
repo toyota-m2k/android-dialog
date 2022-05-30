@@ -26,8 +26,6 @@ import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
 import io.github.toyota32k.utils.setMargin
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.max
 import kotlin.math.min
 
@@ -374,17 +372,14 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         get() = rootView.visibility == View.VISIBLE
         set(v) { rootView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
 
-    private val fadeInAnimation = UtFadeAnimation(true,2000/*400*/)
-    private val fadeOutAnimation = UtFadeAnimation(false, 2000/*300*/)
+    private val fadeInAnimation = UtFadeAnimation(true,UtDialogConfig.fadeInDuration)
+    private val fadeOutAnimation = UtFadeAnimation(false, UtDialogConfig.fadeOutDuraton)
 
     fun fadeIn(completed:(()->Unit)?=null) {
-//        logger.debug("$this")
         if(!this::rootView.isInitialized) {
             completed?.invoke()         // onCreateViewでnullを返す（開かないでcancelされる）ダイアログの場合、ここに入ってくる
         } else if(animationEffect) {
-//            logger.debug("fade-in :start")
             fadeInAnimation.start(rootView) {
-//                logger.debug("fade-in :end")
                 completed?.invoke()
             }
         } else {
@@ -394,27 +389,16 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     }
 
     fun fadeOut(completed:(()->Unit)?=null) {
-//        logger.debug("$this")
         if(!this::rootView.isInitialized) {
             completed?.invoke()
         } else if(animationEffect) {
-            logger.debug("fade-out :start")
-            fadeOutAnimation.start(dialogView) {
-                logger.debug("fade-out :end")
+            fadeOutAnimation.start(rootView) {
                 visible = false
                 completed?.invoke()
             }
         } else {
             visible = false
             completed?.invoke()
-        }
-    }
-
-    private suspend fun fadeOutAsync() {
-        suspendCoroutine<Unit> { cont->
-            fadeOut {
-                cont.resume(Unit)
-            }
         }
     }
 
@@ -979,8 +963,6 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      */
 
     interface IViewInflater {
-//        val layoutInflater: LayoutInflater
-//        val bodyContainer:ViewGroup
         fun inflate(@LayoutRes id:Int):View
     }
 
@@ -999,8 +981,6 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             return layoutInflater.inflate(id, bodyContainer, false)
         }
     }
-
-//    private var gestureDetector:GestureDetector? = null
 
     /**
      * isDialog == true の場合に呼ばれる。
@@ -1094,31 +1074,9 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
 
     // region イベント
 
-    /**
-     * ImmortalTaskを使わない（=ResultReceptorを使う）場合に呼ばれるdismiss
-     * 待ち合わせをしないので、オーナーのActivityがPauseするようなケースには正しくDismissされないので注意。
-     * ダイアログが閉じない、不具合が起きる場合は、ImmortalTaskを使うか、animationEffect = false として、アニメション効果を禁止すること。
-     */
-    override fun dismiss() {
+    override fun internalCloseDialog() {
         fadeOut {
-            super.dismiss()
-        }
-    }
-
-    override fun dismissAllowingStateLoss() {
-        fadeOut {
-            super.dismissAllowingStateLoss()
-        }
-    }
-        /**
-     * フェードアウトアニメーションが終わってからdismissする。
-     * ImmortalTaskを使う場合に呼ばれる。
-     */
-    override suspend fun dismissAsync() {
-        try {
-            fadeOutAsync()
-        } finally {
-            super.dismiss()
+            dismiss()
         }
     }
 
@@ -1138,12 +1096,19 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         }
     }
 
+    /**
+     * InputMethodManagerインスタンスの取得
+     */
+
     val immService: InputMethodManager?
         get() = try { requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         } catch(_:Throwable) { null }
 
+    /**
+     * ソフトウェアキーボードを非表示にする。
+     */
     fun hideSoftwareKeyboard() {
-       immService?.hideSoftInputFromWindow(rootView.windowToken, 0);
+       immService?.hideSoftInputFromWindow(rootView.windowToken, 0)
     }
     /**
      * ダイアログが閉じる前のイベントハンドラ
@@ -1158,7 +1123,10 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         hideSoftwareKeyboard()
 
         // Chromebookで、HWキーボードの候補ウィンドウが残ってしまうのを防止
-        rootView.requestFocusFromTouch()
+        // ここで requestFocusFromTouchを呼ぶと、ダイアログが閉じてから、へんなビューのレイヤー（ゾンビ的なやつ？）が親ダイアログの上に出現してしまう。
+        // Layout Inspector で見たら、親ダイアログの FrameLayout が、子ビューの上に飛び出しているように見える。。。気持ち悪い。
+        // これが原因であることを突き止めるのに、丸二日かかったぞ。
+//        rootView.requestFocusFromTouch()
 
         // 親ダイアログの表示状態を復元
         val parent = parentDialog ?: return
@@ -1167,6 +1135,12 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             (parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW_ON_POSITIVE && status.positive)) {
             parent.fadeIn()
         }
+    }
+
+    override fun onDialogClosed() {
+        super.onDialogClosed()
+        // Chromebookで、HWキーボードの候補ウィンドウが残ってしまうのを防止
+        rootView.requestFocusFromTouch()
     }
 
     /**
