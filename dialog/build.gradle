@@ -38,8 +38,11 @@ android {
         jvmTarget = '1.8'
     }
     packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
+        resources {
+            excludes += ['META-INF/DEPENDENCIES']
+        }
     }
+    namespace 'io.github.toyota32k.dialog'
 }
 
 dependencies {

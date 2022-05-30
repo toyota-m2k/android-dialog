@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion "31.0.0"
+    compileSdkVersion 32
+    buildToolsVersion "32.0.0"
 
     defaultConfig {
         applicationId "io.github.toyota32k"
         minSdkVersion 26
-        targetSdkVersion 31
+        targetSdkVersion 32
         versionCode 1
         versionName "1.0"
 
@@ -37,6 +37,7 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    namespace 'io.github.toyota32k'
 }
 
 dependencies {
