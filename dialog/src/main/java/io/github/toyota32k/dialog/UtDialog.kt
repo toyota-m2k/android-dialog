@@ -374,15 +374,19 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         get() = rootView.visibility == View.VISIBLE
         set(v) { rootView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
 
-    private val fadeInAnimation = UtFadeAnimation(true,400)
-    private val fadeOutAnimation = UtFadeAnimation(false, 300)
+    private val fadeInAnimation = UtFadeAnimation(true,2000/*400*/)
+    private val fadeOutAnimation = UtFadeAnimation(false, 2000/*300*/)
 
     fun fadeIn(completed:(()->Unit)?=null) {
 //        logger.debug("$this")
         if(!this::rootView.isInitialized) {
             completed?.invoke()         // onCreateViewでnullを返す（開かないでcancelされる）ダイアログの場合、ここに入ってくる
         } else if(animationEffect) {
-            fadeInAnimation.start(rootView, completed)
+//            logger.debug("fade-in :start")
+            fadeInAnimation.start(rootView) {
+//                logger.debug("fade-in :end")
+                completed?.invoke()
+            }
         } else {
             visible = true
             completed?.invoke()
@@ -394,7 +398,12 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         if(!this::rootView.isInitialized) {
             completed?.invoke()
         } else if(animationEffect) {
-            fadeOutAnimation.start(rootView, completed)
+            logger.debug("fade-out :start")
+            fadeOutAnimation.start(dialogView) {
+                logger.debug("fade-out :end")
+                visible = false
+                completed?.invoke()
+            }
         } else {
             visible = false
             completed?.invoke()
@@ -997,7 +1006,9 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      * isDialog == true の場合に呼ばれる。
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return Dialog(requireContext(), R.style.dlg_style)
+        return Dialog(requireContext(), R.style.dlg_style).apply {
+            window?.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
+        }
     }
 
     /**
@@ -1094,7 +1105,12 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         }
     }
 
-    /**
+    override fun dismissAllowingStateLoss() {
+        fadeOut {
+            super.dismissAllowingStateLoss()
+        }
+    }
+        /**
      * フェードアウトアニメーションが終わってからdismissする。
      * ImmortalTaskを使う場合に呼ばれる。
      */

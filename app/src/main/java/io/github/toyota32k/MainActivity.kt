@@ -12,6 +12,7 @@ import io.github.toyota32k.sample.HogeDialog
 import io.github.toyota32k.sample.SamplePortalDialog
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.dialog.task.UtMortalActivity
+import io.github.toyota32k.sample.Config
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,8 +36,8 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
 //        UtDialogConfig.dialogTheme = R.style.UtDialogAlternativeTheme
         super.onCreate(savedInstanceState)
         UtStandardString.setContext(this, null)
-        UtDialogConfig.solidBackgroundOnPhone = false       // true: Phoneのとき背景灰色(default) / false: tabletの場合と同じ
-        UtDialogConfig.showInDialogModeAsDefault = true     // true: ダイアログモード / false:フラグメントモード(default)
+        UtDialogConfig.solidBackgroundOnPhone = Config.solidBackgroundOnPhone       // true: Phoneのとき背景灰色(default) / false: tabletの場合と同じ
+        UtDialogConfig.showInDialogModeAsDefault = Config.showInDialogModeAsDefault     // true: ダイアログモード / false:フラグメントモード(default)
 
         dialogHostManager["hoge"] = {
             logger.info("hoge:${it.status}")

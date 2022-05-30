@@ -22,6 +22,8 @@ class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationList
         val view = this.view ?: return
         if(show) {
             view.visibility = View.VISIBLE
+        } else {
+            view.alpha = 1f
         }
     }
 
@@ -30,6 +32,8 @@ class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationList
         val view = this.view ?: return
         if(!show) {
             view.visibility = View.INVISIBLE
+        } else {
+            view.alpha = 1f
         }
         completed?.invoke()
         completed = null
@@ -39,6 +43,8 @@ class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationList
     override fun onAnimationRepeat(animation: Animation?) {}
 
     private val animation = (if(show) AlphaAnimation(0f,1f) else AlphaAnimation(1f,0f)).also { anim->
+        anim.isFillEnabled = true
+        anim.fillBefore = true
         anim.fillAfter = true
         anim.duration = duration
         anim.setAnimationListener(this@UtFadeAnimation)
