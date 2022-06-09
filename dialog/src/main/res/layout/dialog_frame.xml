@@ -142,14 +142,10 @@
         </ScrollView>
 
         <!-- busyのときに、ダイアログコンテントをブロックするためのガードビュー-->
-        <View
+        <FrameLayout
             android:id="@+id/body_guard_view"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="@dimen/dlg_content_margin_top"
-            android:layout_marginBottom="@dimen/dlg_content_margin_bottom"
-            android:layout_marginStart="@dimen/dlg_content_margin_left"
-            android:layout_marginEnd="@dimen/dlg_content_margin_right"
             android:visibility="invisible"
             app:layout_constraintTop_toBottomOf="@+id/separator"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -158,7 +154,18 @@
             android:background="#0000"
             android:clickable="true"
             android:focusable="true"
-            />
+            tools:visibility="visible"
+            >
+            <ProgressBar
+                android:id="@+id/center_progress_ring"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:visibility="visible"
+                tools:visibility="visible"
+                android:layout_gravity="center"
+                style="?android:attr/progressBarStyleSmall"
+                />
+        </FrameLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

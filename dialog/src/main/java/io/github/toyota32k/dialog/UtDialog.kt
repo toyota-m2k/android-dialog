@@ -303,7 +303,6 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         INVALID(Color.argb(0,0,0,0)),                       // 透明（無効値）
         TRANSPARENT(Color.argb(0,0xFF,0xFF,0xFF)),          // 透明（通常、 cancellable == true のとき用）
         DIM(Color.argb(0x40,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
-        @Suppress("unused")
         SEE_THROUGH(Color.argb(0x40,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
         SOLID_GRAY(Color.rgb(0xc1,0xc1,0xc1)),
     }
@@ -777,6 +776,18 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         private set
     lateinit var bodyGuardView:View                 // dialogContentへの操作をブロックするためのガードビュー
         private set
+    lateinit var centerProgressRing:ProgressBar     // bodyGuardView を visible にした時に表示される。
+        private set
+
+
+    /**
+     * BodyGuardView の色
+     * 注：
+     * bodyGuardView : ダイアログ内のコントロール(Ok/Cancelなどを除く)の操作を禁止するためにかぶせるビュー
+     * guardView: ダイアログの外側の操作を禁止するために、Window全体を覆うビュー（== rootView)
+     */
+    @ColorInt
+    var bodyGuardColor:Int = GuardColor.TRANSPARENT.color
 
     // endregion
 
@@ -1013,6 +1024,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             dialogView = rootView.findViewById(R.id.dialog_view)
             refContainerView = rootView.findViewById(R.id.ref_container_view)
             bodyGuardView = rootView.findViewById(R.id.body_guard_view)
+            bodyGuardView.background = ColorDrawable(bodyGuardColor)
+            centerProgressRing = rootView.findViewById(R.id.center_progress_ring)
             dialogView.isClickable = true   // これをセットしておかないと、ヘッダーなどのクリックで rootViewのonClickが呼ばれて、ダイアログが閉じてしまう。
             title?.let { titleView.text = it }
             if (heightOption == HeightOption.AUTO_SCROLL) {
