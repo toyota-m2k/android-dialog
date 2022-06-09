@@ -160,7 +160,7 @@
                 android:id="@+id/center_progress_ring"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:visibility="visible"
+                android:visibility="gone"
                 tools:visibility="visible"
                 android:layout_gravity="center"
                 style="?android:attr/progressBarStyleSmall"

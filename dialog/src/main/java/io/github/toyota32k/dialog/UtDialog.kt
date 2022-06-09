@@ -9,6 +9,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Layout
 import android.view.*
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -774,7 +775,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         private set
     lateinit var refContainerView:View              // コンテナ領域（ダイアログ領域ーヘッダー領域）にフィットするダミービュー
         private set
-    lateinit var bodyGuardView:View                 // dialogContentへの操作をブロックするためのガードビュー
+    lateinit var bodyGuardView:FrameLayout           // dialogContentへの操作をブロックするためのガードビュー
         private set
     lateinit var centerProgressRing:ProgressBar     // bodyGuardView を visible にした時に表示される。
         private set
@@ -975,6 +976,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
 
     interface IViewInflater {
         fun inflate(@LayoutRes id:Int):View
+        val layoutInflater:LayoutInflater
     }
 
     /**
@@ -987,7 +989,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     /**
      * IViewInflaterの実装クラス
      */
-    private data class ViewInflater(val layoutInflater:LayoutInflater, val bodyContainer:ViewGroup): IViewInflater {
+    private data class ViewInflater(override val layoutInflater:LayoutInflater, val bodyContainer:ViewGroup): IViewInflater {
         override fun inflate(id: Int): View {
             return layoutInflater.inflate(id, bodyContainer, false)
         }
