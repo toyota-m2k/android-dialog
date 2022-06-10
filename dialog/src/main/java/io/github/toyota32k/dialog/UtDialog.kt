@@ -304,7 +304,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         INVALID(Color.argb(0,0,0,0)),                       // 透明（無効値）
         TRANSPARENT(Color.argb(0,0xFF,0xFF,0xFF)),          // 透明（通常、 cancellable == true のとき用）
         DIM(Color.argb(0x40,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
-        SEE_THROUGH(Color.argb(0x40,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
+        SEE_THROUGH(Color.argb(0xDD,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
         SOLID_GRAY(Color.rgb(0xc1,0xc1,0xc1)),
     }
 
