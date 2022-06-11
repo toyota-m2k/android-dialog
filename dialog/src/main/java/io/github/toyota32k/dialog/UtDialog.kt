@@ -9,7 +9,6 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.text.Layout
 import android.view.*
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -23,6 +22,8 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
+import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColorOfCancellableDialog
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
@@ -306,20 +307,43 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         DIM(Color.argb(0x40,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
         SEE_THROUGH(Color.argb(0xDD,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
         SOLID_GRAY(Color.rgb(0xc1,0xc1,0xc1)),
+
+        THEME(Color.argb(0, 1,1,1)),                        // テーマに従う
+        THEME_DIM(Color.argb(0, 2,2,2)),                    // テーマに従う黒っぽいの
+        THEME_SEE_THROUGH(Color.argb(0, 3,3,3)),            // テーマに従う白っぽいの
     }
 
     /**
      * ガードビューの色
      */
-    @Suppress("MemberVisibilityCanBePrivate")
+    // @ColorInt
     var guardColor:Int by bundle.intNonnull(GuardColor.INVALID.color)
 
     /**
      * ガードビューに色は設定されているか？
      */
     private val hasGuardColor:Boolean
-        get() = guardColor!= GuardColor.INVALID.color
+        get() = guardColor != GuardColor.INVALID.color
 
+    /**
+     * ボディガードビュー の色
+     * 注：
+     * ボディガードビュー : ダイアログ内のコントロール(Ok/Cancelなどを除く)の操作を禁止するためにかぶせるビュー
+     * ガードビュー: ダイアログの外側の操作を禁止するために、Window全体を覆うビュー（== rootView)
+     */
+    // @ColorInt
+    var bodyGuardColor:Int by bundle.intNonnull(GuardColor.TRANSPARENT.color)
+
+
+    @ColorInt
+    fun resolveColor(@ColorInt color:Int): Int  {
+        return when(color) {
+            GuardColor.THEME.color -> context.getColor(R.color.dlg_guard_background)
+            GuardColor.THEME_DIM.color -> context.getColor(R.color.dlg_guard_background_dim)
+            GuardColor.THEME_SEE_THROUGH.color -> context.getColor(R.color.dlg_guard_background_see_through)
+            else -> color
+        }
+    }
 
     /**
      * 実際に描画するガードビューの背景色を取得
@@ -332,9 +356,9 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     private fun managedGuardColor():Int {
         return when {
             UtDialogConfig.solidBackgroundOnPhone && isPhone -> GuardColor.SOLID_GRAY.color
-            hasGuardColor -> guardColor
-            !lightCancelable-> GuardColor.DIM.color
-            else-> GuardColor.TRANSPARENT.color
+            hasGuardColor -> resolveColor(guardColor)
+            !lightCancelable-> resolveColor(defaultGuardColor)
+            else-> resolveColor(defaultGuardColorOfCancellableDialog)
         }
     }
 
@@ -777,18 +801,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         private set
     lateinit var bodyGuardView:FrameLayout           // dialogContentへの操作をブロックするためのガードビュー
         private set
-    lateinit var centerProgressRing:ProgressBar     // bodyGuardView を visible にした時に表示される。
+    lateinit var centerProgressRing:ProgressBar     // 中央に表示するプログレスリング：デフォルトでは非表示。bodyGuardView とともに visible にすることで表示される。
         private set
-
-
-    /**
-     * BodyGuardView の色
-     * 注：
-     * bodyGuardView : ダイアログ内のコントロール(Ok/Cancelなどを除く)の操作を禁止するためにかぶせるビュー
-     * guardView: ダイアログの外側の操作を禁止するために、Window全体を覆うビュー（== rootView)
-     */
-    @ColorInt
-    var bodyGuardColor:Int = GuardColor.TRANSPARENT.color
 
     // endregion
 

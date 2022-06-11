@@ -1,5 +1,7 @@
 package io.github.toyota32k.dialog
 
+import androidx.annotation.ColorInt
+
 /**
  * アプリ内で共通のダイアログ動作に関する設定をここにまとめます。
  */
@@ -24,6 +26,12 @@ object UtDialogConfig {
      * true にすると、UtDialog.isPhone==true のとき、ダイアログの背景をGuardColor.SOLID_GRAY にする。
      */
     var solidBackgroundOnPhone:Boolean = true
+
+    @ColorInt
+    var defaultGuardColorOfCancellableDialog:Int = UtDialog.GuardColor.TRANSPARENT.color
+
+    @ColorInt
+    var defaultGuardColor:Int = UtDialog.GuardColor.THEME_DIM.color
 
     /**
      * ダイアログのスタイル
