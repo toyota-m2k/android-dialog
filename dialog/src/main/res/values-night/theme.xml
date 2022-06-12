@@ -36,6 +36,9 @@
         <item name="color_dlg_white_button_text_normal">?attr/colorOnSurface</item>
         <item name="color_dlg_white_button_text_pressed">?attr/colorOnSurface</item>
         <item name="color_dlg_white_button_text_disabled">@color/on_surface_70</item>
+
+        <item name="color_translucent_dim">#40FFFFFF</item>
+        <item name="color_translucent_see_through">#D0000000</item>
     </style>
 
 </resources>

@@ -22,6 +22,7 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import io.github.toyota32k.dialog.UtDialogConfig.defaultBodyGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColorOfCancellableDialog
 import io.github.toyota32k.utils.dp2px
@@ -308,9 +309,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         SEE_THROUGH(Color.argb(0xDD,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
         SOLID_GRAY(Color.rgb(0xc1,0xc1,0xc1)),
 
-        THEME(Color.argb(0, 1,1,1)),                        // テーマに従う
-        THEME_DIM(Color.argb(0, 2,2,2)),                    // テーマに従う黒っぽいの
-        THEME_SEE_THROUGH(Color.argb(0, 3,3,3)),            // テーマに従う白っぽいの
+        THEME_DIM(Color.argb(0, 2,2,2)),                    // colorSurface の反対色で目立つように覆う（colorSurfaceが白なら黒っぽい/黒なら白っぽい色で覆う）
+        THEME_SEE_THROUGH(Color.argb(0, 3,3,3)),            // colorSurface と同じ色で、コントラストを落とすような感じ。
     }
 
     /**
@@ -332,15 +332,14 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      * ガードビュー: ダイアログの外側の操作を禁止するために、Window全体を覆うビュー（== rootView)
      */
     // @ColorInt
-    var bodyGuardColor:Int by bundle.intNonnull(GuardColor.TRANSPARENT.color)
+    var bodyGuardColor:Int by bundle.intNonnull(defaultBodyGuardColor)
 
 
     @ColorInt
     fun resolveColor(@ColorInt color:Int): Int  {
         return when(color) {
-            GuardColor.THEME.color -> context.getColor(R.color.dlg_guard_background)
-            GuardColor.THEME_DIM.color -> context.getColor(R.color.dlg_guard_background_dim)
-            GuardColor.THEME_SEE_THROUGH.color -> context.getColor(R.color.dlg_guard_background_see_through)
+            GuardColor.THEME_DIM.color -> context.getColor(R.color.guard_dim)
+            GuardColor.THEME_SEE_THROUGH.color -> context.getColor(R.color.guard_see_through)
             else -> color
         }
     }
@@ -1040,7 +1039,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             dialogView = rootView.findViewById(R.id.dialog_view)
             refContainerView = rootView.findViewById(R.id.ref_container_view)
             bodyGuardView = rootView.findViewById(R.id.body_guard_view)
-            bodyGuardView.background = ColorDrawable(bodyGuardColor)
+            bodyGuardView.background = ColorDrawable(resolveColor(bodyGuardColor))
             centerProgressRing = rootView.findViewById(R.id.center_progress_ring)
             dialogView.isClickable = true   // これをセットしておかないと、ヘッダーなどのクリックで rootViewのonClickが呼ばれて、ダイアログが閉じてしまう。
             title?.let { titleView.text = it }

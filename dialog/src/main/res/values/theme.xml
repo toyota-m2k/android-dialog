@@ -36,6 +36,9 @@
         <item name="color_dlg_white_button_text_normal">?attr/colorOnSurface</item>
         <item name="color_dlg_white_button_text_pressed">?attr/colorOnSurface</item>
         <item name="color_dlg_white_button_text_disabled">@color/on_surface_70</item>
+
+        <item name="color_translucent_dim">#40000000</item>
+        <item name="color_translucent_see_through">#D0FFFFFF</item>
     </style>
 
     <style name="UtDialogAlternativeTheme" parent="UtDialogTheme">
@@ -74,6 +77,9 @@
         <item name="color_dlg_white_button_text_normal">#323a45</item>
         <item name="color_dlg_white_button_text_pressed">#323a45</item>
         <item name="color_dlg_white_button_text_disabled">#a0a0a0</item>
+
+        <item name="color_translucent_dim">#40000000</item>
+        <item name="color_translucent_see_through">#D0FFFFFF</item>
     </style>
 
 </resources>

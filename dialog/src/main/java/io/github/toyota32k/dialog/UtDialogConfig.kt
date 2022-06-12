@@ -27,11 +27,23 @@ object UtDialogConfig {
      */
     var solidBackgroundOnPhone:Boolean = true
 
+    /**
+     * ダイアログの外側のウィンドウを覆うガードビューの色
+     */
+    @ColorInt
+    var defaultGuardColor:Int = UtDialog.GuardColor.THEME_DIM.color
+
+    /**
+     * ダイアログの外側をタップして閉じるタイプのダイアログのガードビューの色
+     */
     @ColorInt
     var defaultGuardColorOfCancellableDialog:Int = UtDialog.GuardColor.TRANSPARENT.color
 
+    /**
+     * ダイアログがビジーの時にボディビューを覆うボディガードビューの色
+     */
     @ColorInt
-    var defaultGuardColor:Int = UtDialog.GuardColor.THEME_DIM.color
+    var defaultBodyGuardColor:Int = UtDialog.GuardColor.THEME_SEE_THROUGH.color
 
     /**
      * ダイアログのスタイル

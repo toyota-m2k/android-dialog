@@ -30,8 +30,4 @@
     <color name="gray20">#FFCCCCCC</color>
     <color name="gray10">#FFE6E6E6</color>
 
-    <color name="dlg_guard_background_dim">#40000000</color>
-    <color name="dlg_guard_background_see_through">#D0FFFFFF</color>
-    <color name="dlg_guard_background">#D0FFFFFF</color>
-
 </resources>

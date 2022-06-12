@@ -36,4 +36,6 @@
     <attr name="color_dlg_white_button_text_pressed" format="color"/>
     <attr name="color_dlg_white_button_text_disabled" format="color"/>
 
+    <attr name="color_translucent_dim" format="color"/>
+    <attr name="color_translucent_see_through" format="color"/>
 </resources>
