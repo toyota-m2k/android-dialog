@@ -6,12 +6,9 @@ import android.widget.Button
 import androidx.documentfile.provider.DocumentFile
 import io.github.toyota32k.dialog.*
 import io.github.toyota32k.dialog.broker.pickers.UtFilePickerStore
-import io.github.toyota32k.dialog.connector.*
-import io.github.toyota32k.dialog.task.UtImmortalTaskBase
+import io.github.toyota32k.dialog.task.*
 import io.github.toyota32k.sample.HogeDialog
 import io.github.toyota32k.sample.SamplePortalDialog
-import io.github.toyota32k.dialog.task.UtImmortalTaskManager
-import io.github.toyota32k.dialog.task.UtMortalActivity
 import io.github.toyota32k.sample.Config
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.*
@@ -19,11 +16,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
-class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
+class MainActivity : UtMortalActivity() {
     override val logger = UtLog("SAMPLE")
 //    private val dialogHostManager = UtDialogHostManager()
 
-    val filePickers = UtFilePickerStore(this)
+//    val filePickers = UtFilePickerStore(this)
 
     override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME, FileTestTask.TASK_NAME)
 
@@ -109,55 +106,56 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
     }
 
 
-    private val openFilePicker = UtFileOpenPicker(this.toDialogOwner(), arrayOf("text/*")) { uri->
-        logger.info("OpenFile: $uri")
-        if(uri!=null) {
-            contentResolver.openInputStream(uri)?.use { stream->
-                val line = stream.bufferedReader().readLine()
-                logger.info(line)
-            }
-        }
-
-    }
-    private val openMultiFilePicker = UtMultiFileOpenPicker(this.toDialogOwner(), arrayOf("application/*")) {
-        logger.info("OpenMultipleFile: $it")
-    }
-    private val createFilePicker = UtFileCreatePicker(this.toDialogOwner(), "test.txt", null) { uri->
-        logger.info("CreateFile: $uri")
-        if(uri!=null) {
-            contentResolver.openOutputStream(uri)?.use { stream->
-                stream.write("hogehoge".toByteArray())
-            }
-        }
-    }
-    private var directoryUri:Uri? = null
-    private val direcotryPicker = UtDirectoryPicker(this.toDialogOwner(), directoryUri) { uri->
-        logger.info("Directory: $uri")
-        if(uri!=null) {
-            directoryUri = uri
-            val dir = DocumentFile.fromTreeUri(this, uri) ?: return@UtDirectoryPicker
-            val file = dir.createFile("text/plain", "x.txt") ?: return@UtDirectoryPicker
-            contentResolver.openOutputStream(file.uri)?.use { stream->
-                stream.write("fugafuga".toByteArray())
-            }
-
-        }
-    }
+//    private val openFilePicker = UtFileOpenPicker(this.toDialogOwner(), arrayOf("text/*")) { uri->
+//        logger.info("OpenFile: $uri")
+//        if(uri!=null) {
+//            contentResolver.openInputStream(uri)?.use { stream->
+//                val line = stream.bufferedReader().readLine()
+//                logger.info(line)
+//            }
+//        }
+//
+//    }
+//    private val openMultiFilePicker = UtMultiFileOpenPicker(this.toDialogOwner(), arrayOf("application/*")) {
+//        logger.info("OpenMultipleFile: $it")
+//    }
+//    private val createFilePicker = UtFileCreatePicker(this.toDialogOwner(), "test.txt", null) { uri->
+//        logger.info("CreateFile: $uri")
+//        if(uri!=null) {
+//            contentResolver.openOutputStream(uri)?.use { stream->
+//                stream.write("hogehoge".toByteArray())
+//            }
+//        }
+//    }
+//    private var directoryUri:Uri? = null
+//    private val direcotryPicker = UtDirectoryPicker(this.toDialogOwner(), directoryUri) { uri->
+//        logger.info("Directory: $uri")
+//        if(uri!=null) {
+//            directoryUri = uri
+//            val dir = DocumentFile.fromTreeUri(this, uri) ?: return@UtDirectoryPicker
+//            val file = dir.createFile("text/plain", "x.txt") ?: return@UtDirectoryPicker
+//            contentResolver.openOutputStream(file.uri)?.use { stream->
+//                stream.write("fugafuga".toByteArray())
+//            }
+//
+//        }
+//    }
 
     companion object {
-        val activityConnectorFactoryBank = UtActivityConnectorFactoryBank(
-            arrayOf(
-                UtFileOpenPicker.Factory(FileTestTask.TASK_NAME, FileTestTask.OPEN_FILE_CONNECTOR, arrayOf("text/*")),
-                UtDirectoryPicker.Factory(FileTestTask.TASK_NAME, FileTestTask.OPEN_DIRECTORY_CONNECTOR, null),
-            ))
+//        val activityConnectorFactoryBank = UtActivityConnectorFactoryBank(
+//            arrayOf(
+//                UtFileOpenPicker.Factory(FileTestTask.TASK_NAME, FileTestTask.OPEN_FILE_CONNECTOR, arrayOf("text/*")),
+//                UtDirectoryPicker.Factory(FileTestTask.TASK_NAME, FileTestTask.OPEN_DIRECTORY_CONNECTOR, null),
+//            ))
     }
 
-    private val activityConnectorStore = activityConnectorFactoryBank.createConnectorStore(this.toDialogOwner())
-    override fun getActivityConnector(immortalTaskName: String,connectorName: String): UtActivityConnector<*, *>? {
-        return activityConnectorStore.getActivityConnector(immortalTaskName,connectorName)
-    }
+//    private val activityConnectorStore = activityConnectorFactoryBank.createConnectorStore(this.toDialogOwner())
+//    override fun getActivityConnector(immortalTaskName: String,connectorName: String): UtActivityConnector<*, *>? {
+//        return activityConnectorStore.getActivityConnector(immortalTaskName,connectorName)
+//    }
+    val filePickers = UtFilePickerStore(this)
 
-    class FileTestTask:UtActivityConnectorImmortalTaskBase(TASK_NAME) {
+    class FileTestTask:UtImmortalTaskBase(TASK_NAME) {
         companion object {
             const val TASK_NAME = "FileTestTask"
             const val OPEN_DIRECTORY_CONNECTOR = "OpenDirectory"
@@ -165,8 +163,7 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
         }
 
         override suspend fun execute(): Boolean {
-            val dirUri = launchDirectoryPicker(OPEN_DIRECTORY_CONNECTOR) ?: return false
-
+            val dirUri = (getActivity() as? MainActivity)?.filePickers?.directoryPicker?.selectDirectory() ?: return false
             withOwner { owner ->
                 val dir = DocumentFile.fromTreeUri(owner.asContext(), dirUri)
                 val file = dir?.createFile("text/plain", "xxx.txt")
@@ -182,7 +179,7 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
                 }
             }
 
-            val fileUrl = launchFileOpenPicker(OPEN_FILE_CONNECTOR) ?: return false
+            val fileUrl = (getActivity() as? MainActivity)?.filePickers?.openReadOnlyFilePicker?.selectFile() ?: return false
             withOwner { owner->
                 withContext(Dispatchers.IO) {
                     runCatching {
@@ -256,10 +253,10 @@ class MainActivity : UtMortalActivity(), IUtActivityConnectorStore {
     private val activityCallTestSelectionReceptor = dialogHostManager.register<UtSingleSelectionBox>("activityCallTestSelectionReceptor") {
         if(it.dialog.status.ok) {
             when (it.dialog.selectedIndex) {
-                0 -> openFilePicker.launch()
-                1 -> openMultiFilePicker.launch()
-                2 -> createFilePicker.launch()
-                3 -> direcotryPicker.launch()
+                0 -> UtImmortalSimpleTask.run { filePickers.openFilePicker.selectFile() != null }
+                1 -> UtImmortalSimpleTask.run { filePickers.openMultiFilePicker.selectFiles()!=null }
+                2 -> UtImmortalSimpleTask.run { filePickers.createFilePicker.selectFile("test.txt")!=null }
+                3 -> UtImmortalSimpleTask.run { filePickers.directoryPicker.selectDirectory()!=null }
                 4 -> FileTestTask().fire()
                 5 -> BrokerTestTask().fire()
                 else -> {}

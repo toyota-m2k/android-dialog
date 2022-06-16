@@ -2,10 +2,8 @@ package io.github.toyota32k.dialog.task
 
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import io.github.toyota32k.dialog.task.UtImmortalTaskManager.logger
+import kotlinx.coroutines.*
 
 interface IUtImmortalTaskContextSource {
     val immortalTaskContext:IUtImmortalTaskContext
