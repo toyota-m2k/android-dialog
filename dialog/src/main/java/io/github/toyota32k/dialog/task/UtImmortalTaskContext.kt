@@ -53,8 +53,14 @@ class UtImmortalTaskContext(override val taskName:String, val parentContext:IUtI
 
     fun close() {
         if(parentContext==null) {
-            mScope?.cancel()
-            mViewModelStore?.clear()
+            val scope = mScope
+            val store = mViewModelStore
+            if(scope!=null) {
+                scope.launch {
+                    try { store?.clear() } catch (e:Throwable) { logger.stackTrace(e) }
+                    scope.cancel()
+                }
+            }
         }
         mScope = null
         mViewModelStore = null
