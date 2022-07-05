@@ -2,8 +2,10 @@
 
 ## このライブラリの目的
 
-1. 扱いにくい DialogFragment, AlertDialog をラップし、コンテンツ(layout)を定義するだけで適切に表示できる汎用的なダイアログフレームワークの提供。
-2. Activityのライフサイクルを正しく扱いつつ、ダイアログを表示し、ユーザー操作の結果を確実に受け取るメカニズムを提供。
+このライブラリは、おもに次の２つの目的で作成しました。
+
+1. 扱いにくい DialogFragment, AlertDialog をラップし、コンテンツ(layout)を定義するだけで適切に表示できる汎用的なダイアログレンダリングシステム。
+2. ActivityやFragmentのライフサイクルを正しく扱いつつ、ダイアログを表示し、ユーザー操作の結果を確実に受け取るためのフレームワーク。
 
 ## インストール
 
@@ -12,10 +14,23 @@
 ```
 ## ダイアログを作る
 
-１）ダイアログのレイアウトを作成
+ここでは、簡単なカスタムダイアログの作り方を説明します。
+メッセージボックスの利用に関しては、
+
+- [メッセージボックス](./doc/message_box.md)
+- [リストからのアイテム選択](./doc/selection_box.md)
+
+をご参照ください。
+
+### １）ダイアログのレイアウトを作成
 
 OK/Cancelなどのボタンは、親クラスが自動的に作成します。
-ダイアログのレイアウトでは、**中身** だけを定義してください。
+ダイアログのレイアウトでは、「中身」だけを定義してください。
+次の例は、名前入力欄だけを持つ、小さなダイアログです。ここではルートのGroupViewには、LinearLayout を使っていますが、
+任意のGroupView（ConstraintLayoutなど）を使用できます。また、ルートGroupViewの layout_width / layout_height は、
+ダイアログクラス側の widthOption/heightOption によって適当に調整されますが、
+できるだけ、これらのオプションと矛盾しない指定にしておくことをお勧めします。
+（すべてのケースを検証できていないので。。。）
 
 `sample_compact_dialog.xml`
 ```xml
@@ -40,9 +55,14 @@ OK/Cancelなどのボタンは、親クラスが自動的に作成します。
         />
 </LinearLayout>
 ```
-２）UtDialog を継承して、カスタムなダイアログクラスを作成
+### ２）UtDialog を継承して、カスタムなダイアログクラスを作成
 
-いくつかの属性を init で指定し、createBodyView() で、１）で作成したレイアウトをinflate しています。
+init で、ダイアログのサイズ(widthOption, heightOption)やボタンのタイプなどを指定し、createBodyView() で、１）で作成したレイアウトをinflate しています。
+端末の向きによってレイアウトを変える場合などは、preCreateBodyView()をオーバーライドして、
+isLandscape などのプロパティをチェックして設定を変えるようにします。
+この例では、HeightOption.COMPACT の設定により、WRAP_CONTENT 的なレイアウトになりますが、画面いっぱいに表示したり、
+中身に合わせて伸縮し、必要に応じてスクロールする設定も可能です。詳しくは、[カスタムダイアログ](./doc/custom_dialog.md) や、
+[UtDialog リファレンス](./doc/dialog_reference.md) を参照してください。
 
 `CompactDialog.kt`
 ```Kotlin
@@ -75,14 +95,6 @@ class CompactDialog : UtDialog() {
     }
 }
 ```
-
-詳しくは、
-- [カスタムダイアログ](./doc/custom_dialog.md)
-- [UtDialog リファレンス](./doc/dialog_reference.md) 
-をご参照ください。また、メッセージボックスの利用に関しては、
-- [メッセージボックス](./doc/message_box.md)
-- [リストからのアイテム選択](./doc/selection_box.md)
-で説明しています。
 
 ## ダイアログを表示して、結果を取り出す
 
