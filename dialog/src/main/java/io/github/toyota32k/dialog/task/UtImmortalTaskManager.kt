@@ -2,9 +2,12 @@ package io.github.toyota32k.dialog.task
 
 import androidx.lifecycle.*
 import io.github.toyota32k.dialog.UtDialogOwner
+import io.github.toyota32k.utils.IDisposable
 import io.github.toyota32k.utils.NamedMutex
+import io.github.toyota32k.utils.ObservableFlow
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.Closeable
 import java.lang.IllegalStateException
 
@@ -19,18 +22,35 @@ object UtImmortalTaskManager : Closeable  {
      */
     interface ITaskInfo {
         val name:String
-        val state:LiveData<UtImmortalTaskState>
+        val state: UtImmortalTaskState
         val task:IUtImmortalTask?
         val result:Any?
+        fun registerStateObserver(owner:LifecycleOwner, fn:(UtImmortalTaskState)->Unit):IDisposable
     }
 
     /**
      * タスク情報i/f の実装クラス
      */
-    private data class TaskEntry(override val name:String):ITaskInfo {
-        override val state = MutableLiveData(UtImmortalTaskState.INITIAL)
+    private data class TaskEntry(override val name:String):ITaskInfo, IDisposable {
+        private val stateFlow = MutableStateFlow(UtImmortalTaskState.INITIAL)
+        private val observableFlow = ObservableFlow(stateFlow)
+        override var state
+            get() = stateFlow.value
+            set(v) { stateFlow.value = v }
         override var task:IUtImmortalTask?=null
         override var result:Any?=null
+
+        override fun registerStateObserver(owner: LifecycleOwner, fn: (UtImmortalTaskState) -> Unit): IDisposable {
+            observableFlow.clean()
+            return observableFlow.observe(owner, fn)
+        }
+
+        override fun dispose() {
+            observableFlow.dispose()
+            task?.close()
+            task = null
+            logger.debug("disposed: $name")
+        }
     }
 
     // タスクテーブル
@@ -127,7 +147,7 @@ object UtImmortalTaskManager : Closeable  {
         try {
             val entry = taskTable[task.taskName] ?: throw IllegalStateException("no such task: ${task.taskName}")
             if (entry.task != null) throw IllegalStateException("task already running: ${task.taskName}")
-            entry.state.value = UtImmortalTaskState.RUNNING
+            entry.state = UtImmortalTaskState.RUNNING
             entry.task = task
             logger.debug("attached: ${task.taskName}")
         } catch(e:Throwable) {
@@ -148,7 +168,7 @@ object UtImmortalTaskManager : Closeable  {
         logger.debug()
         val entry = taskTable[task.taskName] ?: return
         entry.result = task.taskResult
-        entry.state.value = if(succeeded) UtImmortalTaskState.COMPLETED else UtImmortalTaskState.ERROR
+        entry.state = if(succeeded) UtImmortalTaskState.COMPLETED else UtImmortalTaskState.ERROR
         entry.task = null
         logger.debug("detached: ${task.taskName}")
     }
@@ -226,15 +246,10 @@ object UtImmortalTaskManager : Closeable  {
     /**
      * タスクテーブルからエントリを削除する。
      */
-    fun disposeTask(name:String, owner:UtDialogOwner?) {
+    fun disposeTask(name:String) {
         val entry = taskTable[name] ?: return
-        owner?.lifecycleOwner?.let {
-            entry.state.removeObservers(it)
-        }
-        entry.task?.close()
-        entry.task = null
+        entry.dispose()
         taskTable.remove(name)
-        logger.debug("disposed: $name")
     }
 
     /**

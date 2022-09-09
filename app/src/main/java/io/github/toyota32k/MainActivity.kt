@@ -1,15 +1,17 @@
 package io.github.toyota32k
 
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import androidx.documentfile.provider.DocumentFile
-import io.github.toyota32k.dialog.*
+import io.github.toyota32k.dialog.UtDialogConfig
+import io.github.toyota32k.dialog.UtMessageBox
+import io.github.toyota32k.dialog.UtSingleSelectionBox
+import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.dialog.broker.pickers.UtFilePickerStore
 import io.github.toyota32k.dialog.task.*
+import io.github.toyota32k.sample.Config
 import io.github.toyota32k.sample.HogeDialog
 import io.github.toyota32k.sample.SamplePortalDialog
-import io.github.toyota32k.sample.Config
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +27,7 @@ class MainActivity : UtMortalActivity() {
     override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME, FileTestTask.TASK_NAME)
 
     override fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {
-        logger.info("${taskInfo.name} ${taskInfo.state.value} ${taskInfo.result}")
+        logger.info("${taskInfo.name} ${taskInfo.state} ${taskInfo.result}")
         UtMessageBox.createForConfirm("Task Completed", "Task ${taskInfo.name} Result=${taskInfo.result}").show(this, "taskCompleted")
     }
 
@@ -229,7 +231,7 @@ class MainActivity : UtMortalActivity() {
                 logger.info("openReadOnlyMultiFilePicker")
                 val activity = it.asActivity() as MainActivity
                 val uris = activity.filePickers.openReadOnlyMultiFilePicker.selectFiles("image/jpeg")
-                logger.info("openReadOnlyMultiFilePicker: ${uris?.fold(StringBuilder()){builder,uri->
+                logger.info("openReadOnlyMultiFilePicker: ${uris.fold(StringBuilder()){builder,uri->
                     builder.append("\n")
                     builder.append(uri.toString())
                 }}")

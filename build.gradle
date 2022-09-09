@@ -1,16 +1,16 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = "1.7.0"
+    ext.kotlin_version = "1.7.10"
     ext.recycle_view_version = "1.2.0"
     ext.constraint_layout_version = "2.1.4"
     ext.core_ktx_version = "1.8.0"
-    ext.appcompat_version = "1.4.2"
+    ext.appcompat_version = "1.5.0"
     ext.material_version = "1.6.1"
-    ext.lifecycle_ktx_version = "2.4.1"
+    ext.lifecycle_ktx_version = "2.5.1"
     ext.rx_java_version = "3.1.2"
     ext.rx_android_version = "3.0.0"
     ext.rx_kotlin_version = "3.0.1"
-    ext.bind_it_version = "1.2.12"
+    ext.bind_it_version = "1.3.2"
 
     ext.junit_version = "4.13.2"
     ext.android_junit_version = "1.1.3"
@@ -21,7 +21,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.1'
+        classpath 'com.android.tools.build:gradle:7.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
