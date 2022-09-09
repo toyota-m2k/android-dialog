@@ -14,9 +14,9 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * 読み取り専用に複数のファイルを選択
  * ACTION_GET_CONTENT
  */
-open class UtOpenReadOnlyMultiFilePicker : UtActivityBroker<String, List<Uri>?>() {
+open class UtOpenReadOnlyMultiFilePicker : UtActivityBroker<String, List<Uri>>() {
     companion object {
-        fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<List<Uri>?>) : IUtActivityLauncher<String> {
+        fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<List<Uri>>) : IUtActivityLauncher<String> {
             return UtOpenReadOnlyMultiFilePicker().apply {
                 register(owner, callback)
             }
@@ -34,10 +34,10 @@ open class UtOpenReadOnlyMultiFilePicker : UtActivityBroker<String, List<Uri>?>(
         }
     }
 
-    override val contract: ActivityResultContract<String, List<Uri>?>
+    override val contract: ActivityResultContract<String, List<Uri>>
         get() = Contract()
 
-    suspend fun selectFiles(mimeType:String = UtOpenReadOnlyFilePicker.defaultMimeType): List<Uri>? {
+    suspend fun selectFiles(mimeType:String = UtOpenReadOnlyFilePicker.defaultMimeType): List<Uri> {
         return invoke(mimeType)
     }
 }

@@ -61,5 +61,15 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
         fun createForYesNo(title:String?, message:String?, yesLabel:String= UtStandardString.YES.text, noLabel:String= UtStandardString.NO.text) : UtMessageBox {
             return createForOkCancel(title,message,yesLabel,noLabel)
         }
+
+        fun createFor(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : UtMessageBox {
+            return UtMessageBox().apply {
+                this.title = title
+                this.message = message
+                this.okLabel = positiveLabel
+                this.cancelLabel = negativeLabel
+                this.otherLabel = neutralLabel
+            }
+        }
     }
 }

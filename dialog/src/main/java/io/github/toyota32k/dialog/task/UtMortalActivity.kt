@@ -4,6 +4,7 @@ import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
 import io.github.toyota32k.dialog.*
+import io.github.toyota32k.utils.Disposer
 
 /**
  * ImmortalTask と協調動作するActivityの基本実装
@@ -31,6 +32,8 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
         return true
     }
 
+    private val observersDisposer = Disposer()
+
     /**
      * Activity が前面に上がる時点で、reserveTask()を呼び出して、タスクテーブルに登録しておく。
      */
@@ -40,7 +43,10 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
         // ImmortalTask に接続する
         UtImmortalTaskManager.registerOwner(toDialogOwner())
         for(name in immortalTaskNameList) {
-            observeImmortalTask(name, UtImmortalTaskManager.reserveTask(name).state)
+            val task = UtImmortalTaskManager.reserveTask(name)
+            observersDisposer.register(task.registerStateObserver(this) {
+                onImmortalTaskStateChanged(name, it)
+            })
         }
     }
 
@@ -52,9 +58,10 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
         for(name in immortalTaskNameList) {
 //            UtImmortalTaskManager.onOwnerPaused(name, toDialogOwner())
             if(isFinishing&&queryDisposeTaskOnFinishActivity(name)) {
-                UtImmortalTaskManager.disposeTask(name,toDialogOwner())
+                UtImmortalTaskManager.disposeTask(name)
             }
         }
+        observersDisposer.reset()
     }
 
     /**
@@ -114,14 +121,12 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
     /**
      * タスクの状態監視オブザーバー登録メソッド
      */
-    private fun observeImmortalTask(taskName:String, liveData: LiveData<UtImmortalTaskState>) {
-        logger.debug("")
-        liveData.observe(this) {
-            if(it!=null) {
-                onImmortalTaskStateChanged(taskName, it)
-            }
-        }
-    }
+//    private fun observeImmortalTask(taskName:String, task: UtImmortalTaskManager.ITaskInfo) {
+//        logger.debug("")
+//        observersDisposer.register(data.disposableObserve(this){
+//            onImmortalTaskStateChanged(taskName, it)
+//        })
+//    }
 
     open val logger = UtImmortalTaskManager.logger
 }

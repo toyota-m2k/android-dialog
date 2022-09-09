@@ -480,6 +480,22 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         NONE(UtStandardString.NONE, false, false),          // ボタンなし
     }
 
+    private fun idToButtonType(@StringRes id:Int, positive: Boolean):BuiltInButtonType {
+        return when(id) {
+            UtStandardString.OK.id -> BuiltInButtonType.OK
+            UtStandardString.DONE.id-> BuiltInButtonType.DONE
+            UtStandardString.CLOSE.id -> if(positive) BuiltInButtonType.CLOSE else BuiltInButtonType.CLOSE_LEFT
+            UtStandardString.CANCEL.id -> BuiltInButtonType.CANCEL
+            UtStandardString.BACK.id -> BuiltInButtonType.BACK
+            else-> BuiltInButtonType.NONE
+        }
+    }
+
+    protected val leftButtonType: BuiltInButtonType
+        get() = idToButtonType(leftButtonText, leftButtonPositive)
+    protected val rightButtonType: BuiltInButtonType
+        get() = idToButtonType(rightButtonText, rightButtonPositive)
+
     // 左ボタンのプロパティ (setLeftButton()で設定）
     private var leftButtonText:Int by bundle.intZero
     private var leftButtonPositive:Boolean by bundle.booleanFalse
@@ -756,7 +772,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     private fun enableDrag() {
         if(!draggable) return
         val gestureDetector = GestureDetector(context, object:GestureDetector.SimpleOnGestureListener(){
-            override fun onDoubleTap(e: MotionEvent?): Boolean {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
                 // スペシャルサービス仕様：ダブルタップで元の位置に戻してあげよう。
                 resetDialogPosition()
                 dragInfo.cancel()   // double tap の２回目タップで移動しないように。
@@ -1104,7 +1120,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
 
     override fun internalCloseDialog() {
         fadeOut {
-            dismiss()
+            super.internalCloseDialog()
         }
     }
 

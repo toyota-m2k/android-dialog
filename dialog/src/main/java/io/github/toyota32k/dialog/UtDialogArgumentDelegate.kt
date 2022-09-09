@@ -57,6 +57,7 @@ class UtBundleDelegate(val namespace:String?, val source:()->Bundle) {
         constructor(conv:(Any?)->R):this(conv,null)
 
         override fun getValue(thisRef: Any, property: KProperty<*>): R {
+            @Suppress("DEPRECATION")    // bundle.get()はdeprecateじゃと言われても、これ以外にやりようがないやろ。型毎にデリゲートクラスを作るのはいややし。
             return conv(bundle.get(key(property.name)))
         }
 

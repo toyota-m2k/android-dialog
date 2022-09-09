@@ -30,13 +30,14 @@ class UtImmortalSimpleTask(
         /**
          * コールバックの結果を待つ
          */
-        suspend fun <T> executeAsync(taskName:String=defTaskName, callback:suspend UtImmortalSimpleTask.()->T): T? {
-            var r:T? = null
+        suspend fun <T> executeAsync(taskName:String=defTaskName, callback:suspend UtImmortalSimpleTask.()->T): T {
+            data class TResult<T>(var value:T)
+            var r:TResult<T>? = null
             UtImmortalSimpleTask(taskName) {
-                r = callback()
+                r = TResult(callback())
                 true
             }.fireAsync()
-            return r
+            return r!!.value
         }
     }
 

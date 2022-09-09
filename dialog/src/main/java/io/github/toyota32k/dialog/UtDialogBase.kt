@@ -167,7 +167,9 @@ abstract class UtDialogBase(
         logger.debug()
         setFinishingStatus(IUtDialog.Status.NEGATIVE)
         super.onDismiss(dialog)
-        onDialogClosed()
+        if(isDialog) {
+            onDialogClosed()
+        }
     }
 
     /**
@@ -211,7 +213,6 @@ abstract class UtDialogBase(
             } else {
                 onCancel()
             }
-            notifyResult()
             true
         } else false
     }
@@ -222,6 +223,11 @@ abstract class UtDialogBase(
      */
     protected open fun internalCloseDialog() {
         dismiss()
+        if(!isDialog) {
+            // fragment mode の場合、dismiss()しても onDismiss()が呼ばれない。
+            onDialogClosed()
+        }
+        notifyResult()
     }
 
     /**

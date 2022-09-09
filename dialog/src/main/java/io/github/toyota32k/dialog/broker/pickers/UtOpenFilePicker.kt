@@ -31,7 +31,7 @@ open class UtOpenFilePicker : UtActivityBroker<Array<String>, Uri?>() {
     }
 
     protected inner class Contract : ActivityResultContracts.OpenDocument() {
-        override fun createIntent(context: Context, input: Array<out String>): Intent {
+        override fun createIntent(context: Context, input: Array<String>): Intent {
             val intent = super.createIntent(context, input)
             return prepareChooserIntent(intent)
         }
