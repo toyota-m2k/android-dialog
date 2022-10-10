@@ -112,7 +112,7 @@ class CompactDialog : UtDialog() {
             }
         }        
     }
-    ...
+    // ...
 }
 ```
 `showDialog()` は、UtImmortalTaskBase のメソッドであり、
