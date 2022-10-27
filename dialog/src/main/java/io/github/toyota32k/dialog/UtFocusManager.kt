@@ -14,16 +14,12 @@ import java.lang.ref.WeakReference
 
 /**
  * UtFocusManager のカスタムアクション用デリゲート型
- * @param   view    イベントが発生したビュー
- * @param   actionId  OnEditorActionListenerが受け取ったAction ID
- * @param   moveFocus   imeOptions == actionNext/Previous なら true それ以外なら false
+ * params
+ *  - view    イベントが発生したビュー
+ *  - actionId  OnEditorActionListenerが受け取ったAction ID
+ *  - moveFocus   imeOptions == actionNext/Previous なら true それ以外なら false
  */
 typealias UtEditorAction = (view:TextView, actionId:Int, moveFocus:Boolean)->Boolean
-
-interface IUtTabHandler {
-    fun handleTabEvent(keyCode:Int, event:KeyEvent?, currentFocus:()->View?):Boolean
-}
-
 
 /**
  * フォーカス管理クラス
