@@ -27,4 +27,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Custom Sample"/>
+    <Button
+        android:id="@+id/focus_management"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Focus Management Sample"/>
 </LinearLayout>

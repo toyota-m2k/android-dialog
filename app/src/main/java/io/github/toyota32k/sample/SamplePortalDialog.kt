@@ -31,6 +31,9 @@ class SamplePortalDialog : io.github.toyota32k.dialog.UtDialog(),
     private val customDialogReceptor = dialogHostManager.register<CustomDialog>("customDialogReceptor") {
         logger.info()
     }
+    private val focusDialogReceptor = dialogHostManager.register<FocusDialog>("customDialogReceptor") {
+        logger.info()
+    }
 
     override fun queryDialogResultReceptor(tag: String): io.github.toyota32k.dialog.IUtDialogResultReceptor? {
         return dialogHostManager.queryDialogResultReceptor(tag)
@@ -54,6 +57,9 @@ class SamplePortalDialog : io.github.toyota32k.dialog.UtDialog(),
             }
             findViewById<Button>(R.id.custom).setOnClickListener {
                 customDialogReceptor.showDialog(this@SamplePortalDialog) { CustomDialog() }
+            }
+            findViewById<Button>(R.id.focus_management).setOnClickListener {
+                focusDialogReceptor.showDialog(this@SamplePortalDialog) { FocusDialog() }
             }
         }
     }

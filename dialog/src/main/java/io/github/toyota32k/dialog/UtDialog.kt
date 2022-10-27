@@ -22,6 +22,7 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.descendants
 import io.github.toyota32k.dialog.UtDialogConfig.defaultBodyGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColorOfCancellableDialog
@@ -29,6 +30,7 @@ import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
 import io.github.toyota32k.utils.setMargin
+import java.lang.ref.WeakReference
 import kotlin.math.max
 import kotlin.math.min
 
@@ -371,6 +373,18 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
 
     // endregion
 
+    // region フォーカス移動
+
+    var focusManagementEnabled:Boolean by bundle.booleanFalse
+    val rootFocusManager:UtFocusManager? by lazy { if(focusManagementEnabled) UtFocusManager().register(R.id.left_button, R.id.right_button) else null }
+    fun enableFocusManagement():UtFocusManager {
+        focusManagementEnabled = true
+        return rootFocusManager!!
+    }
+
+
+    // endregion
+
     // region ダイアログの親子関係、表示/非表示
 
     /**
@@ -388,12 +402,24 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      */
     var parentVisibilityOption by bundle.enum(ParentVisibilityOption.HIDE_AND_SHOW)
 
+    var prevFocusView:WeakReference<View>? = null
     /**
      * ダイアログの表示/非表示
      */
     var visible:Boolean
         get() = rootView.visibility == View.VISIBLE
-        set(v) { rootView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
+        set(v) {
+            if(v) {
+                rootView.visibility = View.VISIBLE
+                prevFocusView?.get()?.requestFocus()
+            } else {
+                val focus = activity?.currentFocus
+                if(focus!=null && rootView.descendants.find { it === focus }!=null) {
+                    prevFocusView = WeakReference(focus)
+                }
+                rootView.visibility = View.INVISIBLE
+            }
+        }
 
     private val fadeInAnimation = UtFadeAnimation(true,UtDialogConfig.fadeInDuration)
     private val fadeOutAnimation = UtFadeAnimation(false, UtDialogConfig.fadeOutDuraton)
@@ -1088,6 +1114,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             updateRightButton()
             bodyView = createBodyView(savedInstanceState, ViewInflater(inflater, bodyContainer))
             bodyContainer.addView(bodyView)
+            rootFocusManager?.attach(rootView, bodyContainer)
             setupLayout()
 //            dlg?.setContentView(rootView)
             if (draggable) {
@@ -1111,6 +1138,13 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             // View作り中のエラーは、デフォルトでログに出る間もなく死んでしまうようなので、キャッチして出力する。throwし直すから死ぬけど。
             logger.stackTrace(e)
             throw e
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        if(savedInstanceState==null) {
+            rootFocusManager?.applyInitialFocus()
         }
     }
 
@@ -1211,6 +1245,18 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             cancel()
             return true
         }
+        // フォーカス管理
+        rootFocusManager?.let { focusManager->
+            if(keyCode==KeyEvent.KEYCODE_TAB && event!=null) {
+                if(event.isShiftPressed) {
+                    focusManager.prevOrLoop(activity?.currentFocus?.id?:0)
+                } else {
+                    focusManager.nextOrLoop(activity?.currentFocus?.id?:0)
+                }
+                return true
+            }
+        }
+
         return false
     }
 
