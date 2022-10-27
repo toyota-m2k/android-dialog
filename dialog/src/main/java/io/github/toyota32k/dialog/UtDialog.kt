@@ -26,10 +26,7 @@ import androidx.core.view.descendants
 import io.github.toyota32k.dialog.UtDialogConfig.defaultBodyGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColorOfCancellableDialog
-import io.github.toyota32k.utils.dp2px
-import io.github.toyota32k.utils.setLayoutHeight
-import io.github.toyota32k.utils.setLayoutWidth
-import io.github.toyota32k.utils.setMargin
+import io.github.toyota32k.utils.*
 import java.lang.ref.WeakReference
 import kotlin.math.max
 import kotlin.math.min
@@ -374,12 +371,33 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     // endregion
 
     // region フォーカス移動
+    class FocusManager(withHeaderButton: Boolean) {
+        private val rootFocusManager: UtFocusManager = UtFocusManager()
+        private val bodyFocusManager: UtFocusManager? = if(withHeaderButton) {
+            rootFocusManager.register(R.id.left_button, R.id.right_button)
+            UtFocusManager().apply { rootFocusManager.appendChild(this) }
+        } else {
+            null
+        }
 
-    var focusManagementEnabled:Boolean by bundle.booleanFalse
-    val rootFocusManager:UtFocusManager? by lazy { if(focusManagementEnabled) UtFocusManager().register(R.id.left_button, R.id.right_button) else null }
-    fun enableFocusManagement():UtFocusManager {
-        focusManagementEnabled = true
-        return rootFocusManager!!
+        val root:UtFocusManager get() = rootFocusManager
+        val body:UtFocusManager get() = bodyFocusManager ?: rootFocusManager
+
+        fun attach(rootView:View, bodyView: View) {
+            if(bodyFocusManager!=null) {
+                rootFocusManager.attach(rootView)
+                bodyFocusManager.attach(bodyView)
+            } else {
+                rootFocusManager.attach(bodyView)
+            }
+        }
+    }
+
+    private var focusManager: FocusManager? = null
+
+    fun enableFocusManagement(withHeaderButton:Boolean=true):UtFocusManager {
+        val fm = focusManager ?: FocusManager(withHeaderButton).apply { focusManager=this }
+        return fm.body
     }
 
 
@@ -402,24 +420,12 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      */
     var parentVisibilityOption by bundle.enum(ParentVisibilityOption.HIDE_AND_SHOW)
 
-    var prevFocusView:WeakReference<View>? = null
     /**
      * ダイアログの表示/非表示
      */
     var visible:Boolean
         get() = rootView.visibility == View.VISIBLE
-        set(v) {
-            if(v) {
-                rootView.visibility = View.VISIBLE
-                prevFocusView?.get()?.requestFocus()
-            } else {
-                val focus = activity?.currentFocus
-                if(focus!=null && rootView.descendants.find { it === focus }!=null) {
-                    prevFocusView = WeakReference(focus)
-                }
-                rootView.visibility = View.INVISIBLE
-            }
-        }
+        set(v) { rootView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
 
     private val fadeInAnimation = UtFadeAnimation(true,UtDialogConfig.fadeInDuration)
     private val fadeOutAnimation = UtFadeAnimation(false, UtDialogConfig.fadeOutDuraton)
@@ -1114,7 +1120,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             updateRightButton()
             bodyView = createBodyView(savedInstanceState, ViewInflater(inflater, bodyContainer))
             bodyContainer.addView(bodyView)
-            rootFocusManager?.attach(rootView, bodyContainer)
+            focusManager?.attach(rootView, bodyView)
             setupLayout()
 //            dlg?.setContentView(rootView)
             if (draggable) {
@@ -1144,7 +1150,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if(savedInstanceState==null) {
-            rootFocusManager?.applyInitialFocus()
+            focusManager?.root?.applyInitialFocus()
         }
     }
 
@@ -1246,15 +1252,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             return true
         }
         // フォーカス管理
-        rootFocusManager?.let { focusManager->
-            if(keyCode==KeyEvent.KEYCODE_TAB && event!=null) {
-                if(event.isShiftPressed) {
-                    focusManager.prevOrLoop(activity?.currentFocus?.id?:0)
-                } else {
-                    focusManager.nextOrLoop(activity?.currentFocus?.id?:0)
-                }
-                return true
-            }
+        if(focusManager?.root?.handleTabEvent(keyCode, event) { activity?.currentFocus } == true) {
+            return true
         }
 
         return false

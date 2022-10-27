@@ -13,7 +13,7 @@ class FocusDialog : UtDialog() {
         setLimitWidth(400)
         heightOption=HeightOption.COMPACT
 //        enableFocusManagement().clear().register(R.id.input_1, R.id.input_2, R.id.input_3, R.id.input_4).setInitialFocus(R.id.input_2)
-        enableFocusManagement().autoRegister().setInitialFocus(R.id.input_2).setCustomEditorAction()
+        enableFocusManagement(true).autoRegister().setInitialFocus(R.id.input_2).setCustomEditorAction()
     }
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         return inflater.inflate(R.layout.sample_focus_dialog)

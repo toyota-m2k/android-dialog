@@ -44,7 +44,7 @@ class CustomDialog : io.github.toyota32k.dialog.UtDialog() {
             listView = findViewById(R.id.list_view)
 
             binder.register (
-                ListViewBinding.create(listView, observableList, R.layout.string_list_item) { binder, view, text->
+                ListViewBinding.create(listView, observableList, R.layout.string_list_item) { _, view, text->
                     view.findViewById<TextView>(R.id.text_view).text = text
                 },
                 Command().connectAndBind(this@CustomDialog, findViewById(R.id.add_item_button)) {

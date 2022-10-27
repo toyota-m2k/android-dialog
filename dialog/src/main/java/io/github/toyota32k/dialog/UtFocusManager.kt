@@ -20,48 +20,15 @@ import java.lang.ref.WeakReference
  */
 typealias UtEditorAction = (view:TextView, actionId:Int, moveFocus:Boolean)->Boolean
 
+interface IUtTabHandler {
+    fun handleTabEvent(keyCode:Int, event:KeyEvent?, currentFocus:()->View?):Boolean
+}
+
+
 /**
  * フォーカス管理クラス
  *
- * 作成の動機
- *  EditTextでエンターキーを押したときの動作（変換確定、フォーカス移動、EditorAction）、タブによるフォーカス移動を、人様に説明できる程度にすっきりさせたい。
- *
- * 解決したい課題（＝EditTextとフォーカス移動に関する不可解な動作）
- *  (A) ダイアログを開いて、(HWキーボードの）Tabでフォーカスを移動すると、ダイアログ外（Activity上の）のコントロールにフォーカスが移動できてしまう。
- *          --> モーダルダイアログのつもりなので、ダイアログ外のボタンが押せてしまうと何が起こるか考えるだけでも恐ろしいことです。
- *  (B) 日本語入力時、HWキーボードのEnterで確定すると、（imeOptions == actionDone でも）次のコントロール (nextFocusDown) にフォーカスが移動してしまう。
- *          --> 途中までの入力を確定して、続きを入力、という操作の妨げとなる
- * 課題(A)の対策
- *  フォーカス移動順序、移動範囲を自前で管理する。
- *      - register()  フォーカス対象を登録（登録された順序でタブ移動する）
- *      - autoRegister()   focusable なコントロールを自動列挙（簡単なダイアログ用）
- *  Tabキー押下時（DialogやActivityの OnKeyDown）に、自力でフォーカスを移動する。
- *      - nextOrLoop()  次のコントロールへフォーカスを移動。最後のコントロールにフォーカスがあれば先頭のコントロールにフォーカスを移動。
- *      - prevOrLoop()  前のコントロールへフォーカスを移動。先頭のコントロールにフォーカスがあれば最後のコントロールにフォーカスを移動。
- *
- * 課題(B)の対策
- *  (1) nextFocusDown に自分自身を設定することで課題(A)を回避できた（他の回避方法は見つからなかった）が、確定後、次の Enter でもフォーカスが移動しなくなった。
- *      日本語以外のIMEなら、nextFocusForward を指定しておくと Enterでフォーカス移動 するが、日本語IMEだと、これが効かない。
- *      HWキーボードとSWキーボード、IMEの種類などによっても挙動が定まらない。
- *  (2) nextFocusForwardを無効化して、EditText の OnEditorAction で、自力でフォーカス移動できるようにした。
- *      - setCustomEditorAction()   EditText の OnEditorActionの制御を有効にする。UtEditorAction引数を渡すことで OnEditorActionの挙動をカスタマイズ可能。
- *      ※EditText の OnEditorActionListener は１つしか設定できないので注意。
- *
- * 使い方
- * UtDialog での利用
- *  - UtDialog派生クラスのコンストラクタ、または、preCreateBodyView() で、rootFocusManager を初期化する
- *      ```
- *      enableFocusManagement()                 // rootFocusManagerを有効化する。（デフォルトは無効）
- *          .autoRegister()                     // この例ではフォーカス対象を自動登録。個別に登録する場合は、register()に、R.id.xxxx を渡す。
- *          .setCustomEditorAction()            // Enterキーによる自力フォーカス移動を有効化
- *          .setInitialFocus(R.id.input_1)      // 初期状態でフォーカスをセットするコントロールを指定（任意）
- *      ```
- * 一般的なActivityやFragmentでの利用
- *  - ActivityやFragmentのメンバーとして、UtFocusManagerインスタンスを作って初期化する。
- *  - Activity#onCreateまたは、Fragment#onCreateView で、UtFocusManager#attach() を呼び出して、ルートビュー(IdRes --> View解決に利用）をアタッチする。
- *  - setInitialFocus() を利用する場合は、Activity#onResume、Fragment#onViewCreated から、
- *  - Activityの onKeyDown() （UtMortalActivityの場合は、handleKeyDown()）をオーバーライドして、KeyEvent.KEYCODE_TAB のときに、nextOrLoop() / prevOrLoop() を呼ぶ。
- *
+ *  see https://github.com/toyota-m2k/android-dialog/blob/main/doc/focus_manager.md
  */
 class UtFocusManager : TextView.OnEditorActionListener {
 
@@ -84,10 +51,6 @@ class UtFocusManager : TextView.OnEditorActionListener {
     private var autoRegister = false
     private var customForwardAction = false
 
-    enum class KeyAction {
-        DONE,
-        NEXT,
-    }
     private var externalEditorAction: UtEditorAction? = null
 
     private fun View.patchNextFocus(): View {
@@ -133,13 +96,12 @@ class UtFocusManager : TextView.OnEditorActionListener {
     /**
      * IdRes --> View の解決に使用するルートビューをアタッチする。(Activity#onCreate/Fragment#onCreateView などから呼び出す。
      * @param rootView  ルートビュー
-     * @param autoRegisterBaseView  autoRegister==true のとき、IdResからビューを列挙する起点となるビュー。nullなら rootViewを起点とする。
      */
-    fun attach(rootView: View, autoRegisterBaseView:ViewGroup?=null) {
+    fun attach(rootView: View) {
         this.rootViewRef = WeakReference(rootView)
         if(autoRegister) {
             // 自動登録の解決
-            val baseView = autoRegisterBaseView ?: rootView as? ViewGroup
+            val baseView = rootView as? ViewGroup
             if(baseView != null) {
                 focusables.addAll(baseView.descendants.mapNotNull {
                     if (it.isFocusable && it !is ViewGroup) {
@@ -182,12 +144,9 @@ class UtFocusManager : TextView.OnEditorActionListener {
                 return true
             }
         }
-        focusables.mapNotNull { it.fm }.forEach {
-            if (it.applyInitialFocus()) {
-                return true
-            }
-        }
-        return false
+        return focusables.mapNotNull { it.fm }.find {
+            it.applyInitialFocus()
+        } != null
     }
 
     fun register(@IdRes vararg ids: Int): UtFocusManager {
@@ -195,8 +154,33 @@ class UtFocusManager : TextView.OnEditorActionListener {
         return this
     }
 
-    fun register(fm: UtFocusManager): UtFocusManager {
+    /**
+     * フォーカスアイテムリストの末尾に子マネージャを追加する
+     */
+    fun appendChild(fm: UtFocusManager): UtFocusManager {
         focusables.add(Focusable(fm))
+        return this
+    }
+
+    /**
+     * 指定されたアイテムの直後に子マネージャを挿入する。
+     * @param prev  挿入位置の１つ手前の子マネージャ。nullなら先頭に挿入。
+     */
+    fun insertChildAfter(prev:UtFocusManager?, fm:UtFocusManager) {
+        val index = if(prev!=null) { focusables.indexOfFirst { it.fm === prev }+1 } else 0
+        focusables.add(index,Focusable(fm))
+    }
+    /**
+     * 指定されたアイテムの直後に子マネージャを挿入する。
+     * @param prev  挿入位置の１つ手前の子マネージャ。0なら先頭に挿入。
+     */
+    fun insertChildAfter(@IdRes prev:Int, fm:UtFocusManager) {
+        val index = if(prev!=0) { focusables.indexOfFirst { it.id == prev }+1 } else 0
+        focusables.add(index,Focusable(fm))
+    }
+
+    fun removeChild(fm: UtFocusManager): UtFocusManager {
+        focusables.removeAll { it.fm === fm }
         return this
     }
 
@@ -289,6 +273,17 @@ class UtFocusManager : TextView.OnEditorActionListener {
         if (id == 0 || !prev(id)) {
             tail()
         }
+    }
+
+    fun handleTabEvent(keyCode:Int, event:KeyEvent?, currentFocus:()->View?):Boolean {
+        return if(keyCode==KeyEvent.KEYCODE_TAB && event!=null && event.action == KeyEvent.ACTION_DOWN) {
+            if (event.isShiftPressed) {
+                prevOrLoop(currentFocus()?.id ?: 0)
+            } else {
+                nextOrLoop(currentFocus()?.id ?: 0)
+            }
+            true
+        } else false
     }
 
     // endregion
