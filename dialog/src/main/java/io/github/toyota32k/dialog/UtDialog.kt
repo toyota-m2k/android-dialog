@@ -865,11 +865,6 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     lateinit var centerProgressRing:ProgressBar     // 中央に表示するプログレスリング：デフォルトでは非表示。bodyGuardView とともに visible にすることで表示される。
         private set
 
-    // ダイアログを閉じるときにIMEの候補ウィンドウが残るのを防ぐため、requestFocusする「フォーカスの墓場」ビュー
-    // 当初、rootViewや bodyContainer に requestFocus していたが、画面が黒くなる問題が発生したので、ダイアログ上のパーツにフォーカスをセットすることで現象を回避する。
-    // NtDialogでオーバーライドできるよう openにしておく。
-    protected open val focusTerminalView:View get() = titleView
-
     // endregion
 
     // region レンダリング
@@ -1217,7 +1212,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      * ソフトウェアキーボードを非表示にする。
      */
     fun hideSoftwareKeyboard() {
-        focusTerminalView.requestFocusFromTouch()
+        activity?.window?.decorView?.requestFocusFromTouch()
         immService?.hideSoftInputFromWindow(rootView.windowToken, 0)
     }
     /**
