@@ -32,7 +32,7 @@ class RxDialog: DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         savedInstanceState?.let {
-            @Suppress("UNCHECKED_CAST")
+            @Suppress("UNCHECKED_CAST", "DEPRECATION")
             subject = it["subject"] as SerializableSingleSubject<Int>
         }
         val listener = { _: DialogInterface, which: Int ->

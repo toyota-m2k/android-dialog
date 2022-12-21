@@ -22,12 +22,11 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.view.descendants
+import androidx.core.view.isVisible
 import io.github.toyota32k.dialog.UtDialogConfig.defaultBodyGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColorOfCancellableDialog
 import io.github.toyota32k.utils.*
-import java.lang.ref.WeakReference
 import kotlin.math.max
 import kotlin.math.min
 
@@ -389,6 +388,21 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
                 bodyFocusManager.attach(bodyView)
             } else {
                 rootFocusManager.attach(bodyView)
+            }
+        }
+
+        private var initialFocus:Boolean = false
+        fun reserveInitialFocus() {
+            initialFocus = true
+        }
+
+        fun applyInitialFocus(fallbackView:()->View) {
+            if(initialFocus) {
+                initialFocus = false
+                if(!root.applyInitialFocus()) {
+                    root.setInitialFocus(fallbackView().id)
+                    root.applyInitialFocus()
+                }
             }
         }
     }
@@ -851,6 +865,11 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     lateinit var centerProgressRing:ProgressBar     // 中央に表示するプログレスリング：デフォルトでは非表示。bodyGuardView とともに visible にすることで表示される。
         private set
 
+    // ダイアログを閉じるときにIMEの候補ウィンドウが残るのを防ぐため、requestFocusする「フォーカスの墓場」ビュー
+    // 当初、rootViewや bodyContainer に requestFocus していたが、画面が黒くなる問題が発生したので、ダイアログ上のパーツにフォーカスをセットすることで現象を回避する。
+    // NtDialogでオーバーライドできるよう openにしておく。
+    protected open val focusTerminalView:View get() = titleView
+
     // endregion
 
     // region レンダリング
@@ -1133,6 +1152,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
                 if (animationEffect) {
                     this.visible = false
                 }
+                // 初回フォーカスセットを予約
+                focusManager?.reserveInitialFocus()
             } else {
                 // 回転などによる状態復元
                 if (parentVisibilityOption != ParentVisibilityOption.NONE) {
@@ -1147,10 +1168,14 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        if(savedInstanceState==null) {
-            focusManager?.root?.applyInitialFocus()
+    override fun onResume() {
+        super.onResume()
+        focusManager?.applyInitialFocus {
+            if(rightButton.isVisible && rightButton.isEnabled) {
+                rightButton
+            } else {
+                leftButton
+            }
         }
     }
 
@@ -1192,7 +1217,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      * ソフトウェアキーボードを非表示にする。
      */
     fun hideSoftwareKeyboard() {
-       immService?.hideSoftInputFromWindow(rootView.windowToken, 0)
+        focusTerminalView.requestFocusFromTouch()
+        immService?.hideSoftInputFromWindow(rootView.windowToken, 0)
     }
     /**
      * ダイアログが閉じる前のイベントハンドラ
@@ -1223,8 +1249,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
 
     override fun onDialogClosed() {
         super.onDialogClosed()
-        // Chromebookで、HWキーボードの候補ウィンドウが残ってしまうのを防止
-        rootView.requestFocusFromTouch()
+//        rootView.requestFocusFromTouch()
+//        bodyContainer.requestFocusFromTouch()
     }
 
     /**

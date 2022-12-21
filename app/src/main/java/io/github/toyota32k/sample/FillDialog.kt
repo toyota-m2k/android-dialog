@@ -42,7 +42,7 @@ class FillDialog : UtDialog() {
         return inflater.inflate(R.layout.sample_fill_dialog).apply {
             listView = findViewById<ListView>(R.id.list_view)
             binder.register (
-                ListViewBinding.create(listView, observableList, R.layout.string_list_item) { binder,view,text->
+                ListViewBinding.create(listView, observableList, R.layout.string_list_item) { _, view, text->
                     view.findViewById<TextView>(R.id.text_view).text = text
                 },
                 Command().connectAndBind(this@FillDialog, findViewById(R.id.add_item_button)) {

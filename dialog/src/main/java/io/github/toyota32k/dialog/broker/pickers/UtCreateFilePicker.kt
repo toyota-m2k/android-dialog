@@ -22,17 +22,15 @@ open class UtCreateFilePicker : UtActivityBroker<String, Uri?>() {
         }
     }
 
-    var mimeType:String? = null
     protected open fun prepareChooserIntent(intent:Intent):Intent {
         return Intent.createChooser(intent, "Choose a file")
     }
 
-    protected inner class Contract: ActivityResultContracts.CreateDocument() {
+    var mimeType:String?=null
+
+    protected inner class Contract: ActivityResultContracts.CreateDocument(mimeType?:"*/*") {
         override fun createIntent(context: Context, input: String): Intent {
             val intent = super.createIntent(context, input)
-            if(!mimeType.isNullOrEmpty()) {
-                intent.setTypeAndNormalize(mimeType)
-            }
             return prepareChooserIntent(intent)
         }
     }
@@ -41,7 +39,7 @@ open class UtCreateFilePicker : UtActivityBroker<String, Uri?>() {
         get() = Contract()
 
     suspend fun selectFile(initialFileName:String, mimeType:String? = null):Uri? {
-        this.mimeType = mimeType
+        this.mimeType = Intent.normalizeMimeType(mimeType)
         return invoke(initialFileName)
     }
 }

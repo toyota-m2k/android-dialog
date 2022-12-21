@@ -192,6 +192,7 @@ class UtDialogHostManager: IUtDialogHost {
         private var dialogRef:WeakReference<IUtDialog>? = null
         override val dialog: D
             get() = dialogRef?.get()!! as D
+        @Suppress("DEPRECATION")
         override var clientData:Any?
             get() = dialogRef?.get()?.asFragment?.arguments?.get("$tag.clientData")
             set(v) { dialogRef?.get()?.ensureArguments()?.put("$tag.clientData",v)}

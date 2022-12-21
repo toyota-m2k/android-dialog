@@ -170,6 +170,10 @@ abstract class UtDialogBase(
         if(isDialog) {
             onDialogClosed()
         }
+        if(this is DialogInterface.OnClickListener) {
+            // MessageBox系のダイアログは画面外タップで閉じると notifyResult()が呼ばれないので、ここで呼んでおく。
+            notifyResult()
+        }
     }
 
     /**
@@ -189,7 +193,10 @@ abstract class UtDialogBase(
     /**
      * ダイアログの終了をタスクやdialogHostに通知する
      */
+    private var notified:Boolean = false        // ふつうはstateで守られるが、MessageBox (Dialog) の場合、画面外タップで閉じるときなどに notifyResult を呼ぶ必要があったので、念のためもう一段のチェックを入れる。
     private fun notifyResult() {
+        if(notified) return
+        notified = true
         val task = immortalTaskName?.let { UtImmortalTaskManager.taskOf(it) }?.task
         if(task!=null && !doNotResumeTask) {
             task.resumeTask(this)

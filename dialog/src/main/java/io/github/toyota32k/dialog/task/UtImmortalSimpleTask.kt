@@ -8,8 +8,11 @@ import kotlinx.coroutines.Job
  */
 class UtImmortalSimpleTask(
     taskName:String,
+    allowSequential:Boolean,
     val callback:suspend UtImmortalSimpleTask.()->Boolean
-) : UtImmortalTaskBase(taskName) {
+) : UtImmortalTaskBase(taskName, allowSequential = allowSequential) {
+    constructor(taskName: String, callback:suspend UtImmortalSimpleTask.()->Boolean) : this(taskName, false, callback)
+
     companion object {
         const val defTaskName = "UtImmortalSimpleTask"
 
@@ -33,7 +36,7 @@ class UtImmortalSimpleTask(
         suspend fun <T> executeAsync(taskName:String=defTaskName, callback:suspend UtImmortalSimpleTask.()->T): T {
             data class TResult<T>(var value:T)
             var r:TResult<T>? = null
-            UtImmortalSimpleTask(taskName) {
+            UtImmortalSimpleTask(taskName, allowSequential = true) {
                 r = TResult(callback())
                 true
             }.fireAsync()

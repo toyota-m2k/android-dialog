@@ -227,7 +227,7 @@ object UtImmortalTaskManager : Closeable  {
     @Suppress("MemberVisibilityCanBePrivate")
     suspend fun beginTaskExclusively(task:IUtImmortalTask, execute:suspend ()->Boolean):Boolean {
         if(!NamedMutex.tryLock(task.taskName, task)) {
-            logger.warn("already running: ${task.taskName}")
+            logger.error("cannot begin task: already running: ${task.taskName}")
             return false
         }
 
@@ -251,7 +251,6 @@ object UtImmortalTaskManager : Closeable  {
         entry.dispose()
         taskTable.remove(name)
     }
-
     /**
      * タスクは実行中か？
      */

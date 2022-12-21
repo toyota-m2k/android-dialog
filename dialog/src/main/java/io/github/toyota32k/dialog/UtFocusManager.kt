@@ -7,9 +7,10 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
 import androidx.annotation.IdRes
+import androidx.core.view.ancestors
 import androidx.core.view.descendants
 import androidx.core.view.isVisible
-import io.github.toyota32k.utils.UtLogger
+import io.github.toyota32k.utils.UtLog
 import java.lang.ref.WeakReference
 
 /**
@@ -63,7 +64,7 @@ class UtFocusManager : TextView.OnEditorActionListener {
 
     override fun onEditorAction(v: TextView?, actionId: Int, event: KeyEvent?): Boolean {
         val action = v?.imeOptions?.and(EditorInfo.IME_MASK_ACTION) ?: return false
-        UtLogger.debug("viewAction:$action calledAction:${actionId.and(EditorInfo.IME_MASK_ACTION)} - $event")
+        logger.debug("viewAction:$action calledAction:${actionId.and(EditorInfo.IME_MASK_ACTION)} - $event")
         if(event?.action == KeyEvent.ACTION_UP) return false
 
         when (action) {
@@ -97,6 +98,7 @@ class UtFocusManager : TextView.OnEditorActionListener {
         this.rootViewRef = WeakReference(rootView)
         if(autoRegister) {
             // 自動登録の解決
+            focusables.clear()  // 複数回呼ばれると重複が発生するので事前にクリアしておく
             val baseView = rootView as? ViewGroup
             if(baseView != null) {
                 focusables.addAll(baseView.descendants.mapNotNull {
@@ -105,13 +107,13 @@ class UtFocusManager : TextView.OnEditorActionListener {
                     } else null
                 })
             } else {
-                UtLogger.error("cannot resolve views automatically.")
+                logger.error("cannot resolve views automatically.")
             }
         }
         // EditText のnextFocusDown/nextFocusForward の無効化
         for (f in focusables) {
             if (f.isView) {
-                rootView.findViewById<View>(f.id).patchNextFocus()
+                rootView.findViewById<View?>(f.id)?.patchNextFocus()
             }
         }
     }
@@ -133,10 +135,9 @@ class UtFocusManager : TextView.OnEditorActionListener {
 
     fun applyInitialFocus(): Boolean {
         if (initialFocus != 0) {
-            val view = rootViewRef.get()?.findViewById<View>(initialFocus)
+            val view = rootViewRef.get()?.findViewById<View?>(initialFocus)
             if (view != null) {
-                view.requestFocus()
-                initialFocus = 0
+                view.forceRequestFocus()
                 return true
             }
         }
@@ -194,6 +195,37 @@ class UtFocusManager : TextView.OnEditorActionListener {
 
     // Focus management
 
+//    private fun hideSoftwareKeyboard() {
+//        try {
+//            (rootView.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(rootView.windowToken,0)
+//        } catch (e:Throwable) {
+//            logger.error(e)
+//        }
+//    }
+
+    // 祖先（親、親の親、...）に１つでも非表示のビューがあれば false を返す
+    private fun View.isAncestorsVisible():Boolean {
+        return this.ancestors.find { (it as? ViewGroup)?.isVisible==false } == null
+    }
+
+    private fun View.forceRequestFocus() {
+        if(!requestFocus() && !isFocusableInTouchMode) {
+            isFocusableInTouchMode = true
+            if(!requestFocus()) {
+                logger.warn("cannot focus to $this")
+            }
+            post { isFocusableInTouchMode  = false }
+        }
+    }
+
+    private fun setFocusTo(view:View?):Boolean {
+        return if (view!=null && view.isEnabled && view.isFocusable && view.isVisible && view.isAncestorsVisible()) {
+            logger.debug("$view")
+            view.forceRequestFocus()
+            true
+        } else false
+    }
+
     fun next(id: Int): Boolean {
         val current = focusables.find { it.hasView(id) } ?: return false
         if (!current.isView && current.fm?.next(id) == true) {
@@ -207,7 +239,6 @@ class UtFocusManager : TextView.OnEditorActionListener {
         if (!current.isView && current.fm?.prev(id) == true) {
             return true
         }
-
         return lastBefore(focusables.indexOf(current) - 1)
     }
 
@@ -215,9 +246,8 @@ class UtFocusManager : TextView.OnEditorActionListener {
         for (i in index downTo 0) {
             val f = focusables[i]
             if (f.isView) {
-                val view = rootView.findViewById<View>(f.id)
-                if (view.isEnabled && view.isFocusable && view.isVisible) {
-                    view.requestFocus()
+                val view:View? = rootView.findViewById(f.id)
+                if(setFocusTo(view)) {
                     return true
                 }
             } else {
@@ -233,9 +263,8 @@ class UtFocusManager : TextView.OnEditorActionListener {
         for (i in index until focusables.size) {
             val f = focusables[i]
             if (f.isView) {
-                val view = rootView.findViewById<View>(f.id)
-                if (view.isEnabled && view.isFocusable && view.isVisible) {
-                    view.requestFocus()
+                val view:View? = rootView.findViewById(f.id)
+                if(setFocusTo(view)) {
                     return true
                 }
             } else {
@@ -284,4 +313,7 @@ class UtFocusManager : TextView.OnEditorActionListener {
 
     // endregion
 
+    companion object {
+        val logger: UtLog get() = UtDialogBase.logger
+    }
 }
