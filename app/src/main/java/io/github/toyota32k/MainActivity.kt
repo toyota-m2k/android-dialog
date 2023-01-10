@@ -222,10 +222,12 @@ class MainActivity : UtMortalActivity() {
                 logger.info("openMultiFilePicker")
                 val activity = it.asActivity() as MainActivity
                 val uris = activity.filePickers.openMultiFilePicker.selectFiles(arrayOf("image/png", "image/jpeg", "application/pdf"))
-                logger.info("openMultiFilePicker: ${uris?.fold(StringBuilder()){builder,uri->
-                    builder.append("\n")
-                    builder.append(uri.toString())
-                }}")
+                logger.info("openMultiFilePicker: ${
+                    uris.fold(StringBuilder()){ builder, uri->
+                        builder.append("\n")
+                        builder.append(uri.toString())
+                    }
+                }")
             }
             withOwner(MainActivity::class.java) {
                 logger.info("openReadOnlyMultiFilePicker")
@@ -256,7 +258,7 @@ class MainActivity : UtMortalActivity() {
         if(it.dialog.status.ok) {
             when (it.dialog.selectedIndex) {
                 0 -> UtImmortalSimpleTask.run { filePickers.openFilePicker.selectFile() != null }
-                1 -> UtImmortalSimpleTask.run { filePickers.openMultiFilePicker.selectFiles()!=null }
+                1 -> UtImmortalSimpleTask.run { filePickers.openMultiFilePicker.selectFiles().isNotEmpty() }
                 2 -> UtImmortalSimpleTask.run { filePickers.createFilePicker.selectFile("test.txt")!=null }
                 3 -> UtImmortalSimpleTask.run { filePickers.directoryPicker.selectDirectory()!=null }
                 4 -> FileTestTask().fire()

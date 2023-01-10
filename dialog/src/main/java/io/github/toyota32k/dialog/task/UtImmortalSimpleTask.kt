@@ -42,6 +42,15 @@ class UtImmortalSimpleTask(
             }.fireAsync()
             return r!!.value
         }
+
+        suspend fun <T> executeAsync(taskName:String=defTaskName, allowSequential: Boolean=false, defResult:T, callback:suspend UtImmortalSimpleTask.()->T):T {
+            var r = defResult
+            UtImmortalSimpleTask(taskName, allowSequential = allowSequential) {
+                r = callback()
+                true
+            }.fireAsync()
+            return r
+        }
     }
 
     override suspend fun execute(): Boolean {

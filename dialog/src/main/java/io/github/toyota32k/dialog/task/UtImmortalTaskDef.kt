@@ -1,5 +1,6 @@
 package io.github.toyota32k.dialog.task
 
+import androidx.lifecycle.LifecycleOwner
 import io.github.toyota32k.dialog.UtDialogOwner
 import java.io.Closeable
 
@@ -28,6 +29,7 @@ interface IUtImmortalTask : Closeable, IUtImmortalTaskContextSource {
 interface IUiMortalInstanceSource {
     suspend fun getOwner() : UtDialogOwner
     suspend fun getOwnerOf(clazz:Class<*>) : UtDialogOwner
+    suspend fun getOwnerBy(filter:(LifecycleOwner)->Boolean):UtDialogOwner
 }
 
 suspend inline fun <T> IUiMortalInstanceSource.withOwner(fn:(UtDialogOwner)->T):T {
@@ -36,4 +38,8 @@ suspend inline fun <T> IUiMortalInstanceSource.withOwner(fn:(UtDialogOwner)->T):
 
 suspend inline fun <T> IUiMortalInstanceSource.withOwner(clazz:Class<*>, fn:(UtDialogOwner)->T):T {
     return fn(getOwnerOf(clazz))
+}
+
+suspend inline fun <T> IUiMortalInstanceSource.withOwner(noinline ownerChooser:(LifecycleOwner)->Boolean, fn:(UtDialogOwner)->T):T {
+    return fn(getOwnerBy(ownerChooser))
 }

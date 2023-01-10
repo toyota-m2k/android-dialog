@@ -94,7 +94,7 @@ abstract class UtDialogBase(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        viewDestroyed = false
+        viewDestroyed = false
         if(savedInstanceState==null) {
             onDialogOpening()
         }
@@ -104,31 +104,32 @@ abstract class UtDialogBase(
     // リソースを解放するための onDialogClose()を呼ぶタイミングとしては、dismiss()後のonDestroyView()が適当だ。
     // デバイス回転などによるView再構築のための onDestroyView()と区別するため、
     // dismiss で dialogClosed フラグを立て、onDestroyViewで、dialogClosed == trueなら、onDialogClosed()を呼ぶことにする。
-    // ビューが破棄された状態（onDestroyView()が呼ばれて、onViewCreated()が呼ばれる前）に dismiss()されるケースも考慮しておく。
-//    protected var viewDestroyed = false
-//        private set(v) {
-//            if(v!=field) {
-//                field = v
-//                if(v && dialogClosed) {
-//                    onDialogClosed()
-//                }
-//            }
-//        }
-//    protected var dialogClosed = false
-//        private set(v) {
-//            if(v && !field) {
-//                field = true
-//                if(viewDestroyed) {
-//                    onDialogClosed()
-//                }
-//            }
-//        }
+    // ビューが破棄された状態（onDestroyView()が呼ばれて、onViewCreated()が呼ばれる前）に dismiss()されるケースも考慮し、
+    // 初期状態は viewDestroyed は true で開始する。
+    protected var viewDestroyed = true
+        private set(v) {
+            if(v!=field) {
+                field = v
+                if(v && dialogClosed) {
+                    onDialogClosed()
+                }
+            }
+        }
+    protected var dialogClosed = false
+        private set(v) {
+            if(v && !field) {
+                field = true
+                if(viewDestroyed) {
+                    onDialogClosed()
+                }
+            }
+        }
 
 
-//    override fun onDestroyView() {
-//        super.onDestroyView()
-//        viewDestroyed = true
-//    }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        viewDestroyed = true
+    }
 
     override fun onDetach() {
         super.onDetach()
@@ -168,7 +169,7 @@ abstract class UtDialogBase(
         setFinishingStatus(IUtDialog.Status.NEGATIVE)
         super.onDismiss(dialog)
         if(isDialog) {
-            onDialogClosed()
+            dialogClosed = true
         }
         if(this is DialogInterface.OnClickListener) {
             // MessageBox系のダイアログは画面外タップで閉じると notifyResult()が呼ばれないので、ここで呼んでおく。
@@ -232,7 +233,7 @@ abstract class UtDialogBase(
         dismiss()
         if(!isDialog) {
             // fragment mode の場合、dismiss()しても onDismiss()が呼ばれない。
-            onDialogClosed()
+            dialogClosed = true
         }
         notifyResult()
     }

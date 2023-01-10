@@ -39,7 +39,7 @@ open class UtOpenMultiFilePicker : UtActivityBroker<Array<String>, List<Uri>>() 
     override val contract: ActivityResultContract<Array<String>, List<Uri>>
         get() = Contract()
 
-    suspend fun selectFiles(mimeTypes:Array<String> = UtOpenFilePicker.defaultMimeTypes): List<Uri>? {
+    suspend fun selectFiles(mimeTypes:Array<String> = UtOpenFilePicker.defaultMimeTypes): List<Uri> {
         return invoke(mimeTypes)
     }
 }

@@ -251,6 +251,7 @@ object UtImmortalTaskManager : Closeable  {
         entry.dispose()
         taskTable.remove(name)
     }
+
     /**
      * タスクは実行中か？
      */

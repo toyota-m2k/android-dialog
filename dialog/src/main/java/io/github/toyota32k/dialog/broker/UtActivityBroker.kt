@@ -6,9 +6,12 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.task.IUtImmortalTaskContext
+import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.getActivity
 import io.github.toyota32k.utils.UtLog
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 /**
@@ -35,19 +38,26 @@ abstract class UtActivityBroker<I,O>
     private lateinit var launcher: ActivityResultLauncher<I>
     private var taskContext: IUtImmortalTaskContext? = null
 
-    override fun register(owner: Fragment) {
+    final override fun register(owner: Fragment) {
         logger.debug()
         launcher = owner.registerForActivityResult(contract, this)
     }
-    override fun register(owner: FragmentActivity) {
+    final override fun register(owner: FragmentActivity) {
         logger.debug()
         launcher = owner.registerForActivityResult(contract, this)
     }
 
+    private fun oneTimeGetContinuation():Continuation<*>? {
+        return synchronized(this) {
+            val cont = continuation
+            continuation = null
+            cont
+        }
+    }
+
     override fun onActivityResult(result: O) {
         @Suppress("UNCHECKED_CAST")
-        (continuation as? Continuation<O>)?.resume(result)
-        continuation = null
+        (oneTimeGetContinuation() as? Continuation<O>)?.resume(result)
     }
 
     suspend fun invoke(input:I): O {
@@ -56,7 +66,23 @@ abstract class UtActivityBroker<I,O>
         }
         return suspendCoroutine {
             continuation = it
-            launcher.launch(input)
+            try {
+                launcher.launch(input)
+            } catch(e:Throwable) {
+                oneTimeGetContinuation()?.resumeWithException(e)
+            }
+        }
+    }
+
+    // for java
+    fun invoke(input:I, callback:(FragmentActivity,O)->Unit) {
+        UtImmortalSimpleTask.run {
+            val r = invoke(input)
+            val activity = getActivity()
+            if(activity!=null) {
+                callback(activity, r)
+            }
+            true
         }
     }
 

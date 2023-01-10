@@ -1157,9 +1157,12 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             }
             return rootView
         } catch (e: Throwable) {
-            // View作り中のエラーは、デフォルトでログに出る間もなく死んでしまうようなので、キャッチして出力する。throwし直すから死ぬけど。
+            // View作り中に例外が出る原因は、主に２つ
+            //  1. Viewの inflate に失敗    ... これは製品リリースまでに修正すること。
+            //  2. Processが一度死んだため、ViewModelの取得に失敗 ... これは防ぎようがないので、dismiss して、こっそり終了しておく。
             logger.stackTrace(e)
-            throw e
+            dismiss()
+            return null
         }
     }
 
@@ -1212,9 +1215,10 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      * ソフトウェアキーボードを非表示にする。
      */
     fun hideSoftwareKeyboard() {
-        activity?.window?.decorView?.requestFocusFromTouch()
+        activity?.window?.decorView?.requestFocusFromTouch()    // IMEの未確定ウィンドウが残るのを防ぐ（ダイアログ外のビューにフォーカスをセットする）
         immService?.hideSoftInputFromWindow(rootView.windowToken, 0)
     }
+
     /**
      * ダイアログが閉じる前のイベントハンドラ
      */
@@ -1240,12 +1244,6 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             (parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW_ON_POSITIVE && status.positive)) {
             parent.fadeIn()
         }
-    }
-
-    override fun onDialogClosed() {
-        super.onDialogClosed()
-//        rootView.requestFocusFromTouch()
-//        bodyContainer.requestFocusFromTouch()
     }
 
     /**

@@ -1,5 +1,6 @@
 package io.github.toyota32k.dialog.task
 
+import androidx.lifecycle.LifecycleOwner
 import io.github.toyota32k.dialog.*
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.CoroutineScope
@@ -90,11 +91,34 @@ abstract class UtImmortalTaskBase(
             fn(owner)
         }
     }
+    suspend fun <T> withOwner(ownerChooser: (LifecycleOwner) -> Boolean, fn: suspend (UtDialogOwner)->T):T {
+        return UtImmortalTaskManager.mortalInstanceSource.withOwner(ownerChooser) { owner ->
+            fn(owner)
+        }
+    }
 
     /**
      * タスク内からダイアログを表示し、complete()までsuspendする。
      */
     suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D where D:IUtDialog {
+        return internalShowDialog(tag, takeOwner = UtImmortalTaskManager.mortalInstanceSource::getOwner, dialogSource = dialogSource)
+    }
+
+    /**
+     * オーナークラス（アクティビティ）を指定して（指定されたクラスのアクティビティが表示されるのを待って）ダイアログを表示
+     */
+    suspend fun <D> showDialog(tag:String, ownerClass:Class<*>, dialogSource:(UtDialogOwner)->D):D where D:IUtDialog {
+        return internalShowDialog(tag, takeOwner = { UtImmortalTaskManager.mortalInstanceSource.getOwnerOf(ownerClass) }, dialogSource = dialogSource)
+    }
+
+    /**
+     * オーナー（アクティビティ）を指定して（Chooserで選択されるアクティビティが表示されるのを待って）ダイアログを表示
+     */
+    suspend fun <D> showDialog(tag:String, ownerChooser:(LifecycleOwner)->Boolean, dialogSource:(UtDialogOwner)->D):D where D:IUtDialog {
+        return internalShowDialog(tag, takeOwner = { UtImmortalTaskManager.mortalInstanceSource.getOwnerBy(ownerChooser) }, dialogSource = dialogSource)
+    }
+
+    private suspend fun <D> internalShowDialog(tag:String, takeOwner:suspend ()->UtDialogOwner, dialogSource:(UtDialogOwner)->D):D where D:IUtDialog {
         val running = UtImmortalTaskManager.taskOf(taskName)
         if(running == null || running.task != this) {
             throw IllegalStateException("task($taskName) is not running")
@@ -102,13 +126,15 @@ abstract class UtImmortalTaskBase(
         logger.debug("dialog opening...")
         @Suppress("UNCHECKED_CAST")
         val r = withContext(UtImmortalTaskManager.immortalTaskScope.coroutineContext) {
-            withOwner { owner->
-                suspendCoroutine<Any?> {
-                    continuation = it
-                    dialogSource(owner).apply { immortalTaskName = taskName }.show(owner, tag)
-                }
+            val owner = takeOwner()
+            suspendCoroutine<Any?> {
+                continuation = it
+                dialogSource(owner).apply { immortalTaskName = taskName }.show(owner, tag)
             }
         } as D
+        withOwner {
+            it.asActivity()?.window?.decorView?.requestFocusFromTouch()
+        }
         logger.debug("dialog closed")
         return r
     }

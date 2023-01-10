@@ -58,4 +58,11 @@ class UtDialogOwnerStack: IUiMortalInstanceSource {
             if (owner != null && owner.lifecycleOwner::class.java == clazz) owner else null
         }.first()
     }
+
+    override suspend fun getOwnerBy(filter: (LifecycleOwner) -> Boolean) : UtDialogOwner {
+        return ownerFlow.mapNotNull {
+            val owner = it?.asDialogOwner
+            if (owner != null && filter(owner.lifecycleOwner)) owner else null
+        }.first()
+    }
 }

@@ -13,6 +13,8 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
     var okLabel:String? by bundle.stringNullable
     var cancelLabel:String? by bundle.stringNullable
     var otherLabel:String? by bundle.stringNullable
+    var selectedByButton:Boolean = false
+        private set
 
     protected open fun getAlertBuilder():AlertDialog.Builder {
         val builder = AlertDialog.Builder(requireContext())
@@ -29,6 +31,7 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
     }
 
     override fun onClick(dialog: DialogInterface?, which: Int) {
+        selectedByButton = true
         when(which) {
             DialogInterface.BUTTON_POSITIVE -> { complete(IUtDialog.Status.POSITIVE) }
             DialogInterface.BUTTON_NEUTRAL  -> { complete(IUtDialog.Status.NEUTRAL) }
