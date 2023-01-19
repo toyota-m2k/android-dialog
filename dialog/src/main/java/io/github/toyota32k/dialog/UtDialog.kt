@@ -1215,7 +1215,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      * ソフトウェアキーボードを非表示にする。
      */
     fun hideSoftwareKeyboard() {
-        activity?.window?.decorView?.requestFocusFromTouch()    // IMEの未確定ウィンドウが残るのを防ぐ（ダイアログ外のビューにフォーカスをセットする）
+        activity?.window?.decorView?.requestFocus()    // IMEの未確定ウィンドウが残るのを防ぐ（ダイアログ外のビューにフォーカスをセットする） requestFocusFromTouch()だと、Activity上のビューにフォーカスがセットされて黒くなるので注意！
         immService?.hideSoftInputFromWindow(rootView.windowToken, 0)
     }
 

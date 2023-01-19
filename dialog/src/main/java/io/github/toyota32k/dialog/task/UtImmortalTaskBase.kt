@@ -132,9 +132,6 @@ abstract class UtImmortalTaskBase(
                 dialogSource(owner).apply { immortalTaskName = taskName }.show(owner, tag)
             }
         } as D
-        withOwner {
-            it.asActivity()?.window?.decorView?.requestFocusFromTouch()
-        }
         logger.debug("dialog closed")
         return r
     }
