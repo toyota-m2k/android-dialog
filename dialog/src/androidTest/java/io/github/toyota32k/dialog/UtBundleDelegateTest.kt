@@ -2,14 +2,9 @@ package io.github.toyota32k.dialog
 
 import android.os.Bundle
 import androidx.test.ext.junit.runners.AndroidJUnit4
-
+import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
-
-import org.junit.Assert.*
-import kotlin.reflect.KTypeProjection
-import kotlin.reflect.full.createType
-import kotlin.reflect.full.starProjectedType
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -70,36 +65,36 @@ class UtBundleDelegateTest {
         bundle.put("Long", long)
         bundle.put("LongArray", longArray)
 
-        assertEquals(true, bundle.get("Boolean", Boolean::class.createType()))
-        assertArrayEquals(boolArray, bundle.get("BoolArray", boolArray::class.createType()) as BooleanArray)
+        assertEquals(true, bundle.get("Boolean", Boolean::class))
+        assertArrayEquals(boolArray, bundle.get("BoolArray", boolArray::class) as BooleanArray)
 
-        val sb:Bundle = bundle.get("Bundle", Bundle::class.createType()) as Bundle
-        assertEquals("fuga", sb.get("String", String::class.createType()))
+        val sb:Bundle = bundle.get("Bundle", Bundle::class) as Bundle
+        assertEquals("fuga", sb.get("String", String::class))
 
-        assertEquals(byte, bundle.get("Byte",Byte::class.createType()))
-        assertArrayEquals(hoge.toByteArray(), bundle.get("ByteArray", ByteArray::class.createType()) as ByteArray)
+        assertEquals(byte, bundle.get("Byte",Byte::class))
+        assertArrayEquals(hoge.toByteArray(), bundle.get("ByteArray", ByteArray::class) as ByteArray)
 
-        assertEquals(hoge, bundle.get("String", String::class.createType()))
-        assertEquals(stringArray, bundle.get("StringArray", Array::class.createType(listOf(KTypeProjection.invariant(String::class.starProjectedType)))))
+        assertEquals(hoge, bundle.get("String", String::class))
+        assertEquals(stringArray, bundle.get("StringArray", Array<String>::class))
 
-        assertArrayEquals(stringArray, (bundle.get("StringArrayList", ArrayList::class.createType(listOf(KTypeProjection.invariant(String::class.starProjectedType)))) as ArrayList<*>).toArray())
-        assertEquals(char, bundle.get("Char", Char::class.createType()))
-        assertArrayEquals(charArray, bundle.get("CharArray", charArray::class.createType()) as CharArray)
+        assertArrayEquals(stringArray, (bundle.get("StringArrayList", ArrayList::class) as ArrayList<*>).toArray())
+        assertEquals(char, bundle.get("Char", Char::class))
+        assertArrayEquals(charArray, bundle.get("CharArray", charArray::class) as CharArray)
 
-        assertEquals(charSequence, bundle.get("CharSequence", CharSequence::class.createType()))
+        assertEquals(charSequence, bundle.get("CharSequence", CharSequence::class))
 
-        assertEquals(double, bundle.get("Double", Double::class.createType()))
-        assertArrayEquals(doubleArray.map { (it*100).toLong() }.toLongArray(), (bundle.get("DoubleArray", DoubleArray::class.createType()) as DoubleArray).map { (it*100).toLong() }.toLongArray())
-        assertEquals(float, bundle.get("Float", Float::class.createType()))
-        assertArrayEquals(floatArray.map { (it*100).toLong() }.toLongArray(), (bundle.get("FloatArray", FloatArray::class.createType()) as FloatArray).map { (it*100).toLong() }.toLongArray())
-        assertEquals(short, bundle.get("Short", Short::class.createType()))
-        assertArrayEquals(shortArray, bundle.get("ShortArray", shortArray::class.createType()) as ShortArray)
+        assertEquals(double, bundle.get("Double", Double::class))
+        assertArrayEquals(doubleArray.map { (it*100).toLong() }.toLongArray(), (bundle.get("DoubleArray", DoubleArray::class) as DoubleArray).map { (it*100).toLong() }.toLongArray())
+        assertEquals(float, bundle.get("Float", Float::class))
+        assertArrayEquals(floatArray.map { (it*100).toLong() }.toLongArray(), (bundle.get("FloatArray", FloatArray::class) as FloatArray).map { (it*100).toLong() }.toLongArray())
+        assertEquals(short, bundle.get("Short", Short::class))
+        assertArrayEquals(shortArray, bundle.get("ShortArray", shortArray::class) as ShortArray)
 
-        assertEquals(int, bundle.get("Int", Int::class.createType()))
-        assertArrayEquals(intArray, bundle.get("IntArray", intArray::class.createType()) as IntArray)
+        assertEquals(int, bundle.get("Int", Int::class))
+        assertArrayEquals(intArray, bundle.get("IntArray", intArray::class) as IntArray)
 
-        assertEquals(long, bundle.get("Long", Long::class.createType()))
-        assertArrayEquals(longArray, bundle.get("LongArray", longArray::class.createType()) as LongArray)
+        assertEquals(long, bundle.get("Long", Long::class))
+        assertArrayEquals(longArray, bundle.get("LongArray", longArray::class) as LongArray)
     }
 
     class BundledMember {
@@ -147,6 +142,12 @@ class UtBundleDelegateTest {
         var stringArray by bundle.stringArray
         var stringArrayNullable by bundle.stringArrayNullable
         var stringArrayNonnull by bundle.stringArrayNonnull {arrayOf("hoge", "fuga", "moge") }
+
+        // enum
+        enum class SomeEnum {
+            Alpha,Beta,Gamma,Delta
+        }
+        var some by bundle.enum(SomeEnum.Alpha)
     }
     @Test
     fun propertyTest() {
@@ -279,6 +280,11 @@ class UtBundleDelegateTest {
         assertNull(x.stringArrayNullable)
         x.stringArrayNonnull = refStringArray2
         assertArrayEquals(refStringArray2, x.stringArrayNonnull)
+
+        // enum
+        assertEquals(BundledMember.SomeEnum.Alpha, x.some)
+        x.some = BundledMember.SomeEnum.Delta
+        assertEquals(BundledMember.SomeEnum.Delta, x.some)
     }
 
 }

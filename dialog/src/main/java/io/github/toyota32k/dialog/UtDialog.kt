@@ -1162,6 +1162,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             //  2. Processが一度死んだため、ViewModelの取得に失敗 ... これは防ぎようがないので、dismiss して、こっそり終了しておく。
             logger.stackTrace(e)
             dismiss()
+            notifyResult()  // onDismissも呼ばれないことがあるようだ。
             return null
         }
     }

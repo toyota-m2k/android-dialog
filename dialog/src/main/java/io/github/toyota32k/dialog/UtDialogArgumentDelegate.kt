@@ -9,6 +9,7 @@ import io.github.toyota32k.utils.asArrayOfType
 import java.io.Serializable
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
+import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 
@@ -47,11 +48,11 @@ fun Bundle.put(key:String, value:Any?):Bundle {
 // GenericDelegate で使うため、Any型で返さざるを得ず、どこがセーフやねん、となるのだが、GenericDelegate内でキャストするところがセーフになるのではなかろうか。
 // UtBundleDelegateTest で確認したが、UtDialog の委譲プロパティで GenericDelegate を使う限りにおいては、正しく動作している。
 // それ以外での利用については責任を持てない。
-internal fun Bundle.get(key:String, type: KType):Any? {
+internal fun Bundle.get(key:String, clazz: KClassifier?):Any? {
     return if(!containsKey(key)) {
         null    // 未定義なら nullを返す
     } else {
-        when (type.classifier) {
+        when (clazz) {
             Boolean::class -> getBoolean(key)
             BooleanArray::class -> getBooleanArray(key)
             Bundle::class -> getBundle(key)
@@ -73,24 +74,24 @@ internal fun Bundle.get(key:String, type: KType):Any? {
             IntArray::class -> getIntArray(key)
             Long::class -> getLong(key)
             LongArray::class -> getLongArray(key)
-            Parcelable::class -> {          // テストしてません
+            Parcelable::class -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    getParcelable(key, (type.classifier as KClass<*>).java)
+                    getParcelable(key, (clazz as KClass<*>).java)
                 } else {
                     @Suppress("DEPRECATION")
                     getParcelable(key)
                 }
             }
-            Serializable::class -> {        // テストしてません
+            Serializable::class -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     @Suppress("UNCHECKED_CAST")
-                    getSerializable(key, (type.classifier as KClass<Serializable>).java)
+                    getSerializable(key, (clazz as KClass<Serializable>).java)
                 } else {
                     @Suppress("DEPRECATION")
                     getSerializable(key)
                 }
             }
-            else -> throw IllegalArgumentException("${key}:unsupported value type (${type.classifier})")
+            else -> throw IllegalArgumentException("${key}:unsupported value type (${clazz})")
         }
     }
 }
@@ -107,14 +108,14 @@ class UtBundleDelegate(private val namespace:String?, val source:()->Bundle) {
         return if(namespace.isNullOrEmpty()) name else "$namespace.name"
     }
 
-    open inner class GenericDelegate<R>(val conv:(Any?)->R, private val rev:((R)->Any?)?) : ReadWriteProperty<Any,R> {
-        constructor(conv:(Any?)->R):this(conv,null)
+    open inner class GenericDelegate<R>(val clazz: KClassifier?, val conv:(Any?)->R, private val rev:((R)->Any?)?) : ReadWriteProperty<Any,R> {
+        constructor(conv:(Any?)->R):this(clazz=null, conv, rev=null)
 
         override fun getValue(thisRef: Any, property: KProperty<*>): R {
 //            @Suppress("DEPRECATION")    // bundle.get()はdeprecateじゃと言われても、これ以外にやりようがないやろ。型毎にデリゲートクラスを作るのはいややし。
 //            return conv(bundle.get(key(property.name)))
 
-            return conv(bundle.get(key(property.name), property.returnType))
+            return conv(bundle.get(key(property.name), clazz ?: property.returnType.classifier))
         }
 
         override fun setValue(thisRef: Any, property: KProperty<*>, value: R) {
@@ -171,7 +172,7 @@ class UtBundleDelegate(private val namespace:String?, val source:()->Bundle) {
 
     // enum
     inline fun <reified E:Enum<E>> enum(def:E) : ReadWriteProperty<Any,E> {
-        return GenericDelegate(
+        return GenericDelegate( String::class,
             {(it as? String)?.let { name-> enumValueOf<E>(name) } ?: def},
             { it.toString()})
     }
