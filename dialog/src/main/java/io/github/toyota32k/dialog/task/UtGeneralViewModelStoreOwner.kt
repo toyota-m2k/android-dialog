@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelStoreOwner
  * ライフサイクルをマニュアルで制御するViewModelStoreのオーナー
  * （ViewModelProviderの引数に渡すやつ）
  */
+@Suppress("unused")
 class UtGeneralViewModelStoreOwner : ViewModelStoreOwner {
     private val mViewModelStore = ViewModelStore()
 

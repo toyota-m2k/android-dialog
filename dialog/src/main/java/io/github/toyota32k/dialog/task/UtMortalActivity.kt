@@ -2,7 +2,6 @@ package io.github.toyota32k.dialog.task
 
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.LiveData
 import io.github.toyota32k.dialog.*
 import io.github.toyota32k.utils.Disposer
 

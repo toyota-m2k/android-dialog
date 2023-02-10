@@ -173,7 +173,6 @@ class UtDialogHostManager: IUtDialogHost {
      */
     interface ISubmission<D> where D: IUtDialog {
         val dialog:D        // completeしたダイアログ
-        val clientData:Any?         // IUtDialogのbundleに退避しておいた任意のデータ（任意といっても、Bundleに覚えられる型に限る）
     }
 
     /**
@@ -192,10 +191,6 @@ class UtDialogHostManager: IUtDialogHost {
         private var dialogRef:WeakReference<IUtDialog>? = null
         override val dialog: D
             get() = dialogRef?.get()!! as D
-        @Suppress("DEPRECATION")
-        override var clientData:Any?
-            get() = dialogRef?.get()?.asFragment?.arguments?.get("$tag.clientData")
-            set(v) { dialogRef?.get()?.ensureArguments()?.put("$tag.clientData",v)}
 
         /**
          * IUtDialogResultReceptor i/f 実装
@@ -224,23 +219,18 @@ class UtDialogHostManager: IUtDialogHost {
          * NamedReceptor を使って、ダイアログを表示する。
          * 結果は、NamedReceptorのコンストラクタに渡した submit コールバックによって通知する。
          */
-        @JvmOverloads
-        fun showDialog(activity: FragmentActivity, clientData:Any?=null, creator:(NamedReceptor<D>)->D) {
+        fun showDialog(activity: FragmentActivity, creator:(NamedReceptor<D>)->D) {
             if(UtDialogHelper.findDialog(activity, tag) !=null) return
             creator(this).apply{
-                attachDialog(this, clientData)
+                attachDialog(this)
                 show(activity, tag)
             }
         }
-        @JvmOverloads
-        fun showDialog(fragment: Fragment, clientData:Any?=null, creator:(NamedReceptor<D>)->D)
-            = showDialog(fragment.requireActivity(), clientData, creator)
+        fun showDialog(fragment: Fragment, creator:(NamedReceptor<D>)->D)
+            = showDialog(fragment.requireActivity(), creator)
 
-        private fun attachDialog(dlg: IUtDialog, clientData:Any?) {
+        private fun attachDialog(dlg: IUtDialog) {
             dialogRef = WeakReference(dlg)
-            if(clientData!=null) {
-                this.clientData = clientData
-            }
         }
 
         /**

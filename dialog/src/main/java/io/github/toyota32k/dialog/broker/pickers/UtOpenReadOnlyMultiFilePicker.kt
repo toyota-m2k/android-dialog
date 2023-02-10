@@ -14,6 +14,7 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * 読み取り専用に複数のファイルを選択
  * ACTION_GET_CONTENT
  */
+@Suppress("unused")
 open class UtOpenReadOnlyMultiFilePicker : UtActivityBroker<String, List<Uri>>() {
     companion object {
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<List<Uri>>) : IUtActivityLauncher<String> {

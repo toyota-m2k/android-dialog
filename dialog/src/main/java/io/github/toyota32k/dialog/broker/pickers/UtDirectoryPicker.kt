@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.broker.IUtActivityLauncher
 import io.github.toyota32k.dialog.broker.UtActivityBroker
 
+@Suppress("unused")
 open class UtDirectoryPicker : UtActivityBroker<Uri?, Uri?>() {
     companion object {
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActivityLauncher<Uri?> {

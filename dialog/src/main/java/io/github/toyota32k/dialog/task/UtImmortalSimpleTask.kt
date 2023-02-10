@@ -6,6 +6,7 @@ import kotlinx.coroutines.Job
 /**
  * UtImmortalTaskBaseを継承しないで、ラムダだけ与えてちょいちょいと使う用の単純実装
  */
+@Suppress("unused")
 class UtImmortalSimpleTask(
     taskName:String,
     allowSequential:Boolean,
@@ -14,7 +15,7 @@ class UtImmortalSimpleTask(
     constructor(taskName: String, callback:suspend UtImmortalSimpleTask.()->Boolean) : this(taskName, false, callback)
 
     companion object {
-        const val defTaskName = "UtImmortalSimpleTask"
+        private const val defTaskName = "UtImmortalSimpleTask"
 
         /**
          * やりっぱなしタスク

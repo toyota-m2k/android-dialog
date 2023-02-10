@@ -2,7 +2,6 @@ package io.github.toyota32k.dialog
 
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 
 @Suppress("unused")

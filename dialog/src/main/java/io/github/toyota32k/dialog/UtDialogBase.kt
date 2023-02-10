@@ -10,7 +10,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
-import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 /**

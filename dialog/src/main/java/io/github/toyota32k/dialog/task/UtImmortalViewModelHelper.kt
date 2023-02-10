@@ -7,6 +7,7 @@ import io.github.toyota32k.dialog.IUtDialog
 /**
  * タスクのライフサイクルに依存する ViewModel の作成、取得のためのヘルパークラス
  */
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 object UtImmortalViewModelHelper {
     /**
      * タスク開始時の初期化用

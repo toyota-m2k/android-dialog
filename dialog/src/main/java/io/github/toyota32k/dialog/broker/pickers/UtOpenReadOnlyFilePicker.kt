@@ -15,6 +15,7 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * ACTION_GET_CONTENT
  * データの読み取りとインポートのみを行う場合
  */
+@Suppress("unused")
 open class UtOpenReadOnlyFilePicker : UtActivityBroker<String, Uri?>()  {
     companion object {
         const val defaultMimeType: String = "*/*"

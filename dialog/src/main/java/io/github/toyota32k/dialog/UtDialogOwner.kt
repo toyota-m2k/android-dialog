@@ -80,10 +80,10 @@ fun IUtDialog.show(owner: UtDialogOwner, tag:String) {
 //    }
 //}
 @Suppress("unused")
-fun <D> UtDialogHostManager.NamedReceptor<D>.showDialog(owner: UtDialogOwner, clientData:Any?=null, creator:(UtDialogHostManager.NamedReceptor<D>)->D) where D: IUtDialog {
+fun <D> UtDialogHostManager.NamedReceptor<D>.showDialog(owner: UtDialogOwner, creator:(UtDialogHostManager.NamedReceptor<D>)->D) where D: IUtDialog {
     when(owner.lifecycleOwner) {
-        is FragmentActivity -> showDialog(owner.lifecycleOwner, clientData, creator)
-        is Fragment         -> showDialog(owner.lifecycleOwner, clientData, creator)
+        is FragmentActivity -> showDialog(owner.lifecycleOwner, creator)
+        is Fragment         -> showDialog(owner.lifecycleOwner, creator)
     }
 }
 

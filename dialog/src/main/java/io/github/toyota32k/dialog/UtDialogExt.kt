@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog
 
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask

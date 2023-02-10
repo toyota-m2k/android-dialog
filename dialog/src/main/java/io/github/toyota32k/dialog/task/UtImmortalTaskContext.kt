@@ -27,7 +27,7 @@ interface IUtImmortalTaskContext: ViewModelStoreOwner {
  *        親のコンテキストを渡すことで、親のViewModelStoreが使用され、親タスクのライフサイクル内で動作する。
  *        つまり、親タスクが生きている間は、（子タスクが終了しても）ViewModelは温存される。
  */
-class UtImmortalTaskContext(override val taskName:String, val parentContext:IUtImmortalTaskContext?) : IUtImmortalTaskContext {
+class UtImmortalTaskContext(override val taskName:String, private val parentContext:IUtImmortalTaskContext?) : IUtImmortalTaskContext {
     private var mScope: CoroutineScope? = null
     override val coroutineScope:CoroutineScope
         get() = mScope ?: (parentContext?.coroutineScope ?: CoroutineScope(SupervisorJob() + Dispatchers.Main)).apply { mScope=this }
@@ -53,11 +53,9 @@ class UtImmortalTaskContext(override val taskName:String, val parentContext:IUtI
         if(parentContext==null) {
             val scope = mScope
             val store = mViewModelStore
-            if(scope!=null) {
-                scope.launch {
-                    try { store?.clear() } catch (e:Throwable) { logger.stackTrace(e) }
-                    scope.cancel()
-                }
+            scope?.launch {
+                try { store?.clear() } catch (e:Throwable) { logger.stackTrace(e) }
+                scope.cancel()
             }
         }
         mScope = null

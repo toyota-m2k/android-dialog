@@ -2,14 +2,16 @@
 
 package io.github.toyota32k.dialog
 
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import io.github.toyota32k.utils.asArrayOfType
 import java.io.Serializable
 import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+import kotlin.reflect.KType
 
-@Suppress("UNCHECKED_CAST")
 fun Bundle.put(key:String, value:Any?):Bundle {
     when(value) {
         null -> remove(key)
@@ -19,8 +21,8 @@ fun Bundle.put(key:String, value:Any?):Bundle {
         is Byte -> putByte(key, value)
         is ByteArray-> putByteArray(key, value)
         is String -> putString(key, value)
-        is Array<*> -> putStringArray(key, value as Array<String?>)     // Arrayの型は、他にCharSequence, Parcelableがあるが、Bundle#put*()の中身は、全部同じなので、これでいいはず
-        is ArrayList<*> -> putStringArrayList(key, value as ArrayList<String?>) // 。。。
+        is Array<*> -> @Suppress("UNCHECKED_CAST") putStringArray(key, value as Array<String?>)     // Array<String>のみサポート
+        is ArrayList<*> -> @Suppress("UNCHECKED_CAST") putStringArrayList(key, value as ArrayList<String?>) // 。。。
         is Char -> putChar(key, value)
         is CharArray -> putCharArray(key, value)
         is CharSequence-> putCharSequence(key, value)
@@ -41,8 +43,60 @@ fun Bundle.put(key:String, value:Any?):Bundle {
     return this
 }
 
+// Bundle#get(key) の Deprecatedを回避するために、ちょっと無理やりなタイプセーフ get を実装。。。
+// GenericDelegate で使うため、Any型で返さざるを得ず、どこがセーフやねん、となるのだが、GenericDelegate内でキャストするところがセーフになるのではなかろうか。
+// UtBundleDelegateTest で確認したが、UtDialog の委譲プロパティで GenericDelegate を使う限りにおいては、正しく動作している。
+// それ以外での利用については責任を持てない。
+internal fun Bundle.get(key:String, type: KType):Any? {
+    return if(!containsKey(key)) {
+        null    // 未定義なら nullを返す
+    } else {
+        when (type.classifier) {
+            Boolean::class -> getBoolean(key)
+            BooleanArray::class -> getBooleanArray(key)
+            Bundle::class -> getBundle(key)
+            Byte::class -> getByte(key)
+            ByteArray::class -> getByteArray(key)
+            String::class -> getString(key)
+            Array<String>::class -> getStringArray(key)
+            ArrayList::class -> getStringArrayList(key)
+            Char::class -> getChar(key)
+            CharArray::class -> getCharArray(key)
+            CharSequence::class -> getCharSequence(key)
+            Double::class -> getDouble(key)
+            DoubleArray::class -> getDoubleArray(key)
+            Float::class -> getFloat(key)
+            FloatArray::class -> getFloatArray(key)
+            Short::class -> getShort(key)
+            ShortArray::class -> getShortArray(key)
+            Int::class -> getInt(key)
+            IntArray::class -> getIntArray(key)
+            Long::class -> getLong(key)
+            LongArray::class -> getLongArray(key)
+            Parcelable::class -> {          // テストしてません
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    getParcelable(key, (type.classifier as KClass<*>).java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    getParcelable(key)
+                }
+            }
+            Serializable::class -> {        // テストしてません
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    @Suppress("UNCHECKED_CAST")
+                    getSerializable(key, (type.classifier as KClass<Serializable>).java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    getSerializable(key)
+                }
+            }
+            else -> throw IllegalArgumentException("${key}:unsupported value type (${type.classifier})")
+        }
+    }
+}
+
 @Suppress("RemoveExplicitTypeArguments", "unused")
-class UtBundleDelegate(val namespace:String?, val source:()->Bundle) {
+class UtBundleDelegate(private val namespace:String?, val source:()->Bundle) {
     constructor(source:()->Bundle):this(null,source)
 //    constructor(fragment:Fragment, namespace:String?=null): this(namespace, { fragment.arguments!! })
 
@@ -53,12 +107,14 @@ class UtBundleDelegate(val namespace:String?, val source:()->Bundle) {
         return if(namespace.isNullOrEmpty()) name else "$namespace.name"
     }
 
-    open inner class GenericDelegate<R>(val conv:(Any?)->R, val rev:((R)->Any?)?) : ReadWriteProperty<Any,R> {
+    open inner class GenericDelegate<R>(val conv:(Any?)->R, private val rev:((R)->Any?)?) : ReadWriteProperty<Any,R> {
         constructor(conv:(Any?)->R):this(conv,null)
 
         override fun getValue(thisRef: Any, property: KProperty<*>): R {
-            @Suppress("DEPRECATION")    // bundle.get()はdeprecateじゃと言われても、これ以外にやりようがないやろ。型毎にデリゲートクラスを作るのはいややし。
-            return conv(bundle.get(key(property.name)))
+//            @Suppress("DEPRECATION")    // bundle.get()はdeprecateじゃと言われても、これ以外にやりようがないやろ。型毎にデリゲートクラスを作るのはいややし。
+//            return conv(bundle.get(key(property.name)))
+
+            return conv(bundle.get(key(property.name), property.returnType))
         }
 
         override fun setValue(thisRef: Any, property: KProperty<*>, value: R) {
@@ -102,12 +158,12 @@ class UtBundleDelegate(val namespace:String?, val source:()->Bundle) {
     // BooleanArray
     val booleanArray:ReadWriteProperty<Any,BooleanArray> by lazy { GenericDelegate<BooleanArray>{it as? BooleanArray ?: booleanArrayOf()}}
     val booleanArrayNullable:ReadWriteProperty<Any,BooleanArray?> by lazy { GenericDelegate<BooleanArray?>{it as? BooleanArray}}
-    fun booleanArrayNonnull(def:()->BooleanArray) { GenericDelegate<BooleanArray>{it as? BooleanArray ?: def()}}
+    fun booleanArrayNonnull(def: () -> BooleanArray): ReadWriteProperty<Any, BooleanArray> { return GenericDelegate<BooleanArray> { it as? BooleanArray ?: def() } }
 
     // Array<String>
     val stringArray:ReadWriteProperty<Any, Array<String>> by lazy { GenericDelegate{(it as? Array<*>)?.asArrayOfType() ?: arrayOf()}}
     val stringArrayNullable:ReadWriteProperty<Any, Array<String>?> by lazy { GenericDelegate{(it as? Array<*>)?.asArrayOfType() }}
-    fun stringArrayNonnull(def:()->Array<String>) { GenericDelegate<Array<String>>{ (it as? Array<*>)?.asArrayOfType() ?: def()}}
+    fun stringArrayNonnull(def:()->Array<String>):ReadWriteProperty<Any,Array<String>> { return GenericDelegate<Array<String>>{ (it as? Array<*>)?.asArrayOfType() ?: def()} }
 
 //    inline fun <reified V> straight(def:V):ReadWriteProperty<Any,V> {
 //        return GenericDelegate({it as? V ?: def})

@@ -19,10 +19,12 @@ import io.github.toyota32k.dialog.UtBundleDelegate
  *    val fragment = FooFragment("SomeTaskName")
  * }
  */
+@Suppress("MemberVisibilityCanBePrivate")
 abstract class UtTaskAwareFragment: Fragment() {
     val bundle = UtBundleDelegate { ensureArguments() }
     var immortalTaskName: String? by bundle.stringNullable
     private val ownerTask:IUtImmortalTask? get() = immortalTaskName?.let { UtImmortalTaskManager.taskOf(it)?.task }
+    @Suppress("unused")
     protected fun <T> getViewModel(clazz:Class<T>):T? where T:ViewModel {
         return ownerTask?.let { ViewModelProvider(it.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[clazz] }
     }

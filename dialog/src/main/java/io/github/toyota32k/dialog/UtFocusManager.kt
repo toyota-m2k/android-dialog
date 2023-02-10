@@ -27,6 +27,7 @@ typealias UtEditorAction = (view:TextView, actionId:Int, moveFocus:Boolean)->Boo
  *
  *  see https://github.com/toyota-m2k/android-dialog/blob/main/doc/focus_manager.md
  */
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class UtFocusManager : TextView.OnEditorActionListener {
 
     // region Internals

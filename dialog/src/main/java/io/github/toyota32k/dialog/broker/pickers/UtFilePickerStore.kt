@@ -4,10 +4,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.broker.IUtActivityBroker
 import io.github.toyota32k.dialog.broker.UtActivityBrokerStore
+@Suppress("unused")
 interface IUtFilePickerStoreProvider {
     val filePickers: UtFilePickerStore
 }
 
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 class UtFilePickerStore private constructor() : UtActivityBrokerStore() {
     constructor(activity: FragmentActivity):this() {
         register(activity)

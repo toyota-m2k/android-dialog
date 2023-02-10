@@ -3,8 +3,6 @@ package io.github.toyota32k.dialog
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * アニメーション完了監視付きフェードイン/フェードアウト

@@ -117,7 +117,8 @@ object UtDialogHelper {
 //        val f1 = fragmentManager.findFragmentByTag(tag)
 //        val f2 = fragmentManager.fragments.mapNotNull { if (it.tag == tag) it as? UtDialog else null }.firstOrNull()
 //        logger.debug("findDialog:1=${f1!=null}, 2=${f2!=null}")
-        return fragmentManager.fragments.mapNotNull { if (it.tag == tag) it as? UtDialog else null }.firstOrNull()
+//        return fragmentManager.fragments.mapNotNull { if (it.tag == tag) it as? UtDialog else null }.firstOrNull()
+        return fragmentManager.fragments.firstNotNullOfOrNull { if (it.tag == tag) it as? UtDialog else null }
     }
 
     fun findDialog(activity: FragmentActivity, tag: String): UtDialog? {

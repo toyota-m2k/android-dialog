@@ -13,6 +13,7 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
 /**
  * 作成用にファイルを選択
  */
+@Suppress("unused")
 open class UtCreateFilePicker : UtActivityBroker<String, Uri?>() {
     companion object {
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActivityLauncher<String> {
@@ -28,9 +29,12 @@ open class UtCreateFilePicker : UtActivityBroker<String, Uri?>() {
 
     var mimeType:String?=null
 
-    protected inner class Contract: ActivityResultContracts.CreateDocument(mimeType?:"*/*") {
+    protected inner class Contract: ActivityResultContracts.CreateDocument("*/*") {
         override fun createIntent(context: Context, input: String): Intent {
             val intent = super.createIntent(context, input)
+            if(!mimeType.isNullOrEmpty()) {
+                intent.setTypeAndNormalize(mimeType)
+            }
             return prepareChooserIntent(intent)
         }
     }
@@ -39,7 +43,7 @@ open class UtCreateFilePicker : UtActivityBroker<String, Uri?>() {
         get() = Contract()
 
     suspend fun selectFile(initialFileName:String, mimeType:String? = null):Uri? {
-        this.mimeType = Intent.normalizeMimeType(mimeType)
+        this.mimeType = mimeType
         return invoke(initialFileName)
     }
 }

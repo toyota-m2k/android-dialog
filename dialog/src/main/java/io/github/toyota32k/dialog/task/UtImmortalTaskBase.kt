@@ -19,13 +19,13 @@ import kotlin.coroutines.suspendCoroutine
  *                      ViewModelも、親タスクのライフサイクル内で動作する。
  * @param allowSequential true:同名のタスクが実行中なら、それが終わるのを待って実行 / false:同名のタスクが実行中ならエラー
  */
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 abstract class UtImmortalTaskBase(
     final override val taskName: String,
     val parentContext:IUtImmortalTaskContext? = null,
     val allowSequential:Boolean = false) : IUtImmortalTask {
 
-    protected var continuation:Continuation<Any?>? = null
+    private var continuation:Continuation<Any?>? = null
 
     override val immortalTaskContext =  UtImmortalTaskContext(taskName, parentContext)
 
@@ -127,7 +127,7 @@ abstract class UtImmortalTaskBase(
         @Suppress("UNCHECKED_CAST")
         val r = withContext(UtImmortalTaskManager.immortalTaskScope.coroutineContext) {
             val owner = takeOwner()
-            suspendCoroutine<Any?> {
+            suspendCoroutine {
                 continuation = it
                 dialogSource(owner).apply { immortalTaskName = taskName }.show(owner, tag)
             }

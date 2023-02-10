@@ -15,10 +15,12 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * ACTION_OPEN_DOCUMENT
  * データの編集を行うなど、長期間の永続的なアクセスが必要な場合に使用。
  */
+@Suppress("unused")
 open class UtOpenFilePicker : UtActivityBroker<Array<String>, Uri?>() {
     companion object {
         val defaultMimeTypes: Array<String> = arrayOf("*/*")
 
+        @JvmStatic
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActivityLauncher<Array<String>> {
             return UtOpenFilePicker().apply {
                 register(owner, callback)
