@@ -173,7 +173,7 @@ abstract class UtDialogBase(
 
     protected open val isAlertDialog:Boolean
         get() = this is DialogInterface.OnClickListener
-    
+
     /**
      * FragmentDialog#onDismiss
      * ダイアログが閉じる時に、システムから呼び出される。
@@ -288,10 +288,10 @@ abstract class UtDialogBase(
                 beginTransaction()
                 .add(android.R.id.content, this@UtDialogBase, tag)
 //                .addToBackStack(null)     // スタックには積まず、UtMortalDialog経由で自力で何とかする。
-                .commit()
-                if(UtDialogConfig.showDialogImmediately) {
-                    executePendingTransactions()
-                }
+                .commitNow()
+//                if(UtDialogConfig.showDialogImmediately) {
+//                    executePendingTransactions()
+//                }
             }
         }
     }

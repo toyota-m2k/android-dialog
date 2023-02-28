@@ -17,13 +17,13 @@ class UtDialogOwnerStack: IUiMortalInstanceSource {
         override fun dispose() {
             super.dispose()
             list.remove(this)
-            if (ownerFlow.value == this) {
+            if (ownerFlow.value === this) {
                 ownerFlow.value = latest()
             }
         }
     }
     @MainThread
-    fun push(owner: UtDialogOwner) {
+    fun register(owner: UtDialogOwner) {
         UtOwner(owner.lifecycleOwner).also { uo->
             if(list.find { it.lifecycleOwner === owner.lifecycleOwner }==null) {
                 list.add(uo)
@@ -32,7 +32,7 @@ class UtDialogOwnerStack: IUiMortalInstanceSource {
         }
     }
     @MainThread
-    fun remove(owner: UtDialogOwner) {
+    fun unregister(owner: UtDialogOwner) {
         list.find { it.lifecycleOwner === owner.lifecycleOwner }?.dispose()
     }
 

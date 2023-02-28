@@ -72,7 +72,19 @@ object UtImmortalTaskManager : Closeable  {
      * （アクティブになった時に）タスクオーナー（ライフサイクルオーナー）を登録
      */
     fun registerOwner(owner:UtDialogOwner) {
-        dialogOwnerStack.push(owner)
+        dialogOwnerStack.register(owner)
+    }
+
+    /**
+     * 非アクティブになったタスクオーナーを登録解除
+     * unregister しなくても、lifecycleが DESTROYED になったら自動的に解除されるが、
+     * onPause ～ onDestroy の間にメッセージやダイアログを表示しようとするとエラーになってしまう不具合が発生したので、明示的に登録を解除することにした。
+     * もし仮に、lifecycleだけを頼りに同様の制御をしようとすると、RESUMED-->STARTED に変化するタイミングを検出する必要がある。
+     * それをやるくらいなら、onPause()で unregisterOwner()を呼ぶようにするほうが簡潔でよいと思う。
+     * どのみち、registerOwnerは呼んでもらう必要があるのだから、それと対をなす形で、unregisterOwnerを呼ぶくらい、なんてことはないはず。
+     */
+    fun unregisterOwner(owner:UtDialogOwner) {
+        dialogOwnerStack.unregister(owner)
     }
 
     /**

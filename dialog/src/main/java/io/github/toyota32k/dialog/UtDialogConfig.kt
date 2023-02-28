@@ -18,7 +18,7 @@ object UtDialogConfig {
      * true: UtDialog#show()で、FragmentManager#executePendingTransactions()を呼ぶ
      * false: FragmentManagerのスケジューリングに任せる。
      */
-    var showDialogImmediately:Boolean = true
+//    var showDialogImmediately:Boolean = true
 
     /**
      * Phone の場合、全画面を灰色で塗りつぶす（背景のビューを隠す）

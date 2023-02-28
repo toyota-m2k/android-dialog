@@ -61,6 +61,7 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
             }
         }
         observersDisposer.reset()
+        UtImmortalTaskManager.unregisterOwner(toDialogOwner())
     }
 
     /**
