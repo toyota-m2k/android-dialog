@@ -48,7 +48,12 @@ class MainActivity : UtMortalActivity() {
         }
         findViewById<Button>(R.id.message_button).setOnClickListener {
             //UtMultiSelectionBox.select(this,"hoge", "タイトル", arrayOf("hoge", "fuga", "piyo"), booleanArrayOf(true,false,true), cancelLabel = getString(R.string.cancel))
-            UtMessageBox.createForOkCancel("UtMessageBox", "テストです").show(this, "utmessage")
+            // UtMessageBox.createForOkCancel("UtMessageBox", "テストです").show(this, "utmessage")
+            UtImmortalSimpleTask.run {
+                val dlg = showDialog("hoge") { UtMessageBox.createForOkCancel("Title!!", "it's a message.") }
+                logger.debug("done (${dlg.status})")
+                true
+            }
         }
         findViewById<Button>(R.id.rx_dialog_button).setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {

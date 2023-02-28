@@ -160,20 +160,40 @@ abstract class UtDialogBase(
     }
 
     /**
+     * AlertDialog系のダイアログ（UtMessageBox/UtSelectionBox) は、デバイスを回転したときも onDismiss が呼ばれるため、
+     * 無条件に、notifyResult()を呼んでしまうと メッセージボックスが表示されているのにタスクは終了している、という想定外の状態になってしまう。
+     * これを回避するため、回転などによりメッセージボックスが（dismiss後に）復活するケースでは、それに先立ち onSaveInstanceState() が呼ばれることを利用し、
+     * このタイミングで willBeBackSoonフラグ を立て、このフラグが立っている場合は、onDismissで notifyResult()を呼ばないようにする。
+     */
+    private var willBeBackSoon:Boolean = false
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        willBeBackSoon = true
+    }
+
+    protected open val isAlertDialog:Boolean
+        get() = this is DialogInterface.OnClickListener
+    
+    /**
      * FragmentDialog#onDismiss
      * ダイアログが閉じる時に、システムから呼び出される。
      */
     override fun onDismiss(dialog: DialogInterface) {
         logger.debug()
-        setFinishingStatus(IUtDialog.Status.NEGATIVE)
+        if( !isAlertDialog || !willBeBackSoon ) {   // 戻ってこない場合だけ
+            setFinishingStatus(IUtDialog.Status.NEGATIVE)
+        }
         super.onDismiss(dialog)
         if(isDialog) {
             dialogClosed = true
         }
-        if(this is DialogInterface.OnClickListener) {
-            // MessageBox系のダイアログは画面外タップで閉じると notifyResult()が呼ばれないので、ここで呼んでおく。
+
+        if(isAlertDialog && !willBeBackSoon) {
+            // AlertDialog系のダイアログ（UtMessageBox/UtSelectionBox）は画面外タップで閉じると notifyResult()が呼ばれないので、ここで呼んでおく。
+            // ただし、回転の場合も呼ばれるので、これを除外するため、willBeBackSoon フラグをチェックする
             notifyResult()
         }
+        willBeBackSoon = false
     }
 
     /**
