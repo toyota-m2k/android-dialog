@@ -287,11 +287,17 @@ abstract class UtDialogBase(
             activity.supportFragmentManager.apply {
                 beginTransaction()
                 .add(android.R.id.content, this@UtDialogBase, tag)
-//                .addToBackStack(null)     // スタックには積まず、UtMortalDialog経由で自力で何とかする。
-                .commitNow()
-//                if(UtDialogConfig.showDialogImmediately) {
-//                    executePendingTransactions()
-//                }
+//              .addToBackStack(null)     // スタックには積まず、UtMortalDialog経由で自力で何とかする。
+                .apply {
+                    if(UtDialogConfig.showDialogImmediately==UtDialogConfig.ShowDialogMode.CommitNow) {
+                        commitNow()
+                    } else {
+                        commit()
+                    }
+                }
+                if(UtDialogConfig.showDialogImmediately==UtDialogConfig.ShowDialogMode.Immediately) {
+                    executePendingTransactions()
+                }
             }
         }
     }

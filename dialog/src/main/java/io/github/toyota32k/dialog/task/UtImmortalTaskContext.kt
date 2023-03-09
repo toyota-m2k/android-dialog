@@ -44,10 +44,8 @@ class UtImmortalTaskContext(override val taskName:String, private val parentCont
     /**
      * ViewModelStoreOwner i/f
      */
-    @Suppress("RecursivePropertyAccessor")
-    override fun getViewModelStore(): ViewModelStore {
-        return mViewModelStore ?: (parentContext?.viewModelStore ?: ViewModelStore()).apply { mViewModelStore = this }
-    }
+    override val viewModelStore: ViewModelStore
+        get() = mViewModelStore ?: (parentContext?.viewModelStore ?: ViewModelStore()).apply { mViewModelStore = this }
 
     fun close() {
         if(parentContext==null) {

@@ -18,7 +18,12 @@ object UtDialogConfig {
      * true: UtDialog#show()で、FragmentManager#executePendingTransactions()を呼ぶ
      * false: FragmentManagerのスケジューリングに任せる。
      */
-//    var showDialogImmediately:Boolean = true
+    enum class ShowDialogMode {
+        Commit,         // use FragmentTransaction#commit()
+        CommitNow,      // use FragmentTransaction#commitNow()
+        Immediately,    // use FragmentTransaction$commit() & FragmentManager#executePendingTransactions()
+    }
+    var showDialogImmediately:ShowDialogMode = ShowDialogMode.Immediately
 
     /**
      * Phone の場合、全画面を灰色で塗りつぶす（背景のビューを隠す）
