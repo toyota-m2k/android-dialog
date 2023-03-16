@@ -1,11 +1,19 @@
 package io.github.toyota32k.dialog
 
+import android.content.Context
 import androidx.annotation.ColorInt
 
 /**
  * アプリ内で共通のダイアログ動作に関する設定をここにまとめます。
  */
 object UtDialogConfig {
+    /**
+     * UtStandardString.setContext()を忘れると OK/Cancel などの文字が表示されなくなるので、ここにも初期化用のメソッドを置いておこう。
+     */
+    fun setup(context: Context, table:IUtStringTable?=null) {
+        UtStandardString.setContext(context, table)
+    }
+
     /**
      * UtDialogのisDialog引数を省略したときに、isDialogをtrueにするかどうか？
      * true: ダイアログモード (新しいwindowを生成して配置）
