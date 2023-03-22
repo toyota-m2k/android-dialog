@@ -11,7 +11,9 @@ buildscript {
     ext.rx_java_version = "3.1.2"
     ext.rx_android_version = "3.0.0"
     ext.rx_kotlin_version = "3.0.1"
-    ext.bind_it_version = "2.2.0"
+
+    ext.bind_it_version = "2.3.0"
+//    ext.bind_it_version = "LOCAL"
 
     ext.junit_version = "4.13.2"
     ext.android_junit_version = "1.1.5"
@@ -34,6 +36,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
         maven { url 'https://jitpack.io' }
     }
 }
