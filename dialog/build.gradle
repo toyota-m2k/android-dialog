@@ -42,6 +42,12 @@ android {
             excludes += ['META-INF/DEPENDENCIES']
         }
     }
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
     namespace 'io.github.toyota32k.dialog'
 }
 
