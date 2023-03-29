@@ -10,7 +10,7 @@ import kotlinx.coroutines.Job
  * onResultはImmortalTaskコンテキストで呼び出されるので、その内部ではImmortalTaskのメソッドが使える。
  * ダイアログの結果はonResultの引数、dlg.status などを確認。
  */
-fun UtDialog.showOnTask(tag:String, onResult:(dlg:UtDialog)->Unit): Job {
+fun <D:IUtDialog> D.showOnTask(tag:String, onResult:(dlg:D)->Unit): Job {
     val dlg = this
     return UtImmortalSimpleTask.run(tag) {
         showDialog(tag) { dlg }
@@ -25,7 +25,7 @@ fun UtDialog.showOnTask(tag:String, onResult:(dlg:UtDialog)->Unit): Job {
  * ダイアログの結果はonResultの引数、dlg.status などを確認。
  * onResultの戻り値を返すので、連続した処理を書くときに使えるんじゃなかろうか。
  */
-suspend fun <T> UtDialog.showAndGetResult(tag:String, onResult:(dlg:UtDialog)->T):T? {
+suspend fun <D:IUtDialog,T> D.showAndGetResult(tag:String, onResult:(dlg:D)->T):T? {
     val dlg = this
     var result:T? = null
     UtImmortalSimpleTask.runAsync(tag) {

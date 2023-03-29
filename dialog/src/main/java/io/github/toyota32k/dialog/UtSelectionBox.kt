@@ -30,7 +30,12 @@ open class UtSingleSelectionBox : UtDialogBase(), DialogInterface.OnClickListene
         return null
     }
 
+    override fun updateCancelable(value: Boolean) {
+        isCancelable = value
+    }
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        isCancelable = cancellable
         return AlertDialog.Builder(requireContext()).also { builder->
             title?.let { builder.setTitle(it) }
             val adapter = listAdapter()

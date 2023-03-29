@@ -18,7 +18,7 @@ abstract class UtDialogEx(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefa
     val binder = Binder()
 
     override fun onCreateView(orgInflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binder.owner(requireActivity())
+        binder.owner(this)
         return super.onCreateView(orgInflater, container, savedInstanceState)
     }
 
