@@ -17,8 +17,15 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
     var selectedByButton:Boolean = false
         private set
 
+    override fun updateCancelable(value: Boolean) {
+        isCancelable = value
+    }
+
+    protected open fun createAlertBuilder():AlertDialog.Builder {
+        return AlertDialog.Builder(requireContext())
+    }
     protected open fun getAlertBuilder():AlertDialog.Builder {
-        val builder = AlertDialog.Builder(requireContext())
+        val builder = createAlertBuilder()
         title?.let { builder.setTitle(it) }
         message?.let { builder.setMessage(it) }
         okLabel?.let { builder.setPositiveButton(it, this) }
@@ -28,6 +35,7 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        isCancelable = cancellable
         return getAlertBuilder().create()
     }
 

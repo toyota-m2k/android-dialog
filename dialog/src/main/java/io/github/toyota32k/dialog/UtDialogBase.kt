@@ -68,6 +68,18 @@ abstract class UtDialogBase(
         get() = this
     final override var doNotResumeTask: Boolean by bundle.booleanFalse
 
+    /**
+     * ダイアログ外をタップしてキャンセル可能にするか？
+     * true:キャンセル可能（デフォルト）
+     * false:キャンセル不可
+     */
+    private var lightCancelable:Boolean by bundle.booleanTrue
+    protected abstract fun updateCancelable(value:Boolean)
+    final override var cancellable:Boolean
+        get() = lightCancelable
+        set(c) { updateCancelable(c) }
+
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is IUtDialogHost) {

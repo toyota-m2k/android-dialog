@@ -47,35 +47,15 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     var scrollable:Boolean by bundle.booleanFalse
 
     /**
-     * ダイアログ外をタップしてキャンセル可能にするか？
-     * true:キャンセル可能（デフォルト）
-     * false:キャンセル不可
-     */
-    private var lightCancelable:Boolean by bundle.booleanTrue
-    var cancellable:Boolean
-        get() = lightCancelable
-        set(c) { updateCancelable(c) }
-
-    /**
      * 画面外をタップしてダイアログを閉じるとき、Positive()扱いにするか？
      * true: positive扱い
      * false: negative扱い（デフォルト）
      */
     protected var positiveCancellable:Boolean by bundle.booleanFalse
 
-    fun updateCancelable(c:Boolean) {
-        if(lightCancelable!=c) {
-            lightCancelable = c
-            if(this::rootView.isInitialized) {
-//                if (c) {
-//                    rootView.setOnClickListener(this::onBackgroundTapped)
-////                dialogView.setOnClickListener(this::onBackgroundTapped)
-//                } else {
-//                    rootView.setOnClickListener(null)
-////                dialogView.setOnClickListener(null)
-//                }
-                applyGuardColor()
-            }
+    override fun updateCancelable(value:Boolean) {
+        if(this::rootView.isInitialized) {
+            applyGuardColor()
         }
     }
 
@@ -89,7 +69,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     }
 
     override fun isCancelable(): Boolean {
-        return lightCancelable
+        return cancellable
     }
 
 
@@ -354,7 +334,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         return when {
             UtDialogConfig.solidBackgroundOnPhone && isPhone -> GuardColor.SOLID_GRAY.color
             hasGuardColor -> resolveColor(guardColor)
-            !lightCancelable-> resolveColor(defaultGuardColor)
+            !cancellable-> resolveColor(defaultGuardColor)
             else-> resolveColor(defaultGuardColorOfCancellableDialog)
         }
     }
@@ -1251,7 +1231,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      * 背景（ガードビュー）がタップされたときのハンドラ
      */
     protected open fun onBackgroundTapped(view:View) {
-        if(view==rootView && lightCancelable) {
+        if(view==rootView && cancellable) {
             if(positiveCancellable) {
                 onPositive()
             } else {

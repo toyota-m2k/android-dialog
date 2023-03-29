@@ -39,6 +39,8 @@ interface IUtDialog {
 
     var doNotResumeTask:Boolean     // タスクから表示されたダイアログなどで、同じTaskNameを共有利用してサブダイアログを表示する場合、親タスクが終了してしまわないように trueをセットする
 
+    var cancellable:Boolean
+
     /**
      * ダイアログを表示する
      */
