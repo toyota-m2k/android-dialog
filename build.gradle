@@ -12,7 +12,7 @@ buildscript {
     ext.rx_android_version = "3.0.0"
     ext.rx_kotlin_version = "3.0.1"
 
-    ext.bind_it_version = "2.2.6"
+    ext.bind_it_version = "2.2.7"
 //    ext.bind_it_version = "LOCAL"
 
     ext.junit_version = "4.13.2"
