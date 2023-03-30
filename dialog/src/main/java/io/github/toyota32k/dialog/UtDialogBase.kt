@@ -309,7 +309,7 @@ abstract class UtDialogBase(
 //              .addToBackStack(null)     // スタックには積まず、UtMortalDialog経由で自力で何とかする。
                 .apply {
                     if(UtDialogConfig.showDialogImmediately==UtDialogConfig.ShowDialogMode.CommitNow) {
-                        commitNow()
+                        commitNow()	// これを使うとonDialogClosed()の中から showDialog()を呼ぶケースで、fragmentManagerが例外を投げるようなので注意。
                     } else {
                         commit()
                     }
