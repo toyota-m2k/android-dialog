@@ -17,10 +17,6 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
     var selectedByButton:Boolean = false
         private set
 
-    override fun updateCancelable(value: Boolean) {
-        isCancelable = value
-    }
-
     protected open fun createAlertBuilder():AlertDialog.Builder {
         return AlertDialog.Builder(requireContext())
     }

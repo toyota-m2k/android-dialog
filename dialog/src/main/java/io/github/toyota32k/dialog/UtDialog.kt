@@ -53,7 +53,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      */
     protected var positiveCancellable:Boolean by bundle.booleanFalse
 
-    override fun updateCancelable(value:Boolean) {
+    override fun onCancellableChanged(value:Boolean) {
         if(this::rootView.isInitialized) {
             applyGuardColor()
         }
@@ -64,8 +64,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      * ダイアログの場合、あっちのは使わないから、そっとオーバーライドしておく。
      */
     override fun setCancelable(cancelable: Boolean) {
-//        super.setCancelable(cancelable)
-        updateCancelable(cancelable)
+        this.cancellable = cancelable
     }
 
     override fun isCancelable(): Boolean {

@@ -50,7 +50,7 @@ class MainActivity : UtMortalActivity() {
             //UtMultiSelectionBox.select(this,"hoge", "タイトル", arrayOf("hoge", "fuga", "piyo"), booleanArrayOf(true,false,true), cancelLabel = getString(R.string.cancel))
             // UtMessageBox.createForOkCancel("UtMessageBox", "テストです").show(this, "utmessage")
             UtImmortalSimpleTask.run {
-                val dlg = showDialog("hoge") { UtMessageBox.createForOkCancel("Title!!", "it's a message.") }
+                val dlg = showDialog("hoge") { UtMessageBox.createForOkCancel("Title!!", "it's a message.").apply { cancellable = false } }
                 logger.debug("done (${dlg.status})")
                 true
             }

@@ -22,3 +22,4 @@ local.properties
 .project
 .idea/deploymentTargetDropDown.xml
 .idea/androidTestResultsUserPreferences.xml
+app/release

@@ -74,10 +74,17 @@ abstract class UtDialogBase(
      * false:キャンセル不可
      */
     private var lightCancelable:Boolean by bundle.booleanTrue
-    protected abstract fun updateCancelable(value:Boolean)
     final override var cancellable:Boolean
         get() = lightCancelable
-        set(c) { updateCancelable(c) }
+        set(c) {
+            if(lightCancelable != c) {
+                lightCancelable = c
+                onCancellableChanged(c)
+            }
+        }
+    protected open fun onCancellableChanged(value:Boolean) {
+        isCancelable = value
+    }
 
 
     override fun onAttach(context: Context) {
