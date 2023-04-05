@@ -30,6 +30,10 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
         return builder
     }
 
+    open fun preCreateDialog() {
+        // サブクラスで title や message などを初期化するなら、このタイミングがおススメ
+    }
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         isCancelable = cancellable
         return getAlertBuilder().create()

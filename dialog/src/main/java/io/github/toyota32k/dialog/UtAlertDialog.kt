@@ -3,15 +3,15 @@ package io.github.toyota32k.dialog
 import android.app.AlertDialog
 import android.view.View
 
-class UtAlertDialog : UtMessageBox() {
+open class UtAlertDialog : UtMessageBox() {
     private var fnCreateView:((UtAlertDialog)->View)? = null
     private var fnCreateBuilder:((UtAlertDialog)->AlertDialog.Builder)? = null
 
-    fun viewCreator(fn:(UtAlertDialog)->View):UtAlertDialog {
+    fun viewCreator(fn:(UtAlertDialog)->View): UtAlertDialog {
         fnCreateView = fn
         return this
     }
-    fun builderCreator(fn:(UtAlertDialog)->AlertDialog.Builder):UtAlertDialog {
+    fun builderCreator(fn:(UtAlertDialog)->AlertDialog.Builder): UtAlertDialog {
         fnCreateBuilder = fn
         return this
     }

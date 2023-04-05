@@ -3,6 +3,7 @@
 package io.github.toyota32k.dialog.task
 
 import android.app.Application
+import androidx.annotation.StringRes
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
@@ -47,6 +48,21 @@ val UtDialog.immortalTask:IUtImmortalTask get() {
 val UtDialog.immortalTaskContext: IUtImmortalTaskContext get() {
     val taskName = immortalTaskName ?: throw IllegalStateException("no task name")
     return UtImmortalTaskManager.taskOf(taskName)?.task?.immortalTaskContext ?: throw IllegalStateException("no such task: $taskName")
+}
+
+val IUtImmortalTask.application : Application get() {
+    return UtImmortalTaskManager.application
+}
+
+fun IUtImmortalTask.getString(@StringRes id:Int):String {
+    return application.getString(id)
+}
+
+/**
+ * ちょっと悪ノリ気味。。。ViewModelからも appli
+ */
+val IUtImmortalTaskMutableContextSource.application : Application get() {
+    return UtImmortalTaskManager.application
 }
 
 inline fun <reified VM> IUtImmortalTask.createViewModel(application: Application): VM where VM : AndroidViewModel, VM:IUtImmortalTaskMutableContextSource {

@@ -1,5 +1,6 @@
 package io.github.toyota32k.dialog.task
 
+import android.app.Application
 import androidx.lifecycle.LifecycleOwner
 import io.github.toyota32k.dialog.UtDialogOwner
 import java.io.Closeable

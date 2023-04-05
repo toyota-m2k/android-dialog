@@ -1,5 +1,6 @@
 package io.github.toyota32k.dialog
 
+import android.app.Application
 import android.content.Context
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -29,7 +30,6 @@ data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
                 throw IllegalStateException("invalid lifecycleOwner")
             }
         }
-
     }
     @Suppress("unused")
     fun asActivity():FragmentActivity? {
@@ -47,6 +47,9 @@ data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
             else -> null
         }
     }
+
+    val application: Application
+        get() = asContext().applicationContext as Application
 }
 
 /**
