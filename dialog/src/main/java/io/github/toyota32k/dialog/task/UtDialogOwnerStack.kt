@@ -65,4 +65,9 @@ class UtDialogOwnerStack: IUiMortalInstanceSource {
             if (owner != null && filter(owner.lifecycleOwner)) owner else null
         }.first()
     }
+
+    @MainThread
+    override fun getOwnerOrNull(): UtDialogOwner? {
+        return ownerFlow.value?.asDialogOwner
+    }
 }

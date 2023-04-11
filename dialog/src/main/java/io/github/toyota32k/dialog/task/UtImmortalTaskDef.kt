@@ -1,6 +1,8 @@
 package io.github.toyota32k.dialog.task
 
 import android.app.Application
+import androidx.annotation.MainThread
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import io.github.toyota32k.dialog.UtDialogOwner
 import java.io.Closeable
@@ -31,6 +33,9 @@ interface IUiMortalInstanceSource {
     suspend fun getOwner() : UtDialogOwner
     suspend fun getOwnerOf(clazz:Class<*>) : UtDialogOwner
     suspend fun getOwnerBy(filter:(LifecycleOwner)->Boolean):UtDialogOwner
+
+    @MainThread
+    fun getOwnerOrNull(): UtDialogOwner?
 }
 
 suspend inline fun <T> IUiMortalInstanceSource.withOwner(fn:(UtDialogOwner)->T):T {
@@ -44,3 +49,12 @@ suspend inline fun <T> IUiMortalInstanceSource.withOwner(clazz:Class<*>, fn:(UtD
 suspend inline fun <T> IUiMortalInstanceSource.withOwner(noinline ownerChooser:(LifecycleOwner)->Boolean, fn:(UtDialogOwner)->T):T {
     return fn(getOwnerBy(ownerChooser))
 }
+
+suspend inline fun <reified T: FragmentActivity> IUiMortalInstanceSource.getActivity():T {
+    return getOwnerOf(T::class.java).asActivity() as? T ?: throw java.lang.IllegalStateException("not target activity")
+}
+
+suspend inline fun <reified T:FragmentActivity, R> IUiMortalInstanceSource.withActivity(fn:(FragmentActivity)->R):R {
+    return fn(getActivity<T>())
+}
+
