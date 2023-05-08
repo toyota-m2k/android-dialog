@@ -110,6 +110,15 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      */
     var noHeader:Boolean by bundle.booleanFalse
 
+
+    /**
+     * ヘッダーボタン(ok/cancelなど）を非表示(BuiltInButtonType.NONE)にしたとき、そのボタンの領域をなくすか、見えないがそこにあるものとしてレンダリングするか？
+     * （早い話、Goneにするか、Invisibleにするか）
+     * true: ボタンの領域をなくす（Gone) ... ボタンの片方だけ表示すると、タイトルが左右に偏って表示されるので注意。
+     * false: ボタンは見えなくても、そこにある感じにレンダリング(Invisible) : default
+     */
+    var noInvisibleHeaderButton:Boolean by bundle.booleanFalse
+
     /**
      * bodyContainerのマージン
      * ボディ部分だけのメッセージ的ダイアログを作る場合に、noHeader=true と組み合わせて使うことを想定
@@ -437,7 +446,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     }
 
     fun fadeOut(completed:(()->Unit)?=null) {
-        if(!this::rootView.isInitialized) {
+        if(!this::rootView.isInitialized||!visible) {
             completed?.invoke()
         } else if(animationEffect) {
             fadeOutAnimation.start(rootView) {
@@ -615,7 +624,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         if(id!=0) {
             updateButton(leftButton, id, leftButtonBlue)
         } else {
-            leftButton.visibility = View.GONE
+            leftButton.visibility = if(noInvisibleHeaderButton) View.GONE else View.INVISIBLE
         }
     }
     /**
@@ -626,7 +635,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         if(id!=0) {
             updateButton(rightButton, id, rightButtonBlue)
         } else {
-            rightButton.visibility = View.GONE
+            rightButton.visibility = if(noInvisibleHeaderButton) View.GONE else View.INVISIBLE
         }
     }
 
@@ -804,7 +813,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
                 return true
             }
         })
-        rootView.findViewById<FrameLayout>(R.id.header).setOnTouchListener { _, ev->
+        rootView.findViewById<View>(R.id.header).setOnTouchListener { _, ev->
             if(!gestureDetector.onTouchEvent(ev)) {
                 if (ev.action == MotionEvent.ACTION_DOWN) {
                     dragInfo.start(ev)
