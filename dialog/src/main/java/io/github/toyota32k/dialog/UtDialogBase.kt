@@ -253,7 +253,11 @@ abstract class UtDialogBase(
         }
         return if (!this.status.finished) {
             this.status = status
-            onDialogClosing()
+            try {
+                onDialogClosing()
+            } catch (e:Throwable) {
+                logger.error(e)
+            }
             if(!status.negative) {
                 onComplete()
             } else {
@@ -269,6 +273,18 @@ abstract class UtDialogBase(
      */
     protected open fun internalCloseDialog() {
         dismiss()
+        if(!isDialog) {
+            // fragment mode の場合、dismiss()しても onDismiss()が呼ばれない。
+            dialogClosed = true
+        }
+        notifyResult()
+    }
+
+    override fun forceDismiss() {
+        if(!status.finished) {
+            status = IUtDialog.Status.NEGATIVE
+        }
+        dismissAllowingStateLoss()
         if(!isDialog) {
             // fragment mode の場合、dismiss()しても onDismiss()が呼ばれない。
             dialogClosed = true

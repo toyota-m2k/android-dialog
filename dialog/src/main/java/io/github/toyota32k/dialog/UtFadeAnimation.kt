@@ -3,6 +3,11 @@ package io.github.toyota32k.dialog
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
+import androidx.annotation.MainThread
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * アニメーション完了監視付きフェードイン/フェードアウト
@@ -13,10 +18,8 @@ import android.view.animation.Animation
 class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationListener{
     private var view:View? = null
     private var completed:(()->Unit)? = null
-//    private var who:Any? = null
 
     override fun onAnimationStart(animation: Animation?) {
-//        UtDialogBase.logger.debug("$who")
         val view = this.view ?: return
         if(show) {
             view.visibility = View.VISIBLE
@@ -26,16 +29,16 @@ class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationList
     }
 
     override fun onAnimationEnd(animation: Animation?) {
-//        UtDialogBase.logger.debug("$who")
         val view = this.view ?: return
+        this.view = null
         if(!show) {
             view.visibility = View.INVISIBLE
         } else {
+            view.visibility = View.VISIBLE
             view.alpha = 1f
         }
         completed?.invoke()
         completed = null
-        this.view = null
     }
 
     override fun onAnimationRepeat(animation: Animation?) {}
@@ -51,21 +54,23 @@ class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationList
      * @param view  VISIBLE/INVISIBLEを切り替えるビュー
      * @param completed 完了ハンドラ
      */
-    fun start(view:View, /*who:Any,*/ completed:(()->Unit)? = null) {
-//        this.who = who
+    @MainThread
+    fun start(view:View, completed:(()->Unit)? = null) {
         this.completed = completed
         this.view = view
         view.startAnimation(animation)
+
+        // ownerのActivityが死んだ後に呼ばれる場合など、startAnimation()を呼んでもアニメーションが開始しないことがある
+        // ダイアログ自体はActivityとともに消えてしまうので、見かけ上は問題ないが、タスクが待ち合わせている場合に、completed()が呼ばれないと、終了できなくなってしまうので、
+        // durationの倍の時間だけ待っても、アニメーションが終了しない場合はアニメーションをキャンセルして、アニメーションが終わったことにする。
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(animation.duration*2)
+            if(this@UtFadeAnimation.view == view) {
+                UtDialogBase.logger.warn("animation was completed by force.")
+                view.clearAnimation()
+                onAnimationEnd(null)
+            }
+        }
     }
 
-    /**
-     * サスペンド関数版
-     */
-//    suspend fun startAsync(view:View, who:Any) {
-//        suspendCoroutine<Unit> { cont->
-//            start(view,who) {
-//                cont.resume(Unit)
-//            }
-//        }
-//    }
 }

@@ -429,8 +429,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
         get() = rootView.visibility == View.VISIBLE
         set(v) { rootView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
 
-    private val fadeInAnimation = UtFadeAnimation(true,UtDialogConfig.fadeInDuration)
-    private val fadeOutAnimation = UtFadeAnimation(false, UtDialogConfig.fadeOutDuraton)
+    private val fadeInAnimation get() = UtFadeAnimation(true,UtDialogConfig.fadeInDuration)
+    private val fadeOutAnimation get() = UtFadeAnimation(false, UtDialogConfig.fadeOutDuraton)
 
     fun fadeIn(completed:(()->Unit)?=null) {
         if(!this::rootView.isInitialized) {

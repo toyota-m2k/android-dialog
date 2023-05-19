@@ -95,6 +95,19 @@ object UtDialogHelper {
         }
     }
 
+    /**
+     * ActivityがFinishするとき(onDestroyでisFinishing==trueのとき）に、
+     * まだ開いたままになっているダイアログ（＝ImmortalTaskで待ち合わせているダイアログ）を強制的に閉じて notifyResultを発行することにより、
+     * 待ち合わせタスクを解放する。
+     */
+    fun forceCloseAllDialogs(activity: FragmentActivity) {
+        val list = allDialogsAndMessageBoxes(activity)
+        for (d in list.reverse()) {
+            d.forceDismiss()
+        }
+    }
+
+
     fun childrenOf(dialog:UtDialog) : List<UtDialog> {
         return try {
             val list = allDialogs(dialog.requireActivity())

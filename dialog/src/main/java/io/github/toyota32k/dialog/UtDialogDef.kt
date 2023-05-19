@@ -57,6 +57,13 @@ interface IUtDialog {
      */
     fun cancel()
 
+    /**
+     * ダイアログを強制的に（確実に）閉じる
+     * - アニメション効果は無し
+     * - dismissAllowingStateLoss()で閉じる
+     */
+    fun forceDismiss()
+
     fun ensureArguments(): Bundle
 
     val asFragment: DialogFragment

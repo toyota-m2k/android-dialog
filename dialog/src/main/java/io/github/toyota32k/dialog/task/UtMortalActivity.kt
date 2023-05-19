@@ -64,6 +64,13 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
         UtImmortalTaskManager.unregisterOwner(toDialogOwner())
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        if(isFinishing) {
+            UtDialogHelper.forceCloseAllDialogs(this)
+        }
+    }
+
     /**
      * UtMortalActivityを継承するActivityは、onKeyDownを直接オーバーライドしないで、必要なら、handleKeyEventをオーバーライドする。
      *
