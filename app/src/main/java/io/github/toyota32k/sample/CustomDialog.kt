@@ -1,17 +1,14 @@
 package io.github.toyota32k.sample
 
-import android.content.Context
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
-import android.widget.*
+import android.widget.ListView
+import android.widget.TextView
 import io.github.toyota32k.R
-import io.github.toyota32k.bindit.Binder
-import io.github.toyota32k.bindit.Command
-import io.github.toyota32k.bindit.ListViewBinding
-import io.github.toyota32k.bindit.list.ListViewAdapter
-import io.github.toyota32k.bindit.list.ObservableList
-import io.github.toyota32k.dialog.UtDialog
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.ListViewBinding
+import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.utils.setLayoutHeight
 
 class CustomDialog : io.github.toyota32k.dialog.UtDialog() {
