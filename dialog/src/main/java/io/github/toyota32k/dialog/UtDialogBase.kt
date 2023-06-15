@@ -207,9 +207,10 @@ abstract class UtDialogBase(
             dialogClosed = true
         }
 
-        if(isAlertDialog && !willBeBackSoon) {
+        if(isDialog && !willBeBackSoon) {
             // AlertDialog系のダイアログ（UtMessageBox/UtSelectionBox）は画面外タップで閉じると notifyResult()が呼ばれないので、ここで呼んでおく。
             // ただし、回転の場合も呼ばれるので、これを除外するため、willBeBackSoon フラグをチェックする
+            // ダイアログモードの場合で、HWキーボードのESCキー押下で閉じる場合も、AlertDialog同様、notifyResultが呼ばれないことが判明。isDialog==true ならこれを呼ぶ。
             notifyResult()
         }
         willBeBackSoon = false
