@@ -14,7 +14,7 @@ buildscript {
 
     ext.m2k_viewex_version = "1.0.1"
     ext.m2k_utilities_version = "1.0.3"
-    ext.m2k_binding_version = "1.0.3"
+    ext.m2k_binding_version = "1.0.4"
 //    ext.m2k_binding_version = "LOCAL"
 
     ext.junit_version = "4.13.2"
