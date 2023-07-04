@@ -906,8 +906,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
                 adjustDialogPosition(customPositionX, customPositionY)
             }
             refContainerView.addOnLayoutChangeListener { _, l, _, r, _, ol, _, or, _ ->
-                logger.debug("x:org ${dialogView.x} layoutChanged")
                 if (or - ol != r - l) {
+//                    logger.debug("x:org ${dialogView.x} layoutChanged")
                     onContainerHeightChanged()
                 }
             }
