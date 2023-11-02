@@ -14,12 +14,11 @@ group = "com.github.toyota-m2k"
 version='1.0'
 
 android {
-    compileSdkVersion 33
-    buildToolsVersion '33.0.0'
+    compileSdk 34
 
     defaultConfig {
         minSdkVersion 26
-        targetSdkVersion 33
+        targetSdk 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
