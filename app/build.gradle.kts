@@ -40,27 +40,26 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation(libs.coreKtx)
+    implementation(libs.appcompat)
+    implementation(libs.material)
+    implementation(libs.constraintLayout)
 
-    val lifecycleKtxVersion = "2.8.3"
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleKtxVersion")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleKtxVersion")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleKtxVersion")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycleKtxVersion")
+    implementation(libs.lifecycleRuntimeKtx)
+    implementation(libs.lifecycleLiveDataKtx)
+    implementation(libs.lifecycleViewModelKtx)
+    implementation(libs.lifecycleViewModelSavedState)
 
-    implementation("com.github.toyota-m2k:android-utilities:2.0.2")
-    implementation("com.github.toyota-m2k:android-binding:1.1.3")
+    implementation(libs.android.utilities)
+    implementation(libs.android.binding)
 
-    implementation("io.reactivex.rxjava3:rxjava:3.1.2")
-    implementation("io.reactivex.rxjava3:rxandroid:3.0.0")
-    implementation("io.reactivex.rxjava3:rxkotlin:3.0.1")
+    implementation(libs.rxjava)
+    implementation(libs.rxandroid)
+    implementation(libs.rxkotlin)
 
     implementation(project(":dialog"))
 
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidxJunit)
+    androidTestImplementation(libs.espressoCore)
 }
