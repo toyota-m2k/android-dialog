@@ -6,6 +6,10 @@ import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
@@ -115,6 +119,17 @@ abstract class UtDialogBase(
         viewDestroyed = false
         if(savedInstanceState==null) {
             onDialogOpening()
+        }
+        if(!isDialog) {
+            // Apply window insets to avoid overlapping with system navigation bar
+            ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+                val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                val params = v.layoutParams as ViewGroup.MarginLayoutParams
+                params.topMargin = systemBarsInsets.top
+                params.bottomMargin = systemBarsInsets.bottom
+                v.layoutParams = params
+                WindowInsetsCompat.Builder(insets).setInsets(WindowInsetsCompat.Type.systemBars(), Insets.NONE).build()
+            }
         }
     }
 
