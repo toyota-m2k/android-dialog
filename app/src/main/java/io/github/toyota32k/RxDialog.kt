@@ -49,7 +49,7 @@ class RxDialog: DialogFragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putSerializable("subject", subject);
+        outState.putSerializable("subject", subject)
     }
 
     suspend fun showAsSuspendable(fm: FragmentManager, tag: String? = null) = suspendCoroutine<Int> { cont ->

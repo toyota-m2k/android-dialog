@@ -1,6 +1,5 @@
 package io.github.toyota32k.dialog.task
 
-import android.app.Application
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
@@ -54,6 +53,7 @@ suspend inline fun <reified T: FragmentActivity> IUiMortalInstanceSource.getActi
     return getOwnerOf(T::class.java).asActivity() as? T ?: throw java.lang.IllegalStateException("not target activity")
 }
 
+@Suppress("unused")
 suspend inline fun <reified T:FragmentActivity, R> IUiMortalInstanceSource.withActivity(fn:(FragmentActivity)->R):R {
     return fn(getActivity<T>())
 }

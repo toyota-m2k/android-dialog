@@ -31,7 +31,6 @@ data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
             }
         }
     }
-    @Suppress("unused")
     fun asActivity():FragmentActivity? {
         return when(lifecycleOwner) {
             is FragmentActivity->lifecycleOwner
@@ -82,7 +81,6 @@ fun IUtDialog.show(owner: UtDialogOwner, tag:String) {
 //        is Fragment         -> showDialog(owner.lifecycleOwner, creator)
 //    }
 //}
-@Suppress("unused")
 fun <D> UtDialogHostManager.NamedReceptor<D>.showDialog(owner: UtDialogOwner, creator:(UtDialogHostManager.NamedReceptor<D>)->D) where D: IUtDialog {
     when(owner.lifecycleOwner) {
         is FragmentActivity -> showDialog(owner.lifecycleOwner, creator)

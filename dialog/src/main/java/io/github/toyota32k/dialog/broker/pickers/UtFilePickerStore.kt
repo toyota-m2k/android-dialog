@@ -9,11 +9,11 @@ interface IUtFilePickerStoreProvider {
     val filePickers: UtFilePickerStore
 }
 
-@Suppress("MemberVisibilityCanBePrivate", "unused")
 class UtFilePickerStore private constructor() : UtActivityBrokerStore() {
     constructor(activity: FragmentActivity):this() {
         register(activity)
     }
+    @Suppress("unused")
     constructor(fragment: Fragment):this() {
         register(fragment)
     }

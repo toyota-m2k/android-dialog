@@ -31,7 +31,7 @@ class FillDialog : UtDialog() {
 //        }
 //    }
 
-    var count:Int = 0
+    private var count:Int = 0
 
     lateinit var listView: ListView
     val binder = Binder()
@@ -39,7 +39,7 @@ class FillDialog : UtDialog() {
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         return inflater.inflate(R.layout.sample_fill_dialog).apply {
-            listView = findViewById<ListView>(R.id.list_view)
+            listView = findViewById(R.id.list_view)
             binder.register (
                 ListViewBinding.create(listView, observableList, R.layout.string_list_item) { _, view, text->
                     view.findViewById<TextView>(R.id.text_view).text = text

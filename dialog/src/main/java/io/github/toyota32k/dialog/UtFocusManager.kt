@@ -32,7 +32,7 @@ class UtFocusManager : TextView.OnEditorActionListener {
 
     // region Internals
 
-    private data class Focusable constructor(@IdRes val id: Int, val fm: UtFocusManager?) {
+    private data class Focusable (@IdRes val id: Int, val fm: UtFocusManager?) {
         constructor(@IdRes id: Int) : this(id, null)
         constructor(fm: UtFocusManager) : this(0, fm)
 

@@ -7,7 +7,7 @@ import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogHelper
 
-class FugaDialog : io.github.toyota32k.dialog.UtDialog() {
+class FugaDialog : UtDialog() {
     init {
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)

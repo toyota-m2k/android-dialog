@@ -4,11 +4,9 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.LifecycleOwner
 import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.dialog.UtDialogWeakOwner
-import io.github.toyota32k.utils.Chronos
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapNotNull
 
 class UtDialogOwnerStack: IUiMortalInstanceSource {
     private val list = mutableListOf<UtOwner>()

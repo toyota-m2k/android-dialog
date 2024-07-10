@@ -1,5 +1,6 @@
 package io.github.toyota32k.sample
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +11,7 @@ import androidx.core.view.children
 import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 
-class AutoScrollDialog : io.github.toyota32k.dialog.UtDialog() {
+class AutoScrollDialog : UtDialog() {
     init {
         title="Auto Scroll Test"
         setLimitWidth(400)
@@ -20,6 +21,7 @@ class AutoScrollDialog : io.github.toyota32k.dialog.UtDialog() {
     }
 
     var count:Int = 0
+    @SuppressLint("SetTextI18n")
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         return inflater.inflate(R.layout.sample_auto_scroll_dialog).apply {
             // Add Item ボタンタップで、アイテムを追加

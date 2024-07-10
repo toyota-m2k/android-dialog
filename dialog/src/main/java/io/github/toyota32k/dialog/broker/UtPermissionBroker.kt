@@ -5,22 +5,23 @@ import android.content.pm.PackageManager
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
-import io.github.toyota32k.dialog.broker.UtActivityBroker
 
 class UtPermissionBroker(val activity:FragmentActivity) : UtActivityBroker<String, Boolean>() {
-    val context get() = activity.applicationContext
+    val context: Context get() = activity.applicationContext!!
     init { register(activity) }
     companion object {
         fun isPermitted(context: Context, permission: String):Boolean {
             return context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
         }
     }
+    @Suppress("MemberVisibilityCanBePrivate")
     fun isPermitted(permission: String):Boolean {
         return isPermitted(context, permission)
     }
     override val contract: ActivityResultContract<String, Boolean>
         get() = ActivityResultContracts.RequestPermission()
 
+    @Suppress("unused")
     suspend fun requestPermission(permission:String):Boolean {
         if(isPermitted(permission)) {
             return true // すでに許可されている
@@ -29,16 +30,17 @@ class UtPermissionBroker(val activity:FragmentActivity) : UtActivityBroker<Strin
     }
 }
 
+@Suppress("unused")
 class UtMultiPermissionsBroker(val activity: FragmentActivity) : UtActivityBroker<Array<String>, Map<String,Boolean>>() {
-    val context get() = activity.applicationContext
+    val context: Context get() = activity.applicationContext!!
     init { register(activity) }
 
     override val contract: ActivityResultContract<Array<String>, Map<String,Boolean>>
         get() = ActivityResultContracts.RequestMultiplePermissions()
 
     inner class Request {
-        val list = mutableListOf<String>()
-        var requiredFlags = mutableMapOf<String,Boolean>()
+        private val list = mutableListOf<String>()
+        private var requiredFlags = mutableMapOf<String,Boolean>()
         fun add(permission:String, required:Boolean=true):Request {
             if(!UtPermissionBroker.isPermitted(context,permission)) {
                 list.add(permission)

@@ -1,13 +1,11 @@
-@file:Suppress("unused", "MemberVisibilityCanBePrivate")
-
 package io.github.toyota32k.dialog
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
     var title:String? by bundle.stringNullable
     var message:String? by bundle.stringNullable

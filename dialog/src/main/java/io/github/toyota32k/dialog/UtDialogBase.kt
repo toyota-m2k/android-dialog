@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package io.github.toyota32k.dialog
 
 import android.content.Context
@@ -139,7 +137,7 @@ abstract class UtDialogBase(
     // dismiss で dialogClosed フラグを立て、onDestroyViewで、dialogClosed == trueなら、onDialogClosed()を呼ぶことにする。
     // ビューが破棄された状態（onDestroyView()が呼ばれて、onViewCreated()が呼ばれる前）に dismiss()されるケースも考慮し、
     // 初期状態は viewDestroyed は true で開始する。
-    protected var viewDestroyed = true
+    private var viewDestroyed = true
         private set(v) {
             if(v!=field) {
                 field = v
@@ -148,7 +146,7 @@ abstract class UtDialogBase(
                 }
             }
         }
-    protected var dialogClosed = false
+    private var dialogClosed = false
         private set(v) {
             if(v && !field) {
                 field = true

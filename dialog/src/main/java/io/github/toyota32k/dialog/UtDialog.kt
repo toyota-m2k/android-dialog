@@ -135,7 +135,6 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     /**
      * 幅指定フラグ
      */
-    @Suppress("unused")
     enum class WidthOption(val param:Int, val isDynamicSizing:Boolean) {
         COMPACT(WRAP_CONTENT,false),        // WRAP_CONTENT
         FULL(MATCH_PARENT,false),           // フルスクリーンに対して、MATCH_PARENT
@@ -146,7 +145,6 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     /**
      * 高さ指定フラグ
      */
-    @Suppress("unused")
     enum class HeightOption(val param:Int, val isDynamicSizing:Boolean) {
         COMPACT(WRAP_CONTENT,false),        // WRAP_CONTENT
         FULL(MATCH_PARENT,false),           // フルスクリーンに対して、MATCH_PARENT
@@ -256,7 +254,6 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     /**
      * ダイアログ位置の指定フラグ
      */
-    @Suppress("unused")
     enum class GravityOption(val gravity:Int) {
         RIGHT_TOP(Gravity.END or Gravity.TOP),          // 右上（デフォルト）
         CENTER(Gravity.CENTER),                                // 画面中央（メッセージボックス的）
@@ -501,7 +498,6 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      * - 「閉じる」ボタンは、右（CLOSE：Positive）にも、左（CLOSE_LEFT:Negative）にも配置可能。
      * setLeftButton(), setRightButton()で、これら標準以外のボタンを作成することは可能だが、あまりポリシーから逸脱しないように。
      */
-    @Suppress("unused")
     enum class BuiltInButtonType(val string:UtStandardString, val positive:Boolean, val blueColor:Boolean) {
         OK(UtStandardString.OK, true, true),                // OK
         DONE(UtStandardString.DONE, true, true),            // 完了

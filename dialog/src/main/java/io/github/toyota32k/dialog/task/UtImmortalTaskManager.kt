@@ -216,7 +216,6 @@ object UtImmortalTaskManager : Closeable  {
             logger.debug("close dynamic task: ${task.taskName}")
             // タスクをクローズ
             withContext(Dispatchers.IO) {
-                @Suppress("BlockingMethodInNonBlockingContext")
                 try {
                     task.close()
                 } catch(e:Throwable) {

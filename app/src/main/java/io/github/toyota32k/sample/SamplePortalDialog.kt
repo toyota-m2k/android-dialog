@@ -10,12 +10,12 @@ import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogHostManager
 import io.github.toyota32k.utils.UtLog
 
-class SamplePortalDialog : io.github.toyota32k.dialog.UtDialog(),
-    io.github.toyota32k.dialog.IUtDialogHost {
+class SamplePortalDialog : UtDialog(),
+    IUtDialogHost {
     companion object {
         val logger = UtLog("SAMPLE")
     }
-    private val dialogHostManager = io.github.toyota32k.dialog.UtDialogHostManager()
+    private val dialogHostManager = UtDialogHostManager()
 
     private val compactDialogReceptor = dialogHostManager.register<CompactDialog>("compactDialogReceptor") {
         if(it.dialog.status.ok) {
@@ -35,7 +35,7 @@ class SamplePortalDialog : io.github.toyota32k.dialog.UtDialog(),
         logger.info()
     }
 
-    override fun queryDialogResultReceptor(tag: String): io.github.toyota32k.dialog.IUtDialogResultReceptor? {
+    override fun queryDialogResultReceptor(tag: String): IUtDialogResultReceptor? {
         return dialogHostManager.queryDialogResultReceptor(tag)
     }
 

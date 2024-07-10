@@ -87,9 +87,9 @@ class MainActivity : UtMortalActivity() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
+//    override fun onDestroy() {
+//        super.onDestroy()
+//    }
 
 //    override fun queryDialogResultReceptor(tag: String): IUtDialogResultReceptor? {
 //        return dialogHostManager.queryDialogResultReceptor(tag)

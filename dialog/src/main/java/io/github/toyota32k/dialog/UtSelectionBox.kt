@@ -15,7 +15,6 @@ interface IUtSingleSelectionResult {
 
 open class UtSingleSelectionBox : UtDialogBase(), DialogInterface.OnClickListener,
     IUtSingleSelectionResult {
-    @Suppress("MemberVisibilityCanBePrivate")
     var title:String? by bundle.stringNullable
     var items:Array<String> by bundle.stringArray
 
