@@ -1,7 +1,7 @@
 [versions]
 #plugins
-kotlin = "1.9.23"
-agp = "8.5.1"
+kotlin = "2.0.10"
+agp = "8.5.2"
 
 #libraries
 coreKtx = "1.13.1"
@@ -19,9 +19,9 @@ rxkotlin = "3.0.1"
 junit = "4.13.2"
 androidxJunit = "1.2.1"
 espressoCore = "3.6.1"
-androidUtilities = "2.0.7"
-androidBinding = "1.1.4"
-androidViewex = "1.0.9"
+androidUtilities = "2.1.0"
+androidBinding = "1.2.0"
+androidViewex = "1.1.0"
 
 [libraries]
 kotlinReflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlinReflect" }
