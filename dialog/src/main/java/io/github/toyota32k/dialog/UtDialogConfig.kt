@@ -22,6 +22,12 @@ object UtDialogConfig {
     var showInDialogModeAsDefault = false
 
     /**
+     * Edge-to-Edge を有効にするか？
+     * API35 ではデフォルトになるらしい。
+     */
+    var edgeToEdgeEnabled = true
+
+    /**
      * UtDialog.show()の動作指定フラグ
      * true: UtDialog#show()で、FragmentManager#executePendingTransactions()を呼ぶ
      * false: FragmentManagerのスケジューリングに任せる。

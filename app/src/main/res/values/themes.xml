@@ -1,4 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.DialogSample.DynamicColor" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+    </style>
+
+
     <!-- Base application theme. -->
     <style name="Theme.DialogSample" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand color. -->

@@ -2,6 +2,9 @@ package io.github.toyota32k
 
 import android.os.Bundle
 import android.widget.Button
+import androidx.activity.enableEdgeToEdge
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.documentfile.provider.DocumentFile
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtMessageBox
@@ -34,6 +37,8 @@ class MainActivity : UtMortalActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 //        UtDialogConfig.dialogTheme = R.style.UtDialogAlternativeTheme
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
         UtStandardString.setContext(this, null)
         UtDialogConfig.solidBackgroundOnPhone = Config.solidBackgroundOnPhone       // true: Phoneのとき背景灰色(default) / false: tabletの場合と同じ
         UtDialogConfig.showInDialogModeAsDefault = Config.showInDialogModeAsDefault     // true: ダイアログモード / false:フラグメントモード(default)
@@ -42,6 +47,12 @@ class MainActivity : UtMortalActivity() {
             logger.info("hoge:${it.status}")
         }
         setContentView(R.layout.activity_main)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.root)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         findViewById<Button>(R.id.dialog_button).setOnClickListener {
             //UtMultiSelectionBox.select(this,"hoge", "タイトル", arrayOf("hoge", "fuga", "piyo"), booleanArrayOf(true,false,true), cancelLabel = getString(R.string.cancel))
             HogeDialog().show(this, "hoge")

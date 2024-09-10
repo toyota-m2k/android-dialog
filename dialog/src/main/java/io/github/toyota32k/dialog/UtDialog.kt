@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -22,6 +23,9 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import io.github.toyota32k.dialog.UtDialogConfig.defaultBodyGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
@@ -1059,7 +1063,35 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return Dialog(requireContext(), R.style.dlg_style).apply {
-            window?.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
+            window?.let { window->
+                window.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
+                if(isDialog) {
+                    if(UtDialogConfig.edgeToEdgeEnabled) {
+                        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//                            WindowCompat.setDecorFitsSystemWindows(window, false)
+                            window.setFlags(
+                                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                            )
+                            ViewCompat.getRootWindowInsets(window.decorView)?.let { insets ->
+                                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                                window.decorView.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                            }
+                        }
+
+
+//                        WindowCompat.setDecorFitsSystemWindows(this, false)
+//                        val view = decorView ?: return@run
+//                        val insetsController = WindowCompat.getInsetsController(this, view)
+//                        insetsController.hide(WindowInsetsCompat.Type.systemBars())
+//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//                            // ディスプレイの切り欠き部分 (ノッチなど) にもウィンドウを広げる
+//                            window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+//                        }
+                    }
+                }
+
+            }
         }
     }
 

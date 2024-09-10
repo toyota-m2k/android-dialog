@@ -118,7 +118,7 @@ abstract class UtDialogBase(
         if(savedInstanceState==null) {
             onDialogOpening()
         }
-        if(!isDialog) {
+        if(!isDialog && UtDialogConfig.edgeToEdgeEnabled) {
             // Apply window insets to avoid overlapping with system navigation bar
             ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
                 val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
