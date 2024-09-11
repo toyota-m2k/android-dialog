@@ -2,42 +2,139 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/main"
+    android:background="@color/secondaryDarkColor"
     tools:context=".MainActivity">
 
     <LinearLayout
-        android:layout_width="200dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
         android:orientation="vertical"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
-        <Button
-            android:id="@+id/dialog_button"
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/radio_dialog_position"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:singleSelection="true"
+            app:selectionRequired="true"
+            >
+            <Button
+                android:id="@+id/radio_fit_screen_width"
+                android:text="Full"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                />
+            <Button
+                android:id="@+id/radio_left"
+                android:text="Left"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                />
+            <Button
+                android:id="@+id/radio_center"
+                android:text="Center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                />
+            <Button
+                android:id="@+id/radio_right"
+                android:text="Right"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/radio_theme"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:singleSelection="true"
+            app:selectionRequired="true"
+            >
+            <Button
+                android:id="@+id/radio_material2"
+                android:text="Material2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                />
+            <Button
+                android:id="@+id/radio_material3"
+                android:text="Material3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                />
+            <Button
+                android:id="@+id/radio_dynamic_color"
+                android:text="DynamicColor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <CheckBox
+            android:id="@+id/check_dialog_mode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Show Dialog"
+            android:text="Dialog Mode"
+            />
+        <CheckBox
+            android:id="@+id/check_edge_to_edge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Edge to Edge"
+            />
+        <CheckBox
+            android:id="@+id/check_status_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Show Status Bar"
+        />
+        <CheckBox
+            android:id="@+id/check_action_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Show Action Bar"
+            />
+
+        <Button
+            android:id="@+id/compact_dialog_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Compact Dialog"
             />
         <Button
-            android:id="@+id/message_button"
+            android:id="@+id/auto_scroll_dialog_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Show Message"
+            android:text="Auto Scroll Dialog"
             />
         <Button
-            android:id="@+id/rx_dialog_button"
+            android:id="@+id/full_height_dialog_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RxDialog Test"
+            android:text="Full Height Dialog"
             />
         <Button
-            android:id="@+id/flow_test_button"
+            android:id="@+id/custom_dialog_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Flow Test"
+            android:text="Custom Dialog"
             />
 
         <Button

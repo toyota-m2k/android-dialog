@@ -3,16 +3,34 @@ package io.github.toyota32k
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.annotation.IdRes
+import androidx.annotation.StyleRes
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.ViewModel
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.IIDValueResolver
+import io.github.toyota32k.binder.activityActionBarBinding
+import io.github.toyota32k.binder.activityStatusBarBinding
+import io.github.toyota32k.binder.checkBinding
+import io.github.toyota32k.binder.command.LiteUnitCommand
+import io.github.toyota32k.binder.command.bindCommand
+import io.github.toyota32k.databinding.ActivityMainBinding
+import io.github.toyota32k.dialog.UtDialog
+import io.github.toyota32k.dialog.UtDialog.WidthOption
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtMessageBox
 import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.dialog.broker.pickers.UtFilePickerStore
 import io.github.toyota32k.dialog.task.*
+import io.github.toyota32k.sample.AutoScrollDialog
+import io.github.toyota32k.sample.CompactDialog
 import io.github.toyota32k.sample.Config
+import io.github.toyota32k.sample.CustomDialog
+import io.github.toyota32k.sample.FillDialog
 import io.github.toyota32k.sample.HogeDialog
 import io.github.toyota32k.sample.SamplePortalDialog
 import io.github.toyota32k.utils.UtLog
@@ -23,10 +41,6 @@ import kotlinx.coroutines.flow.first
 
 class MainActivity : UtMortalActivity() {
     override val logger = UtLog("SAMPLE")
-//    private val dialogHostManager = UtDialogHostManager()
-
-//    val filePickers = UtFilePickerStore(this)
-
     override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME, FileTestTask.TASK_NAME)
 
     override fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {
@@ -34,11 +48,101 @@ class MainActivity : UtMortalActivity() {
         UtMessageBox.createForConfirm("Task Completed", "Task ${taskInfo.name} Result=${taskInfo.result}").show(this, "taskCompleted")
     }
 
+    class MainViewModel : ViewModel() {
+        val logger = UtLog("SAMPLE.ViewModel")
+        val isDialogMode = MutableStateFlow(false)
+        val edgeToEdgeEnabled = MutableStateFlow(false)
+        val showStatusBar = MutableStateFlow(false)
+        val showActionBar = MutableStateFlow(false)
+        val dialogPosition = MutableStateFlow(DialogPosition.Right)
+        val materialTheme = MutableStateFlow(MaterialTheme.Legacy)
+        val commandCompactDialog = LiteUnitCommand(::showCompactDialog)
+        val commandAutoScrollDialog = LiteUnitCommand(::showAutoScrollDialog)
+        val commandFillDialog = LiteUnitCommand(::showFillHeightDialog)
+        val commandCustomDialog = LiteUnitCommand(::showCustomDialog)
+
+        enum class DialogPosition(@IdRes val id:Int) {
+            Full(R.id.radio_fit_screen_width),
+            Left(R.id.radio_left),
+            Center(R.id.radio_center),
+            Right(R.id.radio_right),
+            ;
+            object IdValueResolver : IIDValueResolver<DialogPosition> {
+                override fun id2value(id: Int): DialogPosition {
+                    return enumValues<DialogPosition>().find { it.id == id } ?: Right
+                }
+                override fun value2id(v: DialogPosition): Int {
+                    return v.id
+                }
+            }
+        }
+        enum class MaterialTheme(@IdRes val id:Int, @StyleRes val themeId:Int) {
+            Legacy(R.id.radio_material2, R.style.Theme_DialogSample_Legacy),
+            Material3(R.id.radio_material3, R.style.Theme_DialogSample_Material3),
+            DynamicColor(R.id.radio_dynamic_color, R.style.Theme_DialogSample_DynamicColor),
+            ;
+            object IdValueResolver : IIDValueResolver<MaterialTheme> {
+                override fun id2value(id: Int): MaterialTheme {
+                    return enumValues<MaterialTheme>().find { it.id == id } ?: Legacy
+                }
+                override fun value2id(v: MaterialTheme): Int {
+                    return v.id
+                }
+            }
+        }
+
+        private fun <T:UtDialog> T.applyPosition():T {
+            when(dialogPosition.value) {
+                DialogPosition.Full -> widthOption = WidthOption.FULL
+                DialogPosition.Left -> gravityOption = UtDialog.GravityOption.LEFT_TOP
+                DialogPosition.Center -> gravityOption = UtDialog.GravityOption.CENTER
+                DialogPosition.Right -> gravityOption = UtDialog.GravityOption.RIGHT_TOP
+            }
+            return this
+        }
+
+        private fun showCompactDialog() {
+            UtImmortalSimpleTask.run {
+                logger.debug("Showing: CompactDialog...")
+                showDialog(CompactDialog::class.java.name) { CompactDialog(isDialogMode.value, edgeToEdgeEnabled.value).applyPosition() }
+                logger.debug("Closed: CompactDialog")
+                true
+            }
+        }
+
+        private fun showAutoScrollDialog() {
+            UtImmortalSimpleTask.run {
+                logger.debug("Showing: AutoScrollDialog...")
+                showDialog(AutoScrollDialog::class.java.name) { AutoScrollDialog(isDialogMode.value, edgeToEdgeEnabled.value).applyPosition() }
+                logger.debug("Closed: AutoScrollDialog")
+                true
+            }
+        }
+        private fun showFillHeightDialog() {
+            UtImmortalSimpleTask.run {
+                logger.debug("Showing: FillDialog...")
+                showDialog(FillDialog::class.java.name) { FillDialog(isDialogMode.value, edgeToEdgeEnabled.value).applyPosition() }
+                logger.debug("Closed: FillDialog")
+                true
+            }
+        }
+        private fun showCustomDialog() {
+            UtImmortalSimpleTask.run {
+                logger.debug("Showing: CustomDialog...")
+                showDialog(CustomDialog::class.java.name) { CustomDialog(isDialogMode.value, edgeToEdgeEnabled.value).applyPosition() }
+                logger.debug("Closed: CustomDialog")
+                true
+            }
+        }
+    }
+
+    private lateinit var controls: ActivityMainBinding
+    private val binder = Binder()
+    private val viewModel by viewModels<MainViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
-//        UtDialogConfig.dialogTheme = R.style.UtDialogAlternativeTheme
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         UtStandardString.setContext(this, null)
         UtDialogConfig.solidBackgroundOnPhone = Config.solidBackgroundOnPhone       // true: Phoneのとき背景灰色(default) / false: tabletの場合と同じ
         UtDialogConfig.showInDialogModeAsDefault = Config.showInDialogModeAsDefault     // true: ダイアログモード / false:フラグメントモード(default)
@@ -46,56 +150,72 @@ class MainActivity : UtMortalActivity() {
         dialogHostManager["hoge"] = {
             logger.info("hoge:${it.status}")
         }
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.root)) { v, insets ->
+
+        controls = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(controls.root)
+        ViewCompat.setOnApplyWindowInsetsListener(controls.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        binder
+            .owner(this)
+            .activityStatusBarBinding(viewModel.showStatusBar)
+            .activityActionBarBinding(viewModel.showActionBar)
+            .checkBinding(controls.checkDialogMode, viewModel.isDialogMode)
+            .checkBinding(controls.checkEdgeToEdge, viewModel.edgeToEdgeEnabled)
+            .checkBinding(controls.checkStatusBar, viewModel.showStatusBar)
+            .checkBinding(controls.checkActionBar, viewModel.showActionBar)
+            .bindCommand(viewModel.commandCompactDialog, controls.compactDialogButton)
+            .bindCommand(viewModel.commandAutoScrollDialog, controls.autoScrollDialogButton)
+            .bindCommand(viewModel.commandFillDialog, controls.fullHeightDialogButton)
+            .bindCommand(viewModel.commandCustomDialog, controls.customDialogButton)
 
-        findViewById<Button>(R.id.dialog_button).setOnClickListener {
-            //UtMultiSelectionBox.select(this,"hoge", "タイトル", arrayOf("hoge", "fuga", "piyo"), booleanArrayOf(true,false,true), cancelLabel = getString(R.string.cancel))
-            HogeDialog().show(this, "hoge")
-        }
-        findViewById<Button>(R.id.message_button).setOnClickListener {
-            //UtMultiSelectionBox.select(this,"hoge", "タイトル", arrayOf("hoge", "fuga", "piyo"), booleanArrayOf(true,false,true), cancelLabel = getString(R.string.cancel))
-            // UtMessageBox.createForOkCancel("UtMessageBox", "テストです").show(this, "utmessage")
-            UtImmortalSimpleTask.run {
-                val dlg = showDialog("hoge") { UtMessageBox.createForOkCancel("Title!!", "it's a message.").apply { cancellable = false } }
-                logger.debug("done (${dlg.status})")
-                true
-            }
-        }
-        findViewById<Button>(R.id.rx_dialog_button).setOnClickListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                val r = RxDialog().showAsSuspendable(supportFragmentManager)
-                logger.info("$r")
-            }
-        }
-        findViewById<Button>(R.id.flow_test_button).setOnClickListener {
-            flowTest()
-        }
-        findViewById<Button>(R.id.immortal_task_button).setOnClickListener {
-            SampleTask().fire()
-        }
-        findViewById<Button>(R.id.catalogue).setOnClickListener {
-            SamplePortalDialog().show(this, "Catalogue")
-        }
-        findViewById<Button>(R.id.activity_call).setOnClickListener {
-            activityCallTestSelectionReceptor.showDialog(this) {
-                UtSingleSelectionBox().apply {
-                    title = "Activity Call Test"
-                    items = arrayOf(
-                        "Open File",
-                        "Open Multiple Files",
-                        "Create File",
-                        "Select Folder",
-                        "Process in ImmortalTask",
-                        "Pickers with ActivityBroker"
-                    )
-                }
-            }
-        }
+//
+//
+//        findViewById<Button>(R.id.dialog_button).setOnClickListener {
+//            //UtMultiSelectionBox.select(this,"hoge", "タイトル", arrayOf("hoge", "fuga", "piyo"), booleanArrayOf(true,false,true), cancelLabel = getString(R.string.cancel))
+//            HogeDialog().show(this, "hoge")
+//        }
+//        findViewById<Button>(R.id.message_button).setOnClickListener {
+//            //UtMultiSelectionBox.select(this,"hoge", "タイトル", arrayOf("hoge", "fuga", "piyo"), booleanArrayOf(true,false,true), cancelLabel = getString(R.string.cancel))
+//            // UtMessageBox.createForOkCancel("UtMessageBox", "テストです").show(this, "utmessage")
+//            UtImmortalSimpleTask.run {
+//                val dlg = showDialog("hoge") { UtMessageBox.createForOkCancel("Title!!", "it's a message.").apply { cancellable = false } }
+//                logger.debug("done (${dlg.status})")
+//                true
+//            }
+//        }
+//        findViewById<Button>(R.id.rx_dialog_button).setOnClickListener {
+//            CoroutineScope(Dispatchers.Main).launch {
+//                val r = RxDialog().showAsSuspendable(supportFragmentManager)
+//                logger.info("$r")
+//            }
+//        }
+//        findViewById<Button>(R.id.flow_test_button).setOnClickListener {
+//            flowTest()
+//        }
+//        findViewById<Button>(R.id.immortal_task_button).setOnClickListener {
+//            SampleTask().fire()
+//        }
+//        findViewById<Button>(R.id.catalogue).setOnClickListener {
+//            SamplePortalDialog().show(this, "Catalogue")
+//        }
+//        findViewById<Button>(R.id.activity_call).setOnClickListener {
+//            activityCallTestSelectionReceptor.showDialog(this) {
+//                UtSingleSelectionBox().apply {
+//                    title = "Activity Call Test"
+//                    items = arrayOf(
+//                        "Open File",
+//                        "Open Multiple Files",
+//                        "Create File",
+//                        "Select Folder",
+//                        "Process in ImmortalTask",
+//                        "Pickers with ActivityBroker"
+//                    )
+//                }
+//            }
+//        }
     }
 
 //    override fun onDestroy() {

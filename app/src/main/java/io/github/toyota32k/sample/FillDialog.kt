@@ -11,9 +11,9 @@ import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.dialog.UtDialog
 
-class FillDialog : UtDialog() {
+class FillDialog(isDialogMode:Boolean, edgeToEdgeEnabled:Boolean) : UtDialog(isDialogMode,edgeToEdgeEnabled) {
     init {
-        title="Auto Scroll Test"
+        title="Fill Height"
         setLimitWidth(400)
         heightOption=HeightOption.FULL
 //        guardColor = Color.argb(0xD0, 0xFF, 0xFF, 0xFF)

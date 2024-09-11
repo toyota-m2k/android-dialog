@@ -40,7 +40,9 @@ import kotlin.math.min
  *  true: ダイアログモード (新しいwindowを生成して配置）
  *  false: フラグメントモード (ActivityのWindow上に配置）
  */
-abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefault) : UtDialogBase(isDialog) {
+abstract class UtDialog(
+    isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefault,
+    edgeToEdgeEnabled:Boolean=UtDialogConfig.edgeToEdgeEnabled) : UtDialogBase(isDialog,edgeToEdgeEnabled) {
     // region 動作/操作モード
 
     /**
@@ -1066,7 +1068,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             window?.let { window->
                 window.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
                 if(isDialog) {
-                    if(UtDialogConfig.edgeToEdgeEnabled) {
+                    if(edgeToEdgeEnabled) {
                         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
 //                            WindowCompat.setDecorFitsSystemWindows(window, false)
                             window.setFlags(

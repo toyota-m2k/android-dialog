@@ -6,12 +6,13 @@ agp = "8.6.0"
 #libraries
 coreKtx = "1.13.1"
 appcompat = "1.7.0"
-kotlinReflect = "2.0.0"
+kotlinReflect = "2.0.20"
 lifecycleRuntimeKtx = "2.8.5"
 lifecycleViewnodelKtxVersion = "2.8.5"
 lifecycleLivedataKtx = "2.8.5"
 lifecycleViewmodelSavedstate = "2.8.5"
 material = "1.12.0"
+activity = "1.9.2"
 constraintLayout = "2.1.4"
 rxjava = "3.1.2"
 rxandroid = "3.0.0"
@@ -28,6 +29,7 @@ kotlinReflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = 
 coreKtx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
 constraintLayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintLayout" }
 lifecycleLiveDataKtx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 lifecycleViewModelKtx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewnodelKtxVersion" }

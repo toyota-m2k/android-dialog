@@ -16,7 +16,10 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
+    buildFeatures {
+        buildConfig = true
+        viewBinding = true
+    }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
@@ -44,6 +47,7 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintLayout)
+    implementation(libs.androidx.activity.ktx)
 
     implementation(libs.lifecycleRuntimeKtx)
     implementation(libs.lifecycleLiveDataKtx)

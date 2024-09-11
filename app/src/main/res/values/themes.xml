@@ -1,10 +1,23 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.DialogSample.DynamicColor" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+    <style name="Theme.DialogSample.DynamicColor" parent="Theme.Material3.DynamicColors.DayNight">
     </style>
 
+    <style name="Theme.DialogSample.Material3" parent="Theme.Material3.DayNight">
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorPrimaryVariant">@color/primaryDarkColor</item>
+        <item name="colorPrimaryDark">@color/primaryDarkColor</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/secondaryColor</item>
+        <item name="colorSecondaryVariant">@color/secondaryDarkColor</item>
+        <item name="colorOnSecondary">@color/black</item>
+
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+    </style>
 
     <!-- Base application theme. -->
-    <style name="Theme.DialogSample" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.DialogSample.Legacy" parent="Theme.MaterialComponents.DayNight">
         <!-- Primary brand color. -->
 <!--        <item name="colorPrimary">@color/purple_500</item>-->
 <!--        <item name="colorPrimaryVariant">@color/purple_700</item>-->

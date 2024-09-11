@@ -54,13 +54,22 @@ import java.lang.ref.WeakReference
 //}
 
 abstract class UtDialogBase(
-    val isDialog:Boolean=true       // true:ダイアログモード（MessageBox類）/ false:フラグメントモード(UtDialog)
+    isDialog:Boolean=true,       // true:ダイアログモード（MessageBox類）/ false:フラグメントモード(UtDialog)
+    edgeToEdgeEnabled:Boolean=true,
     ) : DialogFragment(), IUtDialog {
     val bundle = UtBundleDelegate { ensureArguments() }
 
     final override fun ensureArguments(): Bundle {
         return arguments ?: Bundle().apply { arguments = this }
     }
+
+    var isDialog : Boolean by bundle.booleanTrue
+    var edgeToEdgeEnabled : Boolean by bundle.booleanTrue
+    init {
+        this.isDialog = isDialog
+        this.edgeToEdgeEnabled = edgeToEdgeEnabled
+    }
+
 
     private var dialogHost: WeakReference<IUtDialogHost>? = null
 
@@ -118,7 +127,7 @@ abstract class UtDialogBase(
         if(savedInstanceState==null) {
             onDialogOpening()
         }
-        if(!isDialog && UtDialogConfig.edgeToEdgeEnabled) {
+        if(!isDialog && edgeToEdgeEnabled) {
             // Apply window insets to avoid overlapping with system navigation bar
             ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
                 val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())

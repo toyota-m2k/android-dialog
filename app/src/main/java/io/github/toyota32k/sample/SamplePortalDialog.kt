@@ -47,16 +47,16 @@ class SamplePortalDialog : UtDialog(),
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         return inflater.inflate(R.layout.sample_portal_dialog).apply {
             findViewById<Button>(R.id.compact).setOnClickListener {
-                compactDialogReceptor.showDialog(this@SamplePortalDialog) { CompactDialog() }
+                compactDialogReceptor.showDialog(this@SamplePortalDialog) { CompactDialog(true,true) }
             }
             findViewById<Button>(R.id.auto_scroll).setOnClickListener {
-                autoScrollDialogReceptor.showDialog(this@SamplePortalDialog) { AutoScrollDialog() }
+                autoScrollDialogReceptor.showDialog(this@SamplePortalDialog) { AutoScrollDialog(true,true) }
             }
             findViewById<Button>(R.id.fill).setOnClickListener {
-                fillDialogReceptor.showDialog(this@SamplePortalDialog) { FillDialog() }
+                fillDialogReceptor.showDialog(this@SamplePortalDialog) { FillDialog(true,true) }
             }
             findViewById<Button>(R.id.custom).setOnClickListener {
-                customDialogReceptor.showDialog(this@SamplePortalDialog) { CustomDialog() }
+                customDialogReceptor.showDialog(this@SamplePortalDialog) { CustomDialog(true,true) }
             }
             findViewById<Button>(R.id.focus_management).setOnClickListener {
                 focusDialogReceptor.showDialog(this@SamplePortalDialog) { FocusDialog() }
