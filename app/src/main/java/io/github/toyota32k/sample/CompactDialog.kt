@@ -10,6 +10,7 @@ class CompactDialog : UtDialog() {
     init {
         title="Compact Dialog"
         heightOption=HeightOption.COMPACT
+        widthOption=WidthOption.COMPACT
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
     }

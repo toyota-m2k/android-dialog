@@ -15,6 +15,7 @@ import android.util.TypedValue
 import android.view.*
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.view.ViewGroup.MarginLayoutParams
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.FrameLayout
@@ -30,6 +31,10 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.marginBottom
+import androidx.core.view.marginEnd
+import androidx.core.view.marginStart
+import androidx.core.view.marginTop
 import com.google.android.material.button.MaterialButton
 import io.github.toyota32k.dialog.UtDialogConfig.defaultBodyGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
@@ -132,6 +137,10 @@ abstract class UtDialog: UtDialogBase() {
     var bodyContainerMargin:Int by bundle.intMinusOne
 
     /**
+     * UtDialogConfig.dialogMarginOnPortrait / dialogMarginOnLandscape によるマージン設定を無効化する場合は true をセットする。
+     */
+    var noDialogMargin:Boolean by bundle.booleanFalse
+    /**
      * isDialog == true の場合に、StatusBar を非表示にして、全画面にダイアログを表示するか？
      * フラグメントモード(isDialog==false)の場合には無視される。
      * true にすると、
@@ -155,6 +164,33 @@ abstract class UtDialog: UtDialogBase() {
     // endregion
 
     // region ダイアログサイズ
+
+    /*------------------------------------------------------------------------------------------------------------
+        ダイアログのレンダリングに関する覚書
+
+        FrameLayout(rootView)を全画面表示としておき、dialog_view (dialogView) を（プログラム的に）指定位置に配置する。
+        dialog_view (dialogView) / body_container/body_scroller (bodyContainer) の layout_width / height は、
+        WidthOption/HeightOption に従ってプログラム側から設定される。
+
+        COMPACT
+            dialogView        layout_width/height = wrap_content
+            bodyContainer    layout_width/height = wrap_content
+        FIXED
+            dialogView        layout_width/height = wrap_content のまま
+            bodyContainer    layout_width/height = widthHint/heightHintで与えられた値
+            つまり、コンテント(bodyContainer)の幅を固定することで、dialogView の幅も固定される、という戦略。
+        FULL
+            dialogView        layout_width/height = match_parent
+            bodyContainer    layout_width/height = 0dp (ConstraintLayout の layout_constraintStart_toStartOf/layout_constraintEnd_toEndOf =parent によってdialogViewのサイズと同じになる）
+            FULLの場合に限り、dialogView側のサイズを match_parent にして、bodyContainerのサイズをゼロにすることで、内側のサイズを外側に合わせるレンダリングとなる。
+            match_parent というOS的な仕掛けを使いたくて、この場合だけイレギュラーな方法になってしまったが、逆に、FIXED の方が、不自然なロジックにも見えるだろう。
+            すべて外側から内側に向かって計算するロジックに揃えることもできたが、LIMIT / AUTO_SCROLL / CUSTOM などは、中身に合わせて、外側が伸び縮みする動作を目指したので、
+            どうしても、内側から外側というロジックをベースにしたほうが都合がよかったのだ。
+        LIMIT / AUTO_SCROLL / CUSTOM
+            dialogView        layout_width/height = wrap_content のまま
+            bodyContainer    layout_width/height = 計算値（updateDynamicWidth/Height)
+            基本的な考え方はFIXEDと同じく、内側のサイズを規定することで、外側のサイズが決まる方式。
+     *------------------------------------------------------------------------------------------------------------*/
 
     /**
      * 幅指定フラグ
@@ -899,12 +935,33 @@ abstract class UtDialog: UtDialogBase() {
 
     // region レンダリング
 
+    private fun applyDialogMargin(lp: MarginLayoutParams) : MarginLayoutParams {
+        if (noDialogMargin) return lp
+        if (isLandscape) {
+           UtDialogConfig.dialogMarginOnLandscape?.let { m->
+               lp.setMargins(context.dp2px(m.left), context.dp2px(m.top), context.dp2px(m.right), context.dp2px(m.bottom))
+           }
+        } else {
+            UtDialogConfig.dialogMarginOnPortrait?.let { m->
+                lp.setMargins(context.dp2px(m.left), context.dp2px(m.top), context.dp2px(m.right), context.dp2px(m.bottom))
+            }
+        }
+        return lp
+    }
+
     /**
      * widthOption/heightOption/gravityOptionに従って、 bodyContainerのLayoutParamを設定する。
      * 構築時：onCreateDialog()から実行
      */
     private fun setupLayout() {
-        dialogView.layoutParams = FrameLayout.LayoutParams(widthOption.param, heightOption.param, gravityOption.gravity)
+        val params = (dialogView.layoutParams as? FrameLayout.LayoutParams)?.apply {
+            width = widthOption.param
+            height = heightOption.param
+            gravity = gravityOption.gravity
+            applyDialogMargin(this)
+        } ?: FrameLayout.LayoutParams(widthOption.param, heightOption.param, gravityOption.gravity)
+
+        dialogView.layoutParams = params
         if(heightOption== HeightOption.FULL) {
             bodyContainer.setLayoutHeight(0)
         }
@@ -973,7 +1030,7 @@ abstract class UtDialog: UtDialogBase() {
             val winHeight = rootView.height
             if(winHeight==0) return false
             val containerHeight = refContainerView.height
-            val dlgHeight = dialogView.height
+            val dlgHeight = dialogView.height + dialogView.marginTop + dialogView.marginBottom
             val bodyHeight = bodyView.height
             val maxContainerHeight = winHeight - (dlgHeight - containerHeight)
 
@@ -996,14 +1053,15 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * リサイズ時の幅調整
      *　（WidthOption.LIMIT用の処理）
+     * @param lp    bodyContainer の LayoutParams
      */
     private fun updateDynamicWidth(lp:ConstraintLayout.LayoutParams) : Boolean {
         if(widthOption== WidthOption.LIMIT) {
             val winWidth = rootView.width
             if(winWidth==0) return false
-            val dlgWidth = dialogView.width
-            val cntWidth = dlgWidth - lp.marginStart - lp.marginEnd // bodyContainer.width
-            val maxCntWidth = winWidth - (dlgWidth-cntWidth)
+            val dlgMargin = dialogView.marginStart + dialogView.marginEnd
+            val bodyMargin = lp.marginStart + lp.marginEnd // bodyContainer のマージン
+            val maxCntWidth = winWidth - dlgMargin - bodyMargin
             val newCntWidth = min(maxCntWidth, requireContext().dp2px(widthHint))
             if(lp.width!=newCntWidth) {
                 lp.width = newCntWidth

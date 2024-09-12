@@ -126,7 +126,7 @@ class MainActivity : UtMortalActivity() {
             } else {
                 UtDialogConfig.dialogFrameId = io.github.toyota32k.dialog.R.layout.dialog_frame
             }
-            setLimitWidth(400)
+//            setLimitWidth(400)
             isDialog = this@MainViewModel.isDialogMode.value
             edgeToEdgeEnabled = this@MainViewModel.edgeToEdgeEnabled.value
             this.hideStatusBarOnDialogMode = this@MainViewModel.hideStatusBarOnDialog.value
@@ -134,10 +134,23 @@ class MainActivity : UtMortalActivity() {
             draggable = this@MainViewModel.draggable.value
             guardColor = this@MainViewModel.guardColor.value.color
             when(dialogPosition.value) {
-                DialogPosition.Full -> widthOption = WidthOption.FULL
-                DialogPosition.Left -> gravityOption = UtDialog.GravityOption.LEFT_TOP
-                DialogPosition.Center -> gravityOption = UtDialog.GravityOption.CENTER
-                DialogPosition.Right -> gravityOption = UtDialog.GravityOption.RIGHT_TOP
+                DialogPosition.Full -> {
+                    gravityOption = UtDialog.GravityOption.CENTER
+                    widthOption = WidthOption.FULL
+                }
+                DialogPosition.Left -> {
+//                    widthOption = WidthOption.COMPACT
+                    setLimitWidth(400)
+                    gravityOption = UtDialog.GravityOption.LEFT_TOP
+                }
+                DialogPosition.Center -> {
+                    setLimitWidth(400)
+                    gravityOption = UtDialog.GravityOption.CENTER
+                }
+                DialogPosition.Right -> {
+                    setFixedWidth(400)
+                    gravityOption = UtDialog.GravityOption.RIGHT_TOP
+                }
             }
             return this
         }

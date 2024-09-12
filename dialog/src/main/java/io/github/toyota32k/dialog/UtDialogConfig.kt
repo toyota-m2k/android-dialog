@@ -3,6 +3,7 @@
 package io.github.toyota32k.dialog
 
 import android.content.Context
+import android.graphics.Rect
 import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
 import androidx.annotation.StyleRes
@@ -76,10 +77,23 @@ object UtDialogConfig {
 
     /**
      * ダイアログフレームレイアウトのリソースID
+     * R.layout.dialog_frame は Material3 専用
+     * Material2 (Theme.MaterialComponents) の場合は、R.layout.dialog_frame_legacy を使う。
      */
     @LayoutRes
     var dialogFrameId: Int = R.layout.dialog_frame
 
+    /**
+     * フェードイン/アウトアニメーションの遷移時間
+     */
     var fadeInDuration:Long = 300L
     var fadeOutDuraton:Long = 400L
+
+    /**
+     * rootViewに対するdialogViewのマージン
+     * Width/HeightOption FULL/LIMIT/AUTO_SCROLL/CUSTOM を指定したときの最大サイズ決定に使用する。
+     * null を指定すればマージンなし。個別には、UtDialog#noDialogMargin で無効化可能。
+     */
+    var dialogMarginOnPortrait: Rect? = Rect(20, 40, 20, 40)
+    var dialogMarginOnLandscape: Rect? = Rect(40, 20, 40, 20)
 }
