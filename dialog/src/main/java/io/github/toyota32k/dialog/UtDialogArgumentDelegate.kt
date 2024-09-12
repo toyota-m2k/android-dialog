@@ -107,7 +107,7 @@ class UtBundleDelegate(private val namespace:String?, val source:()->Bundle) {
         return if(namespace.isNullOrEmpty()) name else "$namespace.name"
     }
 
-    open inner class GenericDelegate<R>(val clazz: KClassifier?, val conv:(Any?)->R, private val rev:((R)->Any?)?) : ReadWriteProperty<Any,R> {
+    open inner class GenericDelegate<R>(private val clazz: KClassifier?, val conv:(Any?)->R, private val rev:((R)->Any?)?) : ReadWriteProperty<Any,R> {
         constructor(conv:(Any?)->R):this(clazz=null, conv, rev=null)
 
         override fun getValue(thisRef: Any, property: KProperty<*>): R {
@@ -144,6 +144,7 @@ class UtBundleDelegate(private val namespace:String?, val source:()->Bundle) {
     val booleanNullable:ReadWriteProperty<Any,Boolean?> by lazy { GenericDelegate<Boolean?>{it as? Boolean} }
     val booleanFalse:ReadWriteProperty<Any,Boolean> by lazy { GenericDelegate<Boolean>{(it as? Boolean)?:false} }
     val booleanTrue: ReadWriteProperty<Any,Boolean> by lazy { GenericDelegate<Boolean>{(it as? Boolean)?:true} }
+    fun booleanWithDefault(def:Boolean) : ReadWriteProperty<Any,Boolean> { return GenericDelegate<Boolean>{(it as? Boolean)?:def} }
 
     // String
     val string:ReadWriteProperty<Any,String> by lazy { GenericDelegate<String>{it as? String ?: ""} }

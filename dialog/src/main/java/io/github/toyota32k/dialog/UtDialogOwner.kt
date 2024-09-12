@@ -21,6 +21,7 @@ data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
             throw IllegalArgumentException("DialogOwner must be FragmentActivity or Fragment")
         }
     }
+    @Suppress("MemberVisibilityCanBePrivate")
     fun asContext() : Context {
         return when(lifecycleOwner) {
             is FragmentActivity-> lifecycleOwner

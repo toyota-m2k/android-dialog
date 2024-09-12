@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".DummyActivity"
+    android:background="#90ffff"
+    >
+    <LinearLayout
+        android:id="@+id/list_panel"
+        android:layout_width="320dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="vertical"
+        android:layout_marginEnd="1dp"
+        android:background="?attr/colorSurface"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_horizontal"
+            android:paddingHorizontal="8dp"
+            >
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/list_mode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                android:layout_weight="1"
+                >
+                <Button
+                    android:id="@+id/radio_all"
+                    android:text="All"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_videos"
+                    android:text="Video"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_photos"
+                    android:text="Photo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+            <ImageButton
+                android:id="@+id/list_setting_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                app:tint="?attr/colorPrimaryVariant" />
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="#ff8080"
+            />
+    </LinearLayout>
+    <FrameLayout
+        android:id="@+id/viewer_area"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toEndOf="@+id/list_panel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="#ff80ff"
+        >
+        <FrameLayout
+            android:id="@+id/photo_viewer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <ImageView
+                android:id="@+id/image_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                />
+            <LinearLayout
+                android:id="@+id/photo_button_panel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="#8080ff"
+                >
+                <!--                <ImageButton-->
+                <!--                    android:id="@+id/image_prev_button"-->
+                <!--                    android:layout_width="48dp"-->
+                <!--                    android:layout_height="48dp"-->
+                <!--                    app:srcCompat="@drawable/ic_chevron_left"-->
+                <!--                    app:tint="?attr/iconColor"-->
+                <!--                    android:background="?attr/selectableItemBackground"-->
+                <!--                    />-->
+                <!--                <ImageButton-->
+                <!--                    android:id="@+id/image_next_button"-->
+                <!--                    android:layout_width="48dp"-->
+                <!--                    android:layout_height="48dp"-->
+                <!--                    app:srcCompat="@drawable/ic_chevron_right"-->
+                <!--                    app:tint="?attr/iconColor"-->
+                <!--                    android:background="?attr/selectableItemBackground"-->
+                <!--                    />-->
+                <ImageButton
+                    android:id="@+id/image_rotate_left_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    />
+                <ImageButton
+                    android:id="@+id/image_rotate_right_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    />
+                <ImageButton
+                    android:id="@+id/photo_crop_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    />
+                <ImageButton
+                    android:id="@+id/photo_undo_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    />
+                <ImageButton
+                    android:id="@+id/photo_save_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    />
+
+                <ImageButton
+                    android:id="@+id/expand_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    />
+                <ImageButton
+                    android:id="@+id/collapse_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    />
+
+            </LinearLayout>
+        </FrameLayout>
+        <View
+            android:id="@+id/video_viewer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ff8989"
+            />
+    </FrameLayout>
+    <FrameLayout
+        android:visibility="gone"
+        android:id="@+id/safe_guard"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        />
+</androidx.constraintlayout.widget.ConstraintLayout>

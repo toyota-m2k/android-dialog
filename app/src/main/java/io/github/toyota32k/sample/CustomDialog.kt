@@ -12,10 +12,9 @@ import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.setLayoutHeight
 
-class CustomDialog(isDialogMode:Boolean, edgeToEdgeEnabled:Boolean) : UtDialog(isDialogMode,edgeToEdgeEnabled) {
+class CustomDialog : UtDialog() {
     init {
         title="Custom Dialog"
-        setLimitWidth(400)
         heightOption=HeightOption.CUSTOM
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)

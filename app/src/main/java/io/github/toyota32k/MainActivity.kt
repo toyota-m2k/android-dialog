@@ -1,65 +1,72 @@
 package io.github.toyota32k
 
+import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.annotation.IdRes
 import androidx.annotation.StyleRes
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.binder.activityActionBarBinding
 import io.github.toyota32k.binder.activityStatusBarBinding
 import io.github.toyota32k.binder.checkBinding
+import io.github.toyota32k.binder.clickBinding
+import io.github.toyota32k.binder.combinatorialVisibilityBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
+import io.github.toyota32k.binder.materialRadioButtonGroupBinding
 import io.github.toyota32k.databinding.ActivityMainBinding
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialog.WidthOption
 import io.github.toyota32k.dialog.UtDialogConfig
-import io.github.toyota32k.dialog.UtMessageBox
-import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
-import io.github.toyota32k.dialog.broker.pickers.UtFilePickerStore
-import io.github.toyota32k.dialog.task.*
+import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtMortalActivity
 import io.github.toyota32k.sample.AutoScrollDialog
 import io.github.toyota32k.sample.CompactDialog
 import io.github.toyota32k.sample.Config
 import io.github.toyota32k.sample.CustomDialog
 import io.github.toyota32k.sample.FillDialog
-import io.github.toyota32k.sample.HogeDialog
-import io.github.toyota32k.sample.SamplePortalDialog
+import io.github.toyota32k.utils.ApplicationViewModelStoreOwner
 import io.github.toyota32k.utils.UtLog
-import kotlinx.coroutines.*
+import io.github.toyota32k.utils.disposableObserve
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class MainActivity : UtMortalActivity() {
     override val logger = UtLog("SAMPLE")
-    override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME, FileTestTask.TASK_NAME)
-
-    override fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {
-        logger.info("${taskInfo.name} ${taskInfo.state} ${taskInfo.result}")
-        UtMessageBox.createForConfirm("Task Completed", "Task ${taskInfo.name} Result=${taskInfo.result}").show(this, "taskCompleted")
-    }
+//    override val immortalTaskNameList: Array<String> = arrayOf(SampleTask.TASK_NAME, FileTestTask.TASK_NAME)
+//
+//    override fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {
+//        logger.info("${taskInfo.name} ${taskInfo.state} ${taskInfo.result}")
+//        UtMessageBox.createForConfirm("Task Completed", "Task ${taskInfo.name} Result=${taskInfo.result}").show(this, "taskCompleted")
+//    }
 
     class MainViewModel : ViewModel() {
         val logger = UtLog("SAMPLE.ViewModel")
-        val isDialogMode = MutableStateFlow(false)
-        val edgeToEdgeEnabled = MutableStateFlow(false)
+        val isDialogMode = MutableStateFlow(true)
+        val edgeToEdgeEnabled = MutableStateFlow(true)
+        val hideStatusBarOnDialog = MutableStateFlow(true)
+        val cancellable = MutableStateFlow(true)
+        val draggable = MutableStateFlow(true)
         val showStatusBar = MutableStateFlow(false)
         val showActionBar = MutableStateFlow(false)
-        val dialogPosition = MutableStateFlow(DialogPosition.Right)
+        val dialogPosition = MutableStateFlow(DialogPosition.Full)
         val materialTheme = MutableStateFlow(MaterialTheme.Legacy)
         val commandCompactDialog = LiteUnitCommand(::showCompactDialog)
         val commandAutoScrollDialog = LiteUnitCommand(::showAutoScrollDialog)
         val commandFillDialog = LiteUnitCommand(::showFillHeightDialog)
         val commandCustomDialog = LiteUnitCommand(::showCustomDialog)
+        var currentTheme = R.style.Theme_DialogSample_Legacy
 
         enum class DialogPosition(@IdRes val id:Int) {
             Full(R.id.radio_fit_screen_width),
@@ -91,7 +98,14 @@ class MainActivity : UtMortalActivity() {
             }
         }
 
-        private fun <T:UtDialog> T.applyPosition():T {
+        private fun <T:UtDialog> T.applyDialogParams():T {
+            setLimitWidth(400)
+            isDialog = this@MainViewModel.isDialogMode.value
+            edgeToEdgeEnabled = this@MainViewModel.edgeToEdgeEnabled.value
+            this.hideStatusBarOnDialogMode = this@MainViewModel.hideStatusBarOnDialog.value
+            cancellable = this@MainViewModel.cancellable.value
+            draggable = this@MainViewModel.draggable.value
+            guardColor = UtDialog.GuardColor.THEME_DIM.color
             when(dialogPosition.value) {
                 DialogPosition.Full -> widthOption = WidthOption.FULL
                 DialogPosition.Left -> gravityOption = UtDialog.GravityOption.LEFT_TOP
@@ -104,7 +118,7 @@ class MainActivity : UtMortalActivity() {
         private fun showCompactDialog() {
             UtImmortalSimpleTask.run {
                 logger.debug("Showing: CompactDialog...")
-                showDialog(CompactDialog::class.java.name) { CompactDialog(isDialogMode.value, edgeToEdgeEnabled.value).applyPosition() }
+                showDialog(CompactDialog::class.java.name) { CompactDialog().applyDialogParams() }
                 logger.debug("Closed: CompactDialog")
                 true
             }
@@ -113,7 +127,7 @@ class MainActivity : UtMortalActivity() {
         private fun showAutoScrollDialog() {
             UtImmortalSimpleTask.run {
                 logger.debug("Showing: AutoScrollDialog...")
-                showDialog(AutoScrollDialog::class.java.name) { AutoScrollDialog(isDialogMode.value, edgeToEdgeEnabled.value).applyPosition() }
+                showDialog(AutoScrollDialog::class.java.name) { AutoScrollDialog().applyDialogParams() }
                 logger.debug("Closed: AutoScrollDialog")
                 true
             }
@@ -121,7 +135,7 @@ class MainActivity : UtMortalActivity() {
         private fun showFillHeightDialog() {
             UtImmortalSimpleTask.run {
                 logger.debug("Showing: FillDialog...")
-                showDialog(FillDialog::class.java.name) { FillDialog(isDialogMode.value, edgeToEdgeEnabled.value).applyPosition() }
+                showDialog(FillDialog::class.java.name) { FillDialog().applyDialogParams() }
                 logger.debug("Closed: FillDialog")
                 true
             }
@@ -129,7 +143,7 @@ class MainActivity : UtMortalActivity() {
         private fun showCustomDialog() {
             UtImmortalSimpleTask.run {
                 logger.debug("Showing: CustomDialog...")
-                showDialog(CustomDialog::class.java.name) { CustomDialog(isDialogMode.value, edgeToEdgeEnabled.value).applyPosition() }
+                showDialog(CustomDialog::class.java.name) { CustomDialog().applyDialogParams() }
                 logger.debug("Closed: CustomDialog")
                 true
             }
@@ -138,7 +152,8 @@ class MainActivity : UtMortalActivity() {
 
     private lateinit var controls: ActivityMainBinding
     private val binder = Binder()
-    private val viewModel by viewModels<MainViewModel>()
+    // theme を切り替えるたびに startActivityするので、Activityのライフサイクルではなくアプリのライフサイクルでビューモデルを構築しておく。
+    private val viewModel:MainViewModel = ViewModelProvider(ApplicationViewModelStoreOwner.viewModelStore, ViewModelProvider.NewInstanceFactory())[MainViewModel::class.java]
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -147,15 +162,20 @@ class MainActivity : UtMortalActivity() {
         UtDialogConfig.solidBackgroundOnPhone = Config.solidBackgroundOnPhone       // true: Phoneのとき背景灰色(default) / false: tabletの場合と同じ
         UtDialogConfig.showInDialogModeAsDefault = Config.showInDialogModeAsDefault     // true: ダイアログモード / false:フラグメントモード(default)
 
-        dialogHostManager["hoge"] = {
-            logger.info("hoge:${it.status}")
-        }
+//        dialogHostManager["hoge"] = {
+//            logger.info("hoge:${it.status}")
+//        }
+
+        setTheme(viewModel.materialTheme.value.themeId)
+        viewModel.currentTheme = viewModel.materialTheme.value.themeId
 
         controls = ActivityMainBinding.inflate(layoutInflater)
         setContentView(controls.root)
+
         ViewCompat.setOnApplyWindowInsetsListener(controls.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            logger.debug("WindowInsets:left=${systemBars.left},top=${systemBars.top},right=${systemBars.right},bottom=${systemBars.bottom}")
             insets
         }
         binder
@@ -164,12 +184,30 @@ class MainActivity : UtMortalActivity() {
             .activityActionBarBinding(viewModel.showActionBar)
             .checkBinding(controls.checkDialogMode, viewModel.isDialogMode)
             .checkBinding(controls.checkEdgeToEdge, viewModel.edgeToEdgeEnabled)
+            .checkBinding(controls.checkHideStatusBarOnDialog, viewModel.hideStatusBarOnDialog)
+            .checkBinding(controls.checkCancellable, viewModel.cancellable)
+            .checkBinding(controls.checkDraggable, viewModel.draggable)
             .checkBinding(controls.checkStatusBar, viewModel.showStatusBar)
             .checkBinding(controls.checkActionBar, viewModel.showActionBar)
+            .materialRadioButtonGroupBinding(controls.radioDialogPosition, viewModel.dialogPosition, MainViewModel.DialogPosition.IdValueResolver)
+            .materialRadioButtonGroupBinding(controls.radioMaterialTheme, viewModel.materialTheme, MainViewModel.MaterialTheme.IdValueResolver)
+            .combinatorialVisibilityBinding(viewModel.isDialogMode) {
+                straightGone(controls.checkHideStatusBarOnDialog)
+                inverseGone(controls.checkEdgeToEdge)
+            }
             .bindCommand(viewModel.commandCompactDialog, controls.compactDialogButton)
             .bindCommand(viewModel.commandAutoScrollDialog, controls.autoScrollDialogButton)
             .bindCommand(viewModel.commandFillDialog, controls.fullHeightDialogButton)
             .bindCommand(viewModel.commandCustomDialog, controls.customDialogButton)
+            .clickBinding(controls.dummyActivityButton) {
+                startActivity(Intent(this, DummyActivity::class.java))
+            }
+            .add(viewModel.materialTheme.disposableObserve(this) {
+                if(viewModel.currentTheme!=it.themeId)
+                startActivity(Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            })
 
 //
 //
@@ -291,117 +329,118 @@ class MainActivity : UtMortalActivity() {
 //    override fun getActivityConnector(immortalTaskName: String,connectorName: String): UtActivityConnector<*, *>? {
 //        return activityConnectorStore.getActivityConnector(immortalTaskName,connectorName)
 //    }
-    val filePickers = UtFilePickerStore(this)
 
-    class FileTestTask:UtImmortalTaskBase(TASK_NAME) {
-        companion object {
-            const val TASK_NAME = "FileTestTask"
-            const val OPEN_DIRECTORY_CONNECTOR = "OpenDirectory"
-            const val OPEN_FILE_CONNECTOR = "OpenFile"
-        }
+//    val filePickers = UtFilePickerStore(this)
 
-        override suspend fun execute(): Boolean {
-            val dirUri = (getActivity() as? MainActivity)?.filePickers?.directoryPicker?.selectDirectory() ?: return false
-            withOwner { owner ->
-                val dir = DocumentFile.fromTreeUri(owner.asContext(), dirUri)
-                val file = dir?.createFile("text/plain", "xxx.txt")
-                if(file!=null) {
-                    withContext(Dispatchers.IO) {
-                        runCatching {
-                            owner.asContext().contentResolver.openOutputStream(file.uri)
-                                ?.use { stream ->
-                                    stream.write("piyopiyo".toByteArray())
-                                }
-                        }
-                    }
-                }
-            }
+//    class FileTestTask:UtImmortalTaskBase(TASK_NAME) {
+//        companion object {
+//            const val TASK_NAME = "FileTestTask"
+//            const val OPEN_DIRECTORY_CONNECTOR = "OpenDirectory"
+//            const val OPEN_FILE_CONNECTOR = "OpenFile"
+//        }
+//
+//        override suspend fun execute(): Boolean {
+//            val dirUri = (getActivity() as? MainActivity)?.filePickers?.directoryPicker?.selectDirectory() ?: return false
+//            withOwner { owner ->
+//                val dir = DocumentFile.fromTreeUri(owner.asContext(), dirUri)
+//                val file = dir?.createFile("text/plain", "xxx.txt")
+//                if(file!=null) {
+//                    withContext(Dispatchers.IO) {
+//                        runCatching {
+//                            owner.asContext().contentResolver.openOutputStream(file.uri)
+//                                ?.use { stream ->
+//                                    stream.write("piyopiyo".toByteArray())
+//                                }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            val fileUrl = (getActivity() as? MainActivity)?.filePickers?.openReadOnlyFilePicker?.selectFile() ?: return false
+//            withOwner { owner->
+//                withContext(Dispatchers.IO) {
+//                    runCatching {
+//                        owner.asContext().contentResolver.openInputStream(fileUrl)?.use { stream ->
+//                            val line = stream.bufferedReader().readLine()
+//                            logger.info(line)
+//                        }
+//                    }
+//                    val file = DocumentFile.fromSingleUri(owner.asContext(),fileUrl)
+//                    file?.delete()
+//                }
+//            }
+//
+//            logger.info("task completed")
+//            return true
+//        }
+//    }
 
-            val fileUrl = (getActivity() as? MainActivity)?.filePickers?.openReadOnlyFilePicker?.selectFile() ?: return false
-            withOwner { owner->
-                withContext(Dispatchers.IO) {
-                    runCatching {
-                        owner.asContext().contentResolver.openInputStream(fileUrl)?.use { stream ->
-                            val line = stream.bufferedReader().readLine()
-                            logger.info(line)
-                        }
-                    }
-                    val file = DocumentFile.fromSingleUri(owner.asContext(),fileUrl)
-                    file?.delete()
-                }
-            }
-
-            logger.info("task completed")
-            return true
-        }
-    }
-
-    class BrokerTestTask:UtImmortalTaskBase(TASK_NAME) {
-        companion object {
-            const val TASK_NAME = "BrokerTestTask"
-        }
-
-        override suspend fun execute(): Boolean {
-            withOwner(MainActivity::class.java) {
-                logger.info("openFilePicker")
-                val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.openFilePicker.selectFile(arrayOf("image/png", "image/jpeg", "application/pdf"))
-                logger.info("openFilePicker: $uri")
-            }
-            withOwner(MainActivity::class.java) {
-                logger.info("openReadOnlyFilePicker")
-                val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.openReadOnlyFilePicker.selectFile("image/png")
-                logger.info("openReadOnlyFilePicker: $uri")
-            }
-            withOwner(MainActivity::class.java) {
-                logger.info("openMultiFilePicker")
-                val activity = it.asActivity() as MainActivity
-                val uris = activity.filePickers.openMultiFilePicker.selectFiles(arrayOf("image/png", "image/jpeg", "application/pdf"))
-                logger.info("openMultiFilePicker: ${
-                    uris.fold(StringBuilder()){ builder, uri->
-                        builder.append("\n")
-                        builder.append(uri.toString())
-                    }
-                }")
-            }
-            withOwner(MainActivity::class.java) {
-                logger.info("openReadOnlyMultiFilePicker")
-                val activity = it.asActivity() as MainActivity
-                val uris = activity.filePickers.openReadOnlyMultiFilePicker.selectFiles("image/jpeg")
-                logger.info("openReadOnlyMultiFilePicker: ${uris.fold(StringBuilder()){builder,uri->
-                    builder.append("\n")
-                    builder.append(uri.toString())
-                }}")
-            }
-            withOwner(MainActivity::class.java) {
-                logger.info("createFilePicker")
-                val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.createFilePicker.selectFile("hoge.png","image/png")
-                logger.info("createFilePicker: $uri")
-            }
-            withOwner(MainActivity::class.java) {
-                logger.info("directoryPicker")
-                val activity = it.asActivity() as MainActivity
-                val uri = activity.filePickers.directoryPicker.selectDirectory()
-                logger.info("directoryPicker: $uri")
-            }
-            return true
-        }
-    }
-
-    private val activityCallTestSelectionReceptor = dialogHostManager.register<UtSingleSelectionBox>("activityCallTestSelectionReceptor") {
-        if(it.dialog.status.ok) {
-            when (it.dialog.selectedIndex) {
-                0 -> UtImmortalSimpleTask.run { filePickers.openFilePicker.selectFile() != null }
-                1 -> UtImmortalSimpleTask.run { filePickers.openMultiFilePicker.selectFiles().isNotEmpty() }
-                2 -> UtImmortalSimpleTask.run { filePickers.createFilePicker.selectFile("test.txt")!=null }
-                3 -> UtImmortalSimpleTask.run { filePickers.directoryPicker.selectDirectory()!=null }
-                4 -> FileTestTask().fire()
-                5 -> BrokerTestTask().fire()
-                else -> {}
-            }
-        }
-    }
+//    class BrokerTestTask:UtImmortalTaskBase(TASK_NAME) {
+//        companion object {
+//            const val TASK_NAME = "BrokerTestTask"
+//        }
+//
+//        override suspend fun execute(): Boolean {
+//            withOwner(MainActivity::class.java) {
+//                logger.info("openFilePicker")
+//                val activity = it.asActivity() as MainActivity
+//                val uri = activity.filePickers.openFilePicker.selectFile(arrayOf("image/png", "image/jpeg", "application/pdf"))
+//                logger.info("openFilePicker: $uri")
+//            }
+//            withOwner(MainActivity::class.java) {
+//                logger.info("openReadOnlyFilePicker")
+//                val activity = it.asActivity() as MainActivity
+//                val uri = activity.filePickers.openReadOnlyFilePicker.selectFile("image/png")
+//                logger.info("openReadOnlyFilePicker: $uri")
+//            }
+//            withOwner(MainActivity::class.java) {
+//                logger.info("openMultiFilePicker")
+//                val activity = it.asActivity() as MainActivity
+//                val uris = activity.filePickers.openMultiFilePicker.selectFiles(arrayOf("image/png", "image/jpeg", "application/pdf"))
+//                logger.info("openMultiFilePicker: ${
+//                    uris.fold(StringBuilder()){ builder, uri->
+//                        builder.append("\n")
+//                        builder.append(uri.toString())
+//                    }
+//                }")
+//            }
+//            withOwner(MainActivity::class.java) {
+//                logger.info("openReadOnlyMultiFilePicker")
+//                val activity = it.asActivity() as MainActivity
+//                val uris = activity.filePickers.openReadOnlyMultiFilePicker.selectFiles("image/jpeg")
+//                logger.info("openReadOnlyMultiFilePicker: ${uris.fold(StringBuilder()){builder,uri->
+//                    builder.append("\n")
+//                    builder.append(uri.toString())
+//                }}")
+//            }
+//            withOwner(MainActivity::class.java) {
+//                logger.info("createFilePicker")
+//                val activity = it.asActivity() as MainActivity
+//                val uri = activity.filePickers.createFilePicker.selectFile("hoge.png","image/png")
+//                logger.info("createFilePicker: $uri")
+//            }
+//            withOwner(MainActivity::class.java) {
+//                logger.info("directoryPicker")
+//                val activity = it.asActivity() as MainActivity
+//                val uri = activity.filePickers.directoryPicker.selectDirectory()
+//                logger.info("directoryPicker: $uri")
+//            }
+//            return true
+//        }
+//    }
+//
+//    private val activityCallTestSelectionReceptor = dialogHostManager.register<UtSingleSelectionBox>("activityCallTestSelectionReceptor") {
+//        if(it.dialog.status.ok) {
+//            when (it.dialog.selectedIndex) {
+//                0 -> UtImmortalSimpleTask.run { filePickers.openFilePicker.selectFile() != null }
+//                1 -> UtImmortalSimpleTask.run { filePickers.openMultiFilePicker.selectFiles().isNotEmpty() }
+//                2 -> UtImmortalSimpleTask.run { filePickers.createFilePicker.selectFile("test.txt")!=null }
+//                3 -> UtImmortalSimpleTask.run { filePickers.directoryPicker.selectDirectory()!=null }
+//                4 -> FileTestTask().fire()
+//                5 -> BrokerTestTask().fire()
+//                else -> {}
+//            }
+//        }
+//    }
 
 }

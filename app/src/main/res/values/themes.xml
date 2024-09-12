@@ -2,7 +2,7 @@
     <style name="Theme.DialogSample.DynamicColor" parent="Theme.Material3.DynamicColors.DayNight">
     </style>
 
-    <style name="Theme.DialogSample.Material3" parent="Theme.Material3.DayNight">
+    <style name="Theme.DialogSample.Material3" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryVariant">@color/primaryDarkColor</item>
         <item name="colorPrimaryDark">@color/primaryDarkColor</item>

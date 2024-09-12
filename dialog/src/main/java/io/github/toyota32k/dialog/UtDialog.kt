@@ -23,7 +23,6 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -35,14 +34,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-/**
- * @param isDialog  ダイアログモード or フラグメントモード
- *  true: ダイアログモード (新しいwindowを生成して配置）
- *  false: フラグメントモード (ActivityのWindow上に配置）
- */
-abstract class UtDialog(
-    isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefault,
-    edgeToEdgeEnabled:Boolean=UtDialogConfig.edgeToEdgeEnabled) : UtDialogBase(isDialog,edgeToEdgeEnabled) {
+abstract class UtDialog: UtDialogBase() {
     // region 動作/操作モード
 
     /**
@@ -133,6 +125,27 @@ abstract class UtDialog(
      * >=0: カスタムマージン(dp)
      */
     var bodyContainerMargin:Int by bundle.intMinusOne
+
+    /**
+     * isDialog == true の場合に、StatusBar を非表示にして、全画面にダイアログを表示するか？
+     * フラグメントモード(isDialog==false)の場合には無視される。
+     * true にすると、
+     * - StatusBar は非表示
+     * - FLAG_LAYOUT_NO_LIMITS を設定して、rootView を全画面に表示
+     * - LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES をセット（切り欠き部分にも表示する）
+     *
+     * NoActionBar系のスタイルを適用し、（プログラム的に）StatusBarを非表示にしたとき、
+     * Activityの root view が、切り欠き（インカメラ）部分を含む、スクリーン全体に表示される。
+     * フラグメントモードの場合は、Activity（のwindow）上に構築されるので、Activityの状態に応じた適切な領域にダイアログの rootView が配置されるが、
+     * ダイアログモードの場合、Activityとは独立した window が作成されるが、StatusBar は表示された状態となり、切り欠き部分を避けた領域に rootViewが配置される。
+     * 背景が透明なダイアログなら、あまり問題はないが、
+     * 背景をguardView で隠すタイプ（cancellable == falseの場合など）は、Activityの一部が露出した感じの表示になって不格好となる。
+     * その場合は、hideStatusBarOnDialogMode = true として、スクリーン全体を覆うよう指示することとした。
+     *
+     * Activity の window と同じ状態を Dialogのwindow に再現しようと、いろいろ試みたが、どうもうまくいかないので、プロパティで渡すことにした。
+     * 将来よい方法が見つかれば。。。
+     */
+    var hideStatusBarOnDialogMode:Boolean by bundle.booleanFalse
 
     // endregion
 
@@ -1067,32 +1080,20 @@ abstract class UtDialog(
         return Dialog(requireContext(), R.style.dlg_style).apply {
             window?.let { window->
                 window.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
-                if(isDialog) {
-                    if(edgeToEdgeEnabled) {
-                        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-//                            WindowCompat.setDecorFitsSystemWindows(window, false)
-                            window.setFlags(
-                                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                            )
-                            ViewCompat.getRootWindowInsets(window.decorView)?.let { insets ->
-                                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                                window.decorView.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-                            }
-                        }
 
+                if(isDialog && hideStatusBarOnDialogMode) {
+                    val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                    insetsController.hide(WindowInsetsCompat.Type.systemBars())
 
-//                        WindowCompat.setDecorFitsSystemWindows(this, false)
-//                        val view = decorView ?: return@run
-//                        val insetsController = WindowCompat.getInsetsController(this, view)
-//                        insetsController.hide(WindowInsetsCompat.Type.systemBars())
-//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-//                            // ディスプレイの切り欠き部分 (ノッチなど) にもウィンドウを広げる
-//                            window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-//                        }
+                    window.setFlags(
+                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        // ディスプレイの切り欠き部分 (ノッチなど) にもウィンドウを広げる
+                        window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
                     }
                 }
-
             }
         }
     }

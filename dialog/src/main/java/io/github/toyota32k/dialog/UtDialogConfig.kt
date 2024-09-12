@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog
 
 import android.content.Context
@@ -15,7 +17,7 @@ object UtDialogConfig {
     }
 
     /**
-     * UtDialogのisDialog引数を省略したときに、isDialogをtrueにするかどうか？
+     * デフォルトで isDialogをtrueにするかどうか？
      * true: ダイアログモード (新しいwindowを生成して配置）
      * false: フラグメントモード (ActivityのWindow上に配置）
      */

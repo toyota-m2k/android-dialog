@@ -11,10 +11,9 @@ import androidx.core.view.children
 import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 
-class AutoScrollDialog(isDialogMode:Boolean, edgeToEdgeEnabled:Boolean) : UtDialog(isDialogMode,edgeToEdgeEnabled) {
+class AutoScrollDialog : UtDialog() {
     init {
         title="Auto Scroll Test"
-        setLimitWidth(400)
         heightOption=HeightOption.AUTO_SCROLL
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)

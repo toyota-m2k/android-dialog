@@ -6,10 +6,9 @@ import android.widget.EditText
 import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 
-class CompactDialog(isDialogMode:Boolean, edgeToEdgeEnabled:Boolean) : UtDialog(isDialogMode,edgeToEdgeEnabled) {
+class CompactDialog : UtDialog() {
     init {
         title="Compact Dialog"
-        setLimitWidth(400)
         heightOption=HeightOption.COMPACT
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)

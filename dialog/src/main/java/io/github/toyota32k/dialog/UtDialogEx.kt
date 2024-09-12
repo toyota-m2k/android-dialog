@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 /**
  * binder(v2)を使うための小さな仕掛けを追加したダイアログ基底クラス
  */
-abstract class UtDialogEx(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefault) : UtDialog(isDialog) {
+abstract class UtDialogEx : UtDialog() {
     val binder = Binder()
 
     override fun onCreateView(orgInflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
