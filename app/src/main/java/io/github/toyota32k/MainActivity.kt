@@ -9,6 +9,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import io.github.toyota32k.MainActivity.MainViewModel.DialogPosition.Right
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.binder.activityActionBarBinding
@@ -61,8 +62,10 @@ class MainActivity : UtMortalActivity() {
         val draggable = MutableStateFlow(true)
         val showStatusBar = MutableStateFlow(false)
         val showActionBar = MutableStateFlow(false)
-        val dialogPosition = MutableStateFlow(DialogPosition.Full)
+        val dialogPosition = MutableStateFlow(DialogPosition.Center)
         val materialTheme = MutableStateFlow(MaterialTheme.Legacy)
+        val guardColor = MutableStateFlow(GuardColorEx.None)
+
         val commandCompactDialog = LiteUnitCommand(::showCompactDialog)
         val commandAutoScrollDialog = LiteUnitCommand(::showAutoScrollDialog)
         val commandFillDialog = LiteUnitCommand(::showFillHeightDialog)
@@ -99,15 +102,37 @@ class MainActivity : UtMortalActivity() {
                 }
             }
         }
+        enum class GuardColorEx(@IdRes val id:Int, val color:Int) {
+            None(R.id.radio_guard_color_none, UtDialog.GuardColor.INVALID.color),
+            Dim(R.id.radio_guard_color_dim, UtDialog.GuardColor.DIM.color),
+            SeeThrough(R.id.radio_guard_color_see_through, UtDialog.GuardColor.SEE_THROUGH.color),
+            AutoDim(R.id.radio_guard_color_auto, UtDialog.GuardColor.THEME_DIM.color),
+            AutoST(R.id.radio_guard_color_auto_s, UtDialog.GuardColor.THEME_SEE_THROUGH.color)
+            ;
+            object IdValueResolver : IIDValueResolver<GuardColorEx> {
+                override fun id2value(id: Int): GuardColorEx {
+                    return enumValues<GuardColorEx>().find { it.id == id } ?: None
+                }
+                override fun value2id(v: GuardColorEx): Int {
+                    return v.id
+                }
+            }
+
+        }
 
         private fun <T:UtDialog> T.applyDialogParams():T {
+            if(materialTheme.value == MaterialTheme.Legacy) {
+                UtDialogConfig.dialogFrameId = io.github.toyota32k.dialog.R.layout.dialog_frame_legacy
+            } else {
+                UtDialogConfig.dialogFrameId = io.github.toyota32k.dialog.R.layout.dialog_frame
+            }
             setLimitWidth(400)
             isDialog = this@MainViewModel.isDialogMode.value
             edgeToEdgeEnabled = this@MainViewModel.edgeToEdgeEnabled.value
             this.hideStatusBarOnDialogMode = this@MainViewModel.hideStatusBarOnDialog.value
             cancellable = this@MainViewModel.cancellable.value
             draggable = this@MainViewModel.draggable.value
-            guardColor = UtDialog.GuardColor.THEME_DIM.color
+            guardColor = this@MainViewModel.guardColor.value.color
             when(dialogPosition.value) {
                 DialogPosition.Full -> widthOption = WidthOption.FULL
                 DialogPosition.Left -> gravityOption = UtDialog.GravityOption.LEFT_TOP
@@ -193,6 +218,7 @@ class MainActivity : UtMortalActivity() {
             .checkBinding(controls.checkActionBar, viewModel.showActionBar)
             .materialRadioButtonGroupBinding(controls.radioDialogPosition, viewModel.dialogPosition, MainViewModel.DialogPosition.IdValueResolver)
             .materialRadioButtonGroupBinding(controls.radioMaterialTheme, viewModel.materialTheme, MainViewModel.MaterialTheme.IdValueResolver)
+            .materialRadioButtonGroupBinding(controls.radioGuardColor, viewModel.guardColor, MainViewModel.GuardColorEx.IdValueResolver)
             .visibilityBinding(controls.checkHideStatusBarOnDialog, viewModel.isDialogMode)
 //            .combinatorialVisibilityBinding(viewModel.isDialogMode) {
 //                straightGone(controls.checkHideStatusBarOnDialog)

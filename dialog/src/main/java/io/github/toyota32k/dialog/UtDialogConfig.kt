@@ -4,6 +4,8 @@ package io.github.toyota32k.dialog
 
 import android.content.Context
 import androidx.annotation.ColorInt
+import androidx.annotation.LayoutRes
+import androidx.annotation.StyleRes
 
 /**
  * アプリ内で共通のダイアログ動作に関する設定をここにまとめます。
@@ -69,7 +71,14 @@ object UtDialogConfig {
     /**
      * ダイアログのスタイル
      */
+    @StyleRes
     var dialogTheme: Int = R.style.UtDialogTheme
+
+    /**
+     * ダイアログフレームレイアウトのリソースID
+     */
+    @LayoutRes
+    var dialogFrameId: Int = R.layout.dialog_frame
 
     var fadeInDuration:Long = 300L
     var fadeOutDuraton:Long = 400L

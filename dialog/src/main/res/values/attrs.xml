@@ -2,6 +2,7 @@
 <resources>
     <!-- Colors for Dialog Body -->
     <attr name="color_dlg_bg" format="color"/>
+    <attr name="color_dlg_fg" format="color"/>
     <attr name="color_dlg_border" format="color"/>
 
     <!-- Colors for Dialog Title bar -->

@@ -4,12 +4,14 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.TypedValue
 import android.view.*
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -18,14 +20,17 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import com.google.android.material.button.MaterialButton
 import io.github.toyota32k.dialog.UtDialogConfig.defaultBodyGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColorOfCancellableDialog
@@ -307,8 +312,8 @@ abstract class UtDialog: UtDialogBase() {
     enum class GuardColor(@ColorInt val color:Int) {
         INVALID(Color.argb(0,0,0,0)),                       // 透明（無効値）
         TRANSPARENT(Color.argb(0,0xFF,0xFF,0xFF)),          // 透明（通常、 cancellable == true のとき用）
-        DIM(Color.argb(0x40,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
-        SEE_THROUGH(Color.argb(0xDD,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
+        DIM(Color.argb(0xB0,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
+        SEE_THROUGH(Color.argb(0xB0,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
         SOLID_GRAY(Color.rgb(0xc1,0xc1,0xc1)),
 
         THEME_DIM(Color.argb(0, 2,2,2)),                    // colorSurface の反対色で目立つように覆う（colorSurfaceが白なら黒っぽい/黒なら白っぽい色で覆う）
@@ -336,12 +341,33 @@ abstract class UtDialog: UtDialogBase() {
     // @ColorInt
     var bodyGuardColor:Int by bundle.intNonnull(defaultBodyGuardColor)
 
+    @ColorInt
+    private fun Resources.Theme.getAttrColor(@AttrRes attr:Int, @ColorInt def:Int):Int {
+        val typedValue = TypedValue()
+        if(resolveAttribute(attr, typedValue, true)) {
+            return typedValue.data
+        } else {
+            return def
+        }
+    }
+
+    private fun isDark(@ColorInt color:Int) :Boolean {
+        val hsl = FloatArray(3)
+        ColorUtils.colorToHSL(color, hsl)
+        return hsl[2] < 0.5f
+    }
+    private fun autoDim(context:Context):Int {
+        return context.theme.getAttrColor(R.attr.color_dlg_fg, 0).withAlpha(0xB0)
+    }
+    private fun autoSeeThrough(context:Context):Int {
+        return context.theme.getAttrColor(R.attr.color_dlg_bg, 0).withAlpha(0xB0)
+    }
 
     @ColorInt
     fun resolveColor(@ColorInt color:Int): Int  {
         return when(color) {
-            GuardColor.THEME_DIM.color -> context.getColor(R.color.guard_dim)
-            GuardColor.THEME_SEE_THROUGH.color -> context.getColor(R.color.guard_see_through)
+            GuardColor.THEME_DIM.color -> autoDim(context) //context.getColor(R.color.guard_dim)
+            GuardColor.THEME_SEE_THROUGH.color -> autoSeeThrough(context)   // context.getColor(R.color.guard_see_through)
             else -> color
         }
     }
@@ -620,14 +646,15 @@ abstract class UtDialog: UtDialogBase() {
     private fun updateButton(button:Button, @StringRes id:Int, blue:Boolean) {
         activity?.apply {
             button.text = getText(id)
-            if(blue) {
-                button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_blue)
-                button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_blue))
-            } else {
-                button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_white)
-                button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_white))
+            if(button !is MaterialButton) {
+                if (blue) {
+                    button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_blue)
+                    button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_blue))
+                } else {
+                    button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_white)
+                    button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_white))
+                }
             }
-
         }
     }
 
@@ -1108,7 +1135,7 @@ abstract class UtDialog: UtDialogBase() {
                 animationEffect = false
             }
             preCreateBodyView()
-            rootView = inflater.inflate(R.layout.dialog_frame, container, false) as FrameLayout
+            rootView = inflater.inflate(UtDialogConfig.dialogFrameId, container, false) as FrameLayout
             if(noHeader) {
                 rootView.findViewById<View>(R.id.header).visibility = View.GONE
                 rootView.findViewById<View>(R.id.separator).visibility = View.GONE
