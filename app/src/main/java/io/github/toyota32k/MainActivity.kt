@@ -19,6 +19,7 @@ import io.github.toyota32k.binder.combinatorialVisibilityBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.materialRadioButtonGroupBinding
+import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.databinding.ActivityMainBinding
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialog.WidthOption
@@ -67,6 +68,7 @@ class MainActivity : UtMortalActivity() {
         val commandFillDialog = LiteUnitCommand(::showFillHeightDialog)
         val commandCustomDialog = LiteUnitCommand(::showCustomDialog)
         var currentTheme = R.style.Theme_DialogSample_Legacy
+        var currentEdgeToEdgeEnabled = true
 
         enum class DialogPosition(@IdRes val id:Int) {
             Full(R.id.radio_fit_screen_width),
@@ -157,14 +159,12 @@ class MainActivity : UtMortalActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        if(viewModel.edgeToEdgeEnabled.value) {
+            enableEdgeToEdge()
+        }
         UtStandardString.setContext(this, null)
         UtDialogConfig.solidBackgroundOnPhone = Config.solidBackgroundOnPhone       // true: Phoneのとき背景灰色(default) / false: tabletの場合と同じ
         UtDialogConfig.showInDialogModeAsDefault = Config.showInDialogModeAsDefault     // true: ダイアログモード / false:フラグメントモード(default)
-
-//        dialogHostManager["hoge"] = {
-//            logger.info("hoge:${it.status}")
-//        }
 
         setTheme(viewModel.materialTheme.value.themeId)
         viewModel.currentTheme = viewModel.materialTheme.value.themeId
@@ -172,11 +172,13 @@ class MainActivity : UtMortalActivity() {
         controls = ActivityMainBinding.inflate(layoutInflater)
         setContentView(controls.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(controls.main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            logger.debug("WindowInsets:left=${systemBars.left},top=${systemBars.top},right=${systemBars.right},bottom=${systemBars.bottom}")
-            insets
+        if(viewModel.edgeToEdgeEnabled.value) {
+            ViewCompat.setOnApplyWindowInsetsListener(controls.main) { v, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                logger.debug("WindowInsets:left=${systemBars.left},top=${systemBars.top},right=${systemBars.right},bottom=${systemBars.bottom}")
+                insets
+            }
         }
         binder
             .owner(this)
@@ -191,10 +193,11 @@ class MainActivity : UtMortalActivity() {
             .checkBinding(controls.checkActionBar, viewModel.showActionBar)
             .materialRadioButtonGroupBinding(controls.radioDialogPosition, viewModel.dialogPosition, MainViewModel.DialogPosition.IdValueResolver)
             .materialRadioButtonGroupBinding(controls.radioMaterialTheme, viewModel.materialTheme, MainViewModel.MaterialTheme.IdValueResolver)
-            .combinatorialVisibilityBinding(viewModel.isDialogMode) {
-                straightGone(controls.checkHideStatusBarOnDialog)
-                inverseGone(controls.checkEdgeToEdge)
-            }
+            .visibilityBinding(controls.checkHideStatusBarOnDialog, viewModel.isDialogMode)
+//            .combinatorialVisibilityBinding(viewModel.isDialogMode) {
+//                straightGone(controls.checkHideStatusBarOnDialog)
+//                inverseGone(controls.checkEdgeToEdge)
+//            }
             .bindCommand(viewModel.commandCompactDialog, controls.compactDialogButton)
             .bindCommand(viewModel.commandAutoScrollDialog, controls.autoScrollDialogButton)
             .bindCommand(viewModel.commandFillDialog, controls.fullHeightDialogButton)
@@ -207,6 +210,14 @@ class MainActivity : UtMortalActivity() {
                 startActivity(Intent(this, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                 })
+            })
+            .add(viewModel.edgeToEdgeEnabled.disposableObserve(this){
+                if(viewModel.currentEdgeToEdgeEnabled!=it) {
+                    viewModel.currentEdgeToEdgeEnabled = it
+                    startActivity(Intent(this, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    })
+                }
             })
 
 //
