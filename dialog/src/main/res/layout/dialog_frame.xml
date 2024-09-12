@@ -151,7 +151,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="?attr/colorOnPrimaryContainer"
-                android:text="キャンセル"
+                tools:text="キャンセル"
                 />
             <Button
                 style="@style/Widget.Material3.Button.TextButton"
@@ -159,7 +159,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/right_button"
                 android:textColor="?attr/colorOnPrimaryContainer"
-                android:text="OK"
+                tools:text="OK"
                 />
 
         </LinearLayout>
