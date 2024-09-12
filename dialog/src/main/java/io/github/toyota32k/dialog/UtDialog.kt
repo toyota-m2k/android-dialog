@@ -357,7 +357,7 @@ abstract class UtDialog: UtDialogBase() {
         return hsl[2] < 0.5f
     }
     private fun autoDim(context:Context):Int {
-        return context.theme.getAttrColor(R.attr.color_dlg_fg, 0).withAlpha(0xB0)
+        return context.theme.getAttrColor(R.attr.color_dlg_text, 0).withAlpha(0xB0)
     }
     private fun autoSeeThrough(context:Context):Int {
         return context.theme.getAttrColor(R.attr.color_dlg_bg, 0).withAlpha(0xB0)
