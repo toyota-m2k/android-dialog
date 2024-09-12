@@ -9,16 +9,16 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.github.toyota32k.MainActivity.MainViewModel.DialogPosition.Right
 import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.binder.activityActionBarBinding
 import io.github.toyota32k.binder.activityStatusBarBinding
 import io.github.toyota32k.binder.checkBinding
 import io.github.toyota32k.binder.clickBinding
-import io.github.toyota32k.binder.combinatorialVisibilityBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
+import io.github.toyota32k.binder.enableBinding
 import io.github.toyota32k.binder.materialRadioButtonGroupBinding
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.databinding.ActivityMainBinding
@@ -40,6 +40,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -56,6 +57,7 @@ class MainActivity : UtMortalActivity() {
     class MainViewModel : ViewModel() {
         val logger = UtLog("SAMPLE.ViewModel")
         val isDialogMode = MutableStateFlow(true)
+        val noActionBarTheme = MutableStateFlow(false)
         val edgeToEdgeEnabled = MutableStateFlow(true)
         val hideStatusBarOnDialog = MutableStateFlow(true)
         val cancellable = MutableStateFlow(true)
@@ -71,6 +73,7 @@ class MainActivity : UtMortalActivity() {
         val commandFillDialog = LiteUnitCommand(::showFillHeightDialog)
         val commandCustomDialog = LiteUnitCommand(::showCustomDialog)
         var currentTheme = R.style.Theme_DialogSample_Legacy
+        val selectedTheme:Int get() = if(noActionBarTheme.value) materialTheme.value.noActionBarThemeId else materialTheme.value.themeId
         var currentEdgeToEdgeEnabled = true
 
         enum class DialogPosition(@IdRes val id:Int) {
@@ -88,10 +91,10 @@ class MainActivity : UtMortalActivity() {
                 }
             }
         }
-        enum class MaterialTheme(@IdRes val id:Int, @StyleRes val themeId:Int) {
-            Legacy(R.id.radio_material2, R.style.Theme_DialogSample_Legacy),
-            Material3(R.id.radio_material3, R.style.Theme_DialogSample_Material3),
-            DynamicColor(R.id.radio_dynamic_color, R.style.Theme_DialogSample_DynamicColor),
+        enum class MaterialTheme(@IdRes val id:Int, @StyleRes val themeId:Int, @StyleRes val noActionBarThemeId:Int) {
+            Legacy(R.id.radio_material2, R.style.Theme_DialogSample_Legacy, R.style.Theme_DialogSample_Legacy_NoActionBar),
+            Material3(R.id.radio_material3, R.style.Theme_DialogSample_Material3, R.style.Theme_DialogSample_Material3_NoActionBar),
+            DynamicColor(R.id.radio_dynamic_color, R.style.Theme_DialogSample_DynamicColor, R.style.Theme_DialogSample_DynamicColor_NoActionBar),
             ;
             object IdValueResolver : IIDValueResolver<MaterialTheme> {
                 override fun id2value(id: Int): MaterialTheme {
@@ -204,8 +207,8 @@ class MainActivity : UtMortalActivity() {
         UtDialogConfig.solidBackgroundOnPhone = Config.solidBackgroundOnPhone       // true: Phoneのとき背景灰色(default) / false: tabletの場合と同じ
         UtDialogConfig.showInDialogModeAsDefault = Config.showInDialogModeAsDefault     // true: ダイアログモード / false:フラグメントモード(default)
 
-        setTheme(viewModel.materialTheme.value.themeId)
-        viewModel.currentTheme = viewModel.materialTheme.value.themeId
+        setTheme(viewModel.selectedTheme)
+        viewModel.currentTheme = viewModel.selectedTheme
 
         controls = ActivityMainBinding.inflate(layoutInflater)
         setContentView(controls.root)
@@ -224,6 +227,7 @@ class MainActivity : UtMortalActivity() {
             .activityActionBarBinding(viewModel.showActionBar)
             .checkBinding(controls.checkDialogMode, viewModel.isDialogMode)
             .checkBinding(controls.checkEdgeToEdge, viewModel.edgeToEdgeEnabled)
+            .checkBinding(controls.checkNoActionBarTheme, viewModel.noActionBarTheme)
             .checkBinding(controls.checkHideStatusBarOnDialog, viewModel.hideStatusBarOnDialog)
             .checkBinding(controls.checkCancellable, viewModel.cancellable)
             .checkBinding(controls.checkDraggable, viewModel.draggable)
@@ -237,6 +241,7 @@ class MainActivity : UtMortalActivity() {
 //                straightGone(controls.checkHideStatusBarOnDialog)
 //                inverseGone(controls.checkEdgeToEdge)
 //            }
+            .enableBinding(controls.checkActionBar, viewModel.noActionBarTheme, BoolConvert.Inverse)
             .bindCommand(viewModel.commandCompactDialog, controls.compactDialogButton)
             .bindCommand(viewModel.commandAutoScrollDialog, controls.autoScrollDialogButton)
             .bindCommand(viewModel.commandFillDialog, controls.fullHeightDialogButton)
@@ -244,11 +249,12 @@ class MainActivity : UtMortalActivity() {
             .clickBinding(controls.dummyActivityButton) {
                 startActivity(Intent(this, DummyActivity::class.java))
             }
-            .add(viewModel.materialTheme.disposableObserve(this) {
-                if(viewModel.currentTheme!=it.themeId)
-                startActivity(Intent(this, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                })
+            .add(combine(viewModel.materialTheme, viewModel.noActionBarTheme) { theme, noActionBar -> if(noActionBar) theme.noActionBarThemeId else theme.themeId }.disposableObserve(this) {
+                if(viewModel.currentTheme!=it) {
+                    startActivity(Intent(this, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    })
+                }
             })
             .add(viewModel.edgeToEdgeEnabled.disposableObserve(this){
                 if(viewModel.currentEdgeToEdgeEnabled!=it) {

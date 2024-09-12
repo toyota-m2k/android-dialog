@@ -96,6 +96,13 @@
                     />
             </com.google.android.material.button.MaterialButtonToggleGroup>
 
+            <CheckBox
+                android:id="@+id/check_no_action_bar_theme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No ActionBar Theme"
+                />
+
             <com.google.android.material.button.MaterialButtonToggleGroup
                 android:id="@+id/radio_guard_color"
                 android:layout_width="wrap_content"
