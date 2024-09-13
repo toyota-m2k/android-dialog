@@ -9,12 +9,12 @@ import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.ListViewBinding
 import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.binder.list.ObservableList
+import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.setLayoutHeight
 
-class CustomDialog : io.github.toyota32k.dialog.UtDialog() {
+class CustomDialog : UtDialog() {
     init {
-        title="Auto Scroll Test"
-        setLimitWidth(400)
+        title="Custom Dialog"
         heightOption=HeightOption.CUSTOM
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)

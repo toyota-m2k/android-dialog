@@ -15,26 +15,26 @@ class UtImmortalSimpleTask(
     constructor(taskName: String, callback:suspend UtImmortalSimpleTask.()->Boolean) : this(taskName, false, callback)
 
     companion object {
-        private const val defTaskName = "UtImmortalSimpleTask"
+        private const val DEF_TASK_NAME = "UtImmortalSimpleTask"
 
         /**
          * やりっぱなしタスク
          */
-        fun run(taskName: String = defTaskName, coroutineScope: CoroutineScope?=null, callback:suspend UtImmortalSimpleTask.()->Boolean) : Job {
+        fun run(taskName: String = DEF_TASK_NAME, coroutineScope: CoroutineScope?=null, callback:suspend UtImmortalSimpleTask.()->Boolean) : Job {
             return UtImmortalSimpleTask(taskName, callback).fire(coroutineScope)
         }
 
         /**
          * タスクの結果(bool)を待つ
          */
-        suspend fun runAsync(taskName: String = defTaskName, callback:suspend UtImmortalSimpleTask.()->Boolean):Boolean {
+        suspend fun runAsync(taskName: String = DEF_TASK_NAME, callback:suspend UtImmortalSimpleTask.()->Boolean):Boolean {
             return UtImmortalSimpleTask(taskName, callback).fireAsync()
         }
 
         /**
          * コールバックの結果を待つ
          */
-        suspend fun <T> executeAsync(taskName:String=defTaskName, callback:suspend UtImmortalSimpleTask.()->T): T {
+        suspend fun <T> executeAsync(taskName:String=DEF_TASK_NAME, callback:suspend UtImmortalSimpleTask.()->T): T {
             data class TResult<T>(var value:T)
             var r:TResult<T>? = null
             UtImmortalSimpleTask(taskName, allowSequential = true) {
@@ -44,7 +44,7 @@ class UtImmortalSimpleTask(
             return r!!.value
         }
 
-        suspend fun <T> executeAsync(taskName:String=defTaskName, allowSequential: Boolean=false, defResult:T, callback:suspend UtImmortalSimpleTask.()->T):T {
+        suspend fun <T> executeAsync(taskName:String=DEF_TASK_NAME, allowSequential: Boolean=false, defResult:T, callback:suspend UtImmortalSimpleTask.()->T):T {
             var r = defResult
             UtImmortalSimpleTask(taskName, allowSequential = allowSequential) {
                 r = callback()

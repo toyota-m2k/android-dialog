@@ -4,25 +4,38 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.TypedValue
 import android.view.*
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.view.ViewGroup.MarginLayoutParams
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.marginBottom
+import androidx.core.view.marginEnd
+import androidx.core.view.marginStart
+import androidx.core.view.marginTop
+import com.google.android.material.button.MaterialButton
 import io.github.toyota32k.dialog.UtDialogConfig.defaultBodyGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColorOfCancellableDialog
@@ -31,12 +44,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-/**
- * @param isDialog  ダイアログモード or フラグメントモード
- *  true: ダイアログモード (新しいwindowを生成して配置）
- *  false: フラグメントモード (ActivityのWindow上に配置）
- */
-abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefault) : UtDialogBase(isDialog) {
+abstract class UtDialog: UtDialogBase() {
     // region 動作/操作モード
 
     /**
@@ -128,9 +136,61 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      */
     var bodyContainerMargin:Int by bundle.intMinusOne
 
+    /**
+     * UtDialogConfig.dialogMarginOnPortrait / dialogMarginOnLandscape によるマージン設定を無効化する場合は true をセットする。
+     */
+    var noDialogMargin:Boolean by bundle.booleanFalse
+    /**
+     * isDialog == true の場合に、StatusBar を非表示にして、全画面にダイアログを表示するか？
+     * フラグメントモード(isDialog==false)の場合には無視される。
+     * true にすると、
+     * - StatusBar は非表示
+     * - FLAG_LAYOUT_NO_LIMITS を設定して、rootView を全画面に表示
+     * - LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES をセット（切り欠き部分にも表示する）
+     *
+     * NoActionBar系のスタイルを適用し、（プログラム的に）StatusBarを非表示にしたとき、
+     * Activityの root view が、切り欠き（インカメラ）部分を含む、スクリーン全体に表示される。
+     * フラグメントモードの場合は、Activity（のwindow）上に構築されるので、Activityの状態に応じた適切な領域にダイアログの rootView が配置されるが、
+     * ダイアログモードの場合、Activityとは独立した window が作成されるが、StatusBar は表示された状態となり、切り欠き部分を避けた領域に rootViewが配置される。
+     * 背景が透明なダイアログなら、あまり問題はないが、
+     * 背景をguardView で隠すタイプ（cancellable == falseの場合など）は、Activityの一部が露出した感じの表示になって不格好となる。
+     * その場合は、hideStatusBarOnDialogMode = true として、スクリーン全体を覆うよう指示することとした。
+     *
+     * Activity の window と同じ状態を Dialogのwindow に再現しようと、いろいろ試みたが、どうもうまくいかないので、プロパティで渡すことにした。
+     * 将来よい方法が見つかれば。。。
+     */
+    var hideStatusBarOnDialogMode:Boolean by bundle.booleanFalse
+
     // endregion
 
     // region ダイアログサイズ
+
+    /*------------------------------------------------------------------------------------------------------------
+        ダイアログのレンダリングに関する覚書
+
+        FrameLayout(rootView)を全画面表示としておき、dialog_view (dialogView) を（プログラム的に）指定位置に配置する。
+        dialog_view (dialogView) / body_container/body_scroller (bodyContainer) の layout_width / height は、
+        WidthOption/HeightOption に従ってプログラム側から設定される。
+
+        COMPACT
+            dialogView        layout_width/height = wrap_content
+            bodyContainer    layout_width/height = wrap_content
+        FIXED
+            dialogView        layout_width/height = wrap_content のまま
+            bodyContainer    layout_width/height = widthHint/heightHintで与えられた値
+            つまり、コンテント(bodyContainer)の幅を固定することで、dialogView の幅も固定される、という戦略。
+        FULL
+            dialogView        layout_width/height = match_parent
+            bodyContainer    layout_width/height = 0dp (ConstraintLayout の layout_constraintStart_toStartOf/layout_constraintEnd_toEndOf =parent によってdialogViewのサイズと同じになる）
+            FULLの場合に限り、dialogView側のサイズを match_parent にして、bodyContainerのサイズをゼロにすることで、内側のサイズを外側に合わせるレンダリングとなる。
+            match_parent というOS的な仕掛けを使いたくて、この場合だけイレギュラーな方法になってしまったが、逆に、FIXED の方が、不自然なロジックにも見えるだろう。
+            すべて外側から内側に向かって計算するロジックに揃えることもできたが、LIMIT / AUTO_SCROLL / CUSTOM などは、中身に合わせて、外側が伸び縮みする動作を目指したので、
+            どうしても、内側から外側というロジックをベースにしたほうが都合がよかったのだ。
+        LIMIT / AUTO_SCROLL / CUSTOM
+            dialogView        layout_width/height = wrap_content のまま
+            bodyContainer    layout_width/height = 計算値（updateDynamicWidth/Height)
+            基本的な考え方はFIXEDと同じく、内側のサイズを規定することで、外側のサイズが決まる方式。
+     *------------------------------------------------------------------------------------------------------------*/
 
     /**
      * 幅指定フラグ
@@ -288,8 +348,8 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     enum class GuardColor(@ColorInt val color:Int) {
         INVALID(Color.argb(0,0,0,0)),                       // 透明（無効値）
         TRANSPARENT(Color.argb(0,0xFF,0xFF,0xFF)),          // 透明（通常、 cancellable == true のとき用）
-        DIM(Color.argb(0x40,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
-        SEE_THROUGH(Color.argb(0xDD,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
+        DIM(Color.argb(0xB0,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
+        SEE_THROUGH(Color.argb(0xB0,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
         SOLID_GRAY(Color.rgb(0xc1,0xc1,0xc1)),
 
         THEME_DIM(Color.argb(0, 2,2,2)),                    // colorSurface の反対色で目立つように覆う（colorSurfaceが白なら黒っぽい/黒なら白っぽい色で覆う）
@@ -317,12 +377,33 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     // @ColorInt
     var bodyGuardColor:Int by bundle.intNonnull(defaultBodyGuardColor)
 
+    @ColorInt
+    private fun Resources.Theme.getAttrColor(@AttrRes attr:Int, @ColorInt def:Int):Int {
+        val typedValue = TypedValue()
+        if(resolveAttribute(attr, typedValue, true)) {
+            return typedValue.data
+        } else {
+            return def
+        }
+    }
+
+    private fun isDark(@ColorInt color:Int) :Boolean {
+        val hsl = FloatArray(3)
+        ColorUtils.colorToHSL(color, hsl)
+        return hsl[2] < 0.5f
+    }
+    private fun autoDim(context:Context):Int {
+        return context.theme.getAttrColor(R.attr.color_dlg_text, 0).withAlpha(0xB0)
+    }
+    private fun autoSeeThrough(context:Context):Int {
+        return context.theme.getAttrColor(R.attr.color_dlg_bg, 0).withAlpha(0xB0)
+    }
 
     @ColorInt
     fun resolveColor(@ColorInt color:Int): Int  {
         return when(color) {
-            GuardColor.THEME_DIM.color -> context.getColor(R.color.guard_dim)
-            GuardColor.THEME_SEE_THROUGH.color -> context.getColor(R.color.guard_see_through)
+            GuardColor.THEME_DIM.color -> autoDim(context) //context.getColor(R.color.guard_dim)
+            GuardColor.THEME_SEE_THROUGH.color -> autoSeeThrough(context)   // context.getColor(R.color.guard_see_through)
             else -> color
         }
     }
@@ -601,14 +682,15 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     private fun updateButton(button:Button, @StringRes id:Int, blue:Boolean) {
         activity?.apply {
             button.text = getText(id)
-            if(blue) {
-                button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_blue)
-                button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_blue))
-            } else {
-                button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_white)
-                button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_white))
+            if(button !is MaterialButton) {
+                if (blue) {
+                    button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_blue)
+                    button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_blue))
+                } else {
+                    button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_white)
+                    button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_white))
+                }
             }
-
         }
     }
 
@@ -853,12 +935,33 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
 
     // region レンダリング
 
+    private fun applyDialogMargin(lp: MarginLayoutParams) : MarginLayoutParams {
+        if (noDialogMargin) return lp
+        if (isLandscape) {
+           UtDialogConfig.dialogMarginOnLandscape?.let { m->
+               lp.setMargins(context.dp2px(m.left), context.dp2px(m.top), context.dp2px(m.right), context.dp2px(m.bottom))
+           }
+        } else {
+            UtDialogConfig.dialogMarginOnPortrait?.let { m->
+                lp.setMargins(context.dp2px(m.left), context.dp2px(m.top), context.dp2px(m.right), context.dp2px(m.bottom))
+            }
+        }
+        return lp
+    }
+
     /**
      * widthOption/heightOption/gravityOptionに従って、 bodyContainerのLayoutParamを設定する。
      * 構築時：onCreateDialog()から実行
      */
     private fun setupLayout() {
-        dialogView.layoutParams = FrameLayout.LayoutParams(widthOption.param, heightOption.param, gravityOption.gravity)
+        val params = (dialogView.layoutParams as? FrameLayout.LayoutParams)?.apply {
+            width = widthOption.param
+            height = heightOption.param
+            gravity = gravityOption.gravity
+            applyDialogMargin(this)
+        } ?: FrameLayout.LayoutParams(widthOption.param, heightOption.param, gravityOption.gravity)
+
+        dialogView.layoutParams = params
         if(heightOption== HeightOption.FULL) {
             bodyContainer.setLayoutHeight(0)
         }
@@ -927,7 +1030,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
             val winHeight = rootView.height
             if(winHeight==0) return false
             val containerHeight = refContainerView.height
-            val dlgHeight = dialogView.height
+            val dlgHeight = dialogView.height + dialogView.marginTop + dialogView.marginBottom
             val bodyHeight = bodyView.height
             val maxContainerHeight = winHeight - (dlgHeight - containerHeight)
 
@@ -950,14 +1053,15 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
     /**
      * リサイズ時の幅調整
      *　（WidthOption.LIMIT用の処理）
+     * @param lp    bodyContainer の LayoutParams
      */
     private fun updateDynamicWidth(lp:ConstraintLayout.LayoutParams) : Boolean {
         if(widthOption== WidthOption.LIMIT) {
             val winWidth = rootView.width
             if(winWidth==0) return false
-            val dlgWidth = dialogView.width
-            val cntWidth = dlgWidth - lp.marginStart - lp.marginEnd // bodyContainer.width
-            val maxCntWidth = winWidth - (dlgWidth-cntWidth)
+            val dlgMargin = dialogView.marginStart + dialogView.marginEnd
+            val bodyMargin = lp.marginStart + lp.marginEnd // bodyContainer のマージン
+            val maxCntWidth = winWidth - dlgMargin - bodyMargin
             val newCntWidth = min(maxCntWidth, requireContext().dp2px(widthHint))
             if(lp.width!=newCntWidth) {
                 lp.width = newCntWidth
@@ -1059,7 +1163,23 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return Dialog(requireContext(), R.style.dlg_style).apply {
-            window?.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
+            window?.let { window->
+                window.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
+
+                if(isDialog && hideStatusBarOnDialogMode) {
+                    val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                    insetsController.hide(WindowInsetsCompat.Type.systemBars())
+
+                    window.setFlags(
+                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        // ディスプレイの切り欠き部分 (ノッチなど) にもウィンドウを広げる
+                        window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                    }
+                }
+            }
         }
     }
 
@@ -1073,7 +1193,7 @@ abstract class UtDialog(isDialog:Boolean=UtDialogConfig.showInDialogModeAsDefaul
                 animationEffect = false
             }
             preCreateBodyView()
-            rootView = inflater.inflate(R.layout.dialog_frame, container, false) as FrameLayout
+            rootView = inflater.inflate(UtDialogConfig.dialogFrameId, container, false) as FrameLayout
             if(noHeader) {
                 rootView.findViewById<View>(R.id.header).visibility = View.GONE
                 rootView.findViewById<View>(R.id.separator).visibility = View.GONE

@@ -1,7 +1,12 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog
 
 import android.content.Context
+import android.graphics.Rect
 import androidx.annotation.ColorInt
+import androidx.annotation.LayoutRes
+import androidx.annotation.StyleRes
 
 /**
  * アプリ内で共通のダイアログ動作に関する設定をここにまとめます。
@@ -15,11 +20,17 @@ object UtDialogConfig {
     }
 
     /**
-     * UtDialogのisDialog引数を省略したときに、isDialogをtrueにするかどうか？
+     * デフォルトで isDialogをtrueにするかどうか？
      * true: ダイアログモード (新しいwindowを生成して配置）
      * false: フラグメントモード (ActivityのWindow上に配置）
      */
     var showInDialogModeAsDefault = false
+
+    /**
+     * Edge-to-Edge を有効にするか？
+     * API35 ではデフォルトになるらしい。
+     */
+    var edgeToEdgeEnabled = true
 
     /**
      * UtDialog.show()の動作指定フラグ
@@ -61,8 +72,37 @@ object UtDialogConfig {
     /**
      * ダイアログのスタイル
      */
+    @StyleRes
     var dialogTheme: Int = R.style.UtDialogTheme
 
+    /**
+     * ダイアログフレームレイアウトのリソースID
+     * R.layout.dialog_frame は Material3 専用
+     * Material2 (Theme.MaterialComponents) の場合は、R.layout.dialog_frame_legacy を使う。
+     */
+    @LayoutRes
+    var dialogFrameId: Int = R.layout.dialog_frame
+
+    /**
+     * 旧バージョン互換モード
+     */
+    fun useLegacyTheme() {
+        dialogFrameId = R.layout.dialog_frame_legacy
+        dialogMarginOnPortrait = null
+        dialogMarginOnLandscape = null
+    }
+
+    /**
+     * フェードイン/アウトアニメーションの遷移時間
+     */
     var fadeInDuration:Long = 300L
     var fadeOutDuraton:Long = 400L
+
+    /**
+     * rootViewに対するdialogViewのマージン
+     * Width/HeightOption FULL/LIMIT/AUTO_SCROLL/CUSTOM を指定したときの最大サイズ決定に使用する。
+     * null を指定すればマージンなし。個別には、UtDialog#noDialogMargin で無効化可能。
+     */
+    var dialogMarginOnPortrait: Rect? = Rect(20, 40, 20, 40)
+    var dialogMarginOnLandscape: Rect? = Rect(40, 20, 40, 20)
 }

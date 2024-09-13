@@ -53,14 +53,33 @@ import java.lang.ref.WeakReference
 //    }
 //}
 
-abstract class UtDialogBase(
-    val isDialog:Boolean=true       // true:ダイアログモード（MessageBox類）/ false:フラグメントモード(UtDialog)
-    ) : DialogFragment(), IUtDialog {
+abstract class UtDialogBase : DialogFragment(), IUtDialog {
     val bundle = UtBundleDelegate { ensureArguments() }
 
     final override fun ensureArguments(): Bundle {
         return arguments ?: Bundle().apply { arguments = this }
     }
+
+    /**
+     * ダイアログの表示モード
+     *
+     * true: ダイアログモード
+     *    DialogFragment#show() で表示。ダイアログ用に新しい Windowが構築される。
+     *    Activityの上に、独立したwindow を重ねる構成となるため、動作が安定していたので、従来はデフォルトはこちらにしていたが、
+     *    edge-to-edge が標準になると、Activityの状態（NoActionBar + statusBar非表示の場合など）と整合をとるのが難しくなってきたので、
+     *    v4世代では、フラグメントモードをデフォルトに変更。
+     * false: フラグメントモード
+     *    FragmentManager のトランザクションで表示する。ActivityのWindow上に構築される。
+     *
+     *
+     */
+    var isDialog : Boolean by bundle.booleanWithDefault(UtDialogConfig.showInDialogModeAsDefault)
+
+    /**
+     * フラグメントモードの場合に、setOnApplyWindowInsetsListenerを呼び出して、insets の調整を行うかどうか。
+     */
+    var edgeToEdgeEnabled : Boolean by bundle.booleanWithDefault(UtDialogConfig.edgeToEdgeEnabled)
+
 
     private var dialogHost: WeakReference<IUtDialogHost>? = null
 
@@ -118,7 +137,7 @@ abstract class UtDialogBase(
         if(savedInstanceState==null) {
             onDialogOpening()
         }
-        if(!isDialog) {
+        if(!isDialog && edgeToEdgeEnabled) {
             // Apply window insets to avoid overlapping with system navigation bar
             ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
                 val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())

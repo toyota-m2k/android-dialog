@@ -1,64 +1,228 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/main"
     tools:context=".MainActivity">
 
-    <LinearLayout
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
-        <Button
-            android:id="@+id/dialog_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        >
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Show Dialog"
-            />
-        <Button
-            android:id="@+id/message_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Show Message"
-            />
-        <Button
-            android:id="@+id/rx_dialog_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="RxDialog Test"
-            />
-        <Button
-            android:id="@+id/flow_test_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Flow Test"
-            />
+            android:layout_marginHorizontal="10dp"
+            android:orientation="vertical"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            >
 
-        <Button
-            android:id="@+id/immortal_task_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Immortal Task Test"
-            />
-        <Button
-            android:id="@+id/catalogue"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Dialog Catalogue"
-            />
-        <Button
-            android:id="@+id/activity_call"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Activity Call"
-            />
-    </LinearLayout>
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/radio_dialog_position"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                >
+                <Button
+                    android:id="@+id/radio_fit_screen_width"
+                    android:text="Full"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_left"
+                    android:text="Left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_center"
+                    android:text="Center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_right"
+                    android:text="Right"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/radio_material_theme"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                >
+                <Button
+                    android:id="@+id/radio_material2"
+                    android:text="Material2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_material3"
+                    android:text="Material3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_dynamic_color"
+                    android:text="DynamicColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <CheckBox
+                android:id="@+id/check_no_action_bar_theme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No ActionBar Theme"
+                />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/radio_guard_color"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                >
+                <Button
+                    android:id="@+id/radio_guard_color_none"
+                    android:text="None"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_guard_color_dim"
+                    android:text="Dark"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_guard_color_see_through"
+                    android:text="Light"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_guard_color_auto"
+                    android:text="Auto(D)"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+                <Button
+                    android:id="@+id/radio_guard_color_auto_s"
+                    android:text="Auto(S)"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="?attr/materialButtonOutlinedStyle"
+                    />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
 
 
+            <CheckBox
+                android:id="@+id/check_dialog_mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Dialog Mode"
+                />
+            <CheckBox
+                android:id="@+id/check_edge_to_edge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Edge to Edge　(only for Fragment Mode)"
+                />
+            <CheckBox
+                android:id="@+id/check_hide_status_bar_on_dialog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Full Screen Dialog　(only for Dialog Mode)"
+                />
+            <CheckBox
+                android:id="@+id/check_cancellable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cancellable"
+                />
+            <CheckBox
+                android:id="@+id/check_draggable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Draggable"
+                />
+            <CheckBox
+                android:id="@+id/check_status_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Status Bar"
+            />
+            <CheckBox
+                android:id="@+id/check_action_bar"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="Show Action Bar"
+                />
 
+            <Button
+                android:id="@+id/compact_dialog_button"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="Compact Dialog"
+                />
+            <Button
+                android:id="@+id/auto_scroll_dialog_button"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="Auto Scroll Dialog"
+                />
+            <Button
+                android:id="@+id/full_height_dialog_button"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="Full Height Dialog"
+                />
+            <Button
+                android:id="@+id/custom_dialog_button"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="Custom Dialog"
+                />
+
+            <Button
+                android:id="@+id/dummy_activity_button"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="Theme Color Check"
+                />
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

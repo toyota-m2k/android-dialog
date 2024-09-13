@@ -3,6 +3,7 @@
     <style name="UtDialogTheme">
         <!-- Colors for Dialog Body -->
         <item name="color_dlg_bg">?attr/colorSurface</item>
+        <item name="color_dlg_text">?attr/colorOnSurface</item>
         <item name="color_dlg_border">?attr/colorPrimary</item>
 
         <!-- Colors for Dialog Title bar -->
@@ -10,6 +11,10 @@
         <item name="color_dlg_title_text">?attr/colorOnPrimary</item>
         <item name="color_dlg_title_separator_upper">@color/transparent</item>
         <item name="color_dlg_title_separator_lower">@color/transparent</item>
+
+        <!-- Colors for Dialog Footer -->
+        <item name="color_dlg_footer_bg">?attr/colorPrimaryContainer</item>
+        <item name="color_dlg_footer_text">?attr/colorOnPrimaryContainer</item>
 
         <!-- Colors for DONE button -->
         <item name="color_dlg_button_bg_normal">?attr/colorSecondary</item>

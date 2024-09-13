@@ -6,12 +6,13 @@ agp = "8.6.0"
 #libraries
 coreKtx = "1.13.1"
 appcompat = "1.7.0"
-kotlinReflect = "2.0.0"
+kotlinReflect = "2.0.20"
 lifecycleRuntimeKtx = "2.8.5"
 lifecycleViewnodelKtxVersion = "2.8.5"
 lifecycleLivedataKtx = "2.8.5"
 lifecycleViewmodelSavedstate = "2.8.5"
 material = "1.12.0"
+activity = "1.9.2"
 constraintLayout = "2.1.4"
 rxjava = "3.1.2"
 rxandroid = "3.0.0"
@@ -22,12 +23,14 @@ espressoCore = "3.6.1"
 androidUtilities = "2.3.0"
 androidBinding = "1.3.3"
 androidViewex = "1.1.1"
+activityVersion = "1.9.2"
 
 [libraries]
 kotlinReflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlinReflect" }
 coreKtx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
 constraintLayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintLayout" }
 lifecycleLiveDataKtx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 lifecycleViewModelKtx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewnodelKtxVersion" }
@@ -42,6 +45,7 @@ espressoCore = { module = "androidx.test.espresso:espresso-core", version.ref = 
 android-utilities = { module = "com.github.toyota-m2k:android-utilities", version.ref = "androidUtilities" }
 android-binding = { module = "com.github.toyota-m2k:android-binding", version.ref = "androidBinding" }
 android-viewex = { module = "com.github.toyota-m2k:android-viewex", version.ref = "androidViewex" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activityVersion" }
 
 [plugins]
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

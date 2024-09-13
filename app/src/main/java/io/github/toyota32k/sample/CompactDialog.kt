@@ -8,9 +8,9 @@ import io.github.toyota32k.dialog.UtDialog
 
 class CompactDialog : UtDialog() {
     init {
-        title="小さいダイアログ"
-        setLimitWidth(400)
+        title="Compact Dialog"
         heightOption=HeightOption.COMPACT
+        widthOption=WidthOption.COMPACT
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
     }

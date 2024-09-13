@@ -36,6 +36,7 @@ suspend fun UtImmortalTaskBase.showMessageBox(title:String?, message:String?, po
 /**
  * ImmortalTask内からアクティビティを取得するための拡張関数
  */
+@Suppress("UnusedReceiverParameter")
 suspend fun UtImmortalTaskBase.getActivity():FragmentActivity? {
     return UtImmortalTaskManager.mortalInstanceSource.getOwner().asActivity()
 }
@@ -50,6 +51,7 @@ val UtDialog.immortalTaskContext: IUtImmortalTaskContext get() {
     return UtImmortalTaskManager.taskOf(taskName)?.task?.immortalTaskContext ?: throw IllegalStateException("no such task: $taskName")
 }
 
+@Suppress("UnusedReceiverParameter")
 val IUtImmortalTask.application : Application get() {
     return UtImmortalTaskManager.application
 }
@@ -59,8 +61,9 @@ fun IUtImmortalTask.getString(@StringRes id:Int):String {
 }
 
 /**
- * ちょっと悪ノリ気味。。。ViewModelからも appli
+ * ちょっと悪ノリ気味。。。ViewModelからも application を取得できてしまう。
  */
+@Suppress("UnusedReceiverParameter")
 val IUtImmortalTaskMutableContextSource.application : Application get() {
     return UtImmortalTaskManager.application
 }

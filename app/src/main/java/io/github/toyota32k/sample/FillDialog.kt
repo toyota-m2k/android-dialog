@@ -13,8 +13,7 @@ import io.github.toyota32k.dialog.UtDialog
 
 class FillDialog : UtDialog() {
     init {
-        title="Auto Scroll Test"
-        setLimitWidth(400)
+        title="Fill Height"
         heightOption=HeightOption.FULL
 //        guardColor = Color.argb(0xD0, 0xFF, 0xFF, 0xFF)
         setLeftButton(BuiltInButtonType.CANCEL)
