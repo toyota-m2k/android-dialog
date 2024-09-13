@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,175 +7,342 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".DummyActivity"
-    android:background="#90ffff"
+    android:background="?attr/colorSurface"
     >
-    <LinearLayout
-        android:id="@+id/list_panel"
-        android:layout_width="320dp"
-        android:layout_height="0dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:orientation="vertical"
-        android:layout_marginEnd="1dp"
-        android:background="?attr/colorSurface"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_horizontal"
-            android:paddingHorizontal="8dp"
             >
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/list_mode"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                app:singleSelection="true"
-                app:selectionRequired="true"
                 android:layout_weight="1"
+                android:orientation="vertical"
                 >
-                <Button
-                    android:id="@+id/radio_all"
-                    android:text="All"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="?attr/materialButtonOutlinedStyle"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnPrimary"
+                    android:background="?attr/colorPrimary"
+                    android:text="Primary"
                     />
-                <Button
-                    android:id="@+id/radio_videos"
-                    android:text="Video"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="?attr/materialButtonOutlinedStyle"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorPrimary"
+                    android:background="?attr/colorOnPrimary"
+                    android:text="OnPrimary"
                     />
-                <Button
-                    android:id="@+id/radio_photos"
-                    android:text="Photo"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="?attr/materialButtonOutlinedStyle"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnPrimaryContainer"
+                    android:background="?attr/colorPrimaryContainer"
+                    android:text="Container"
                     />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-            <ImageButton
-                android:id="@+id/list_setting_button"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_vertical"
-                android:background="?attr/selectableItemBackground"
-                app:tint="?attr/colorPrimaryVariant" />
-        </LinearLayout>
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/list_view"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="#ff8080"
-            />
-    </LinearLayout>
-    <FrameLayout
-        android:id="@+id/viewer_area"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintStart_toEndOf="@+id/list_panel"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:background="#ff80ff"
-        >
-        <FrameLayout
-            android:id="@+id/photo_viewer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <ImageView
-                android:id="@+id/image_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="fitCenter"
-                />
-            <LinearLayout
-                android:id="@+id/photo_button_panel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_gravity="bottom|center_horizontal"
-                android:background="#8080ff"
-                >
-                <!--                <ImageButton-->
-                <!--                    android:id="@+id/image_prev_button"-->
-                <!--                    android:layout_width="48dp"-->
-                <!--                    android:layout_height="48dp"-->
-                <!--                    app:srcCompat="@drawable/ic_chevron_left"-->
-                <!--                    app:tint="?attr/iconColor"-->
-                <!--                    android:background="?attr/selectableItemBackground"-->
-                <!--                    />-->
-                <!--                <ImageButton-->
-                <!--                    android:id="@+id/image_next_button"-->
-                <!--                    android:layout_width="48dp"-->
-                <!--                    android:layout_height="48dp"-->
-                <!--                    app:srcCompat="@drawable/ic_chevron_right"-->
-                <!--                    app:tint="?attr/iconColor"-->
-                <!--                    android:background="?attr/selectableItemBackground"-->
-                <!--                    />-->
-                <ImageButton
-                    android:id="@+id/image_rotate_left_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackground"
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorPrimaryContainer"
+                    android:background="?attr/colorOnPrimaryContainer"
+                    android:text="OnContainer"
                     />
-                <ImageButton
-                    android:id="@+id/image_rotate_right_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackground"
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnPrimaryFixed"
+                    android:background="?attr/colorPrimaryFixed"
+                    android:text="Fixed"
                     />
-                <ImageButton
-                    android:id="@+id/photo_crop_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackground"
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnPrimaryFixed"
+                    android:background="?attr/colorPrimaryFixedDim"
+                    android:text="FixedDim"
                     />
-                <ImageButton
-                    android:id="@+id/photo_undo_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackground"
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorPrimaryFixed"
+                    android:background="?attr/colorOnPrimaryFixed"
+                    android:text="OnFixed"
                     />
-                <ImageButton
-                    android:id="@+id/photo_save_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackground"
-                    />
-
-                <ImageButton
-                    android:id="@+id/expand_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackground"
-                    />
-                <ImageButton
-                    android:id="@+id/collapse_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackground"
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorPrimaryFixed"
+                    android:background="?attr/colorOnPrimaryFixedVariant"
+                    android:text="OnFixedVariant"
                     />
 
             </LinearLayout>
-        </FrameLayout>
-        <View
-            android:id="@+id/video_viewer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#ff8989"
-            />
-    </FrameLayout>
-    <FrameLayout
-        android:visibility="gone"
-        android:id="@+id/safe_guard"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/white"
-        />
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSecondary"
+                    android:background="?attr/colorSecondary"
+                    android:text="Secondary"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorSecondary"
+                    android:background="?attr/colorOnSecondary"
+                    android:text="OnSecondary"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSecondaryContainer"
+                    android:background="?attr/colorSecondaryContainer"
+                    android:text="Container"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorSecondaryContainer"
+                    android:background="?attr/colorOnSecondaryContainer"
+                    android:text="OnContainer"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSecondaryFixed"
+                    android:background="?attr/colorSecondaryFixed"
+                    android:text="Fixed"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSecondaryFixed"
+                    android:background="?attr/colorSecondaryFixedDim"
+                    android:text="FixedDim"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorSecondaryFixed"
+                    android:background="?attr/colorOnSecondaryFixed"
+                    android:text="OnFixed"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorSecondaryFixed"
+                    android:background="?attr/colorOnSecondaryFixedVariant"
+                    android:text="OnFixedVariant"
+                    />
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnTertiary"
+                    android:background="?attr/colorTertiary"
+                    android:text="Tertiary"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorTertiary"
+                    android:background="?attr/colorOnTertiary"
+                    android:text="OnTertiary"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnTertiaryContainer"
+                    android:background="?attr/colorTertiaryContainer"
+                    android:text="Container"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorTertiaryContainer"
+                    android:background="?attr/colorOnTertiaryContainer"
+                    android:text="OnContainer"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnTertiaryFixed"
+                    android:background="?attr/colorTertiaryFixed"
+                    android:text="Fixed"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnTertiaryFixed"
+                    android:background="?attr/colorTertiaryFixedDim"
+                    android:text="FixedDim"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorTertiaryFixed"
+                    android:background="?attr/colorOnTertiaryFixed"
+                    android:text="OnFixed"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorTertiaryFixed"
+                    android:background="?attr/colorOnTertiaryFixedVariant"
+                    android:text="OnFixedVariant"
+                    />
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:background="?attr/colorSurface"
+                    android:text="Surface"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:background="?attr/colorSurfaceDim"
+                    android:text="Dim"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:background="?attr/colorSurfaceBright"
+                    android:text="Bright"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSurfaceInverse"
+                    android:background="?attr/colorSurfaceInverse"
+                    android:text="Inverse"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:background="?attr/colorSurfaceContainerLowest"
+                    android:text="Lowest"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:background="?attr/colorSurfaceContainerLow"
+                    android:text="Low"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:background="?attr/colorSurfaceContainer"
+                    android:text="Container"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:background="?attr/colorSurfaceContainerHigh"
+                    android:text="High"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:background="?attr/colorSurfaceContainerHighest"
+                    android:text="Highest"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorSurface"
+                    android:background="?attr/colorOnSurfaceVariant"
+                    android:text="OnSurfaceVariant"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorSurface"
+                    android:background="?attr/colorOutline"
+                    android:text="Outline"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:textColor="?attr/colorSurface"
+                    android:background="?attr/colorOutlineVariant"
+                    android:text="OutlineVariant"
+                    />
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+    </ScrollView>
+
+
+
+</FrameLayout>

@@ -221,7 +221,7 @@
                 android:id="@+id/dummy_activity_button"
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
-                android:text="Dummy Activity"
+                android:text="Theme Color Check"
                 />
         </LinearLayout>
     </ScrollView>

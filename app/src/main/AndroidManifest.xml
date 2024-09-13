@@ -7,7 +7,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.DialogSample.Legacy">
+        android:theme="@style/Theme.DialogSample.Material3">
         <activity
             android:name=".DummyActivity"
             android:exported="false"

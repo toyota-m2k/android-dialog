@@ -6,17 +6,23 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModelProvider
+import io.github.toyota32k.MainActivity.MainViewModel
 import io.github.toyota32k.databinding.ActivityDummyBinding
+import io.github.toyota32k.utils.ApplicationViewModelStoreOwner
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.hideActionBar
 import io.github.toyota32k.utils.hideStatusBar
 
 class DummyActivity : AppCompatActivity() {
     val logger = UtLog("DummyActivity")
+    private val viewModel: MainViewModel = ViewModelProvider(ApplicationViewModelStoreOwner.viewModelStore, ViewModelProvider.NewInstanceFactory())[MainViewModel::class.java]
+
     private lateinit var controls: ActivityDummyBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        setTheme(viewModel.selectedTheme)
         controls = ActivityDummyBinding.inflate(layoutInflater)
         setContentView(controls.root)
         ViewCompat.setOnApplyWindowInsetsListener(controls.main) { v, insets ->
@@ -27,10 +33,5 @@ class DummyActivity : AppCompatActivity() {
         }
         hideActionBar()
         hideStatusBar()
-        window.addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON  // スリープしない
-                    or WindowManager.LayoutParams.FLAG_SECURE  // キャプチャーを禁止（タスクマネージャで見えないようにする）
-        )
-
     }
 }

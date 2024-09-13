@@ -84,6 +84,15 @@ object UtDialogConfig {
     var dialogFrameId: Int = R.layout.dialog_frame
 
     /**
+     * 旧バージョン互換モード
+     */
+    fun useLegacyTheme() {
+        dialogFrameId = R.layout.dialog_frame_legacy
+        dialogMarginOnPortrait = null
+        dialogMarginOnLandscape = null
+    }
+
+    /**
      * フェードイン/アウトアニメーションの遷移時間
      */
     var fadeInDuration:Long = 300L
