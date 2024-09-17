@@ -14,6 +14,9 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
     var otherLabel:String? by bundle.stringNullable
     var selectedByButton:Boolean = false
         private set
+    init {
+        isDialog = true
+    }
 
     protected open fun createAlertBuilder():AlertDialog.Builder {
         return AlertDialog.Builder(requireContext())

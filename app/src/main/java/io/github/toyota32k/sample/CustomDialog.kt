@@ -54,7 +54,7 @@ class CustomDialog : UtDialog() {
                     updateCustomHeight()
                 },
                 Command().connectAndBind(this@CustomDialog, findViewById(R.id.sub_dialog_button)) {
-                    SubCompactDialog.open()
+                    SubCompactDialog.open(isDialog)
                 },
             )
         }

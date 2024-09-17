@@ -28,6 +28,7 @@ import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.dialog.task.UtMortalActivity
+import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.sample.AutoScrollDialog
 import io.github.toyota32k.sample.CompactDialog
 import io.github.toyota32k.sample.Config
@@ -72,6 +73,8 @@ class MainActivity : UtMortalActivity() {
         val commandAutoScrollDialog = LiteUnitCommand(::showAutoScrollDialog)
         val commandFillDialog = LiteUnitCommand(::showFillHeightDialog)
         val commandCustomDialog = LiteUnitCommand(::showCustomDialog)
+        val commandMessageBox = LiteUnitCommand(::showMessageBox)
+
         var currentTheme = R.style.Theme_DialogSample_Legacy
         val selectedTheme:Int get() = if(noActionBarTheme.value) materialTheme.value.noActionBarThemeId else materialTheme.value.themeId
         var currentEdgeToEdgeEnabled = true
@@ -159,7 +162,7 @@ class MainActivity : UtMortalActivity() {
         }
 
         private fun showCompactDialog() {
-            UtImmortalSimpleTask.run {
+            UtImmortalSimpleTask.run("CompactDialog") {
                 logger.debug("Showing: CompactDialog...")
                 showDialog(CompactDialog::class.java.name) { CompactDialog().applyDialogParams() }
                 logger.debug("Closed: CompactDialog")
@@ -168,7 +171,7 @@ class MainActivity : UtMortalActivity() {
         }
 
         private fun showAutoScrollDialog() {
-            UtImmortalSimpleTask.run {
+            UtImmortalSimpleTask.run("AutoScrollDialog") {
                 logger.debug("Showing: AutoScrollDialog...")
                 showDialog(AutoScrollDialog::class.java.name) { AutoScrollDialog().applyDialogParams() }
                 logger.debug("Closed: AutoScrollDialog")
@@ -176,7 +179,7 @@ class MainActivity : UtMortalActivity() {
             }
         }
         private fun showFillHeightDialog() {
-            UtImmortalSimpleTask.run {
+            UtImmortalSimpleTask.run("ShowFillHeightDialog") {
                 logger.debug("Showing: FillDialog...")
                 showDialog(FillDialog::class.java.name) { FillDialog().applyDialogParams() }
                 logger.debug("Closed: FillDialog")
@@ -184,9 +187,17 @@ class MainActivity : UtMortalActivity() {
             }
         }
         private fun showCustomDialog() {
-            UtImmortalSimpleTask.run {
+            UtImmortalSimpleTask.run("ShowCustomDialog"){
                 logger.debug("Showing: CustomDialog...")
                 showDialog(CustomDialog::class.java.name) { CustomDialog().applyDialogParams() }
+                logger.debug("Closed: CustomDialog")
+                true
+            }
+        }
+        private fun showMessageBox() {
+            UtImmortalSimpleTask.run("MessageBox"){
+                logger.debug("Message Box...")
+                showYesNoMessageBox("Message Box", "Final Answer?")
                 logger.debug("Closed: CustomDialog")
                 true
             }
@@ -246,6 +257,7 @@ class MainActivity : UtMortalActivity() {
             .bindCommand(viewModel.commandAutoScrollDialog, controls.autoScrollDialogButton)
             .bindCommand(viewModel.commandFillDialog, controls.fullHeightDialogButton)
             .bindCommand(viewModel.commandCustomDialog, controls.customDialogButton)
+            .bindCommand(viewModel.commandMessageBox, controls.messageBoxButton)
             .clickBinding(controls.dummyActivityButton) {
                 startActivity(Intent(this, DummyActivity::class.java))
             }

@@ -25,9 +25,11 @@ class SubCompactDialog: UtDialog() {
     }
 
     companion object {
-        fun open() {
+        fun open(isDialog:Boolean) {
             UtImmortalSimpleTask.run(SubCompactDialog::class.java.name) {
-                showDialog<IUtDialog>(taskName) { SubCompactDialog()}.status.ok
+                showDialog<IUtDialog>(taskName) {
+                    SubCompactDialog().also { dlg-> dlg.isDialog = isDialog }
+                }.status.ok
             }
         }
     }

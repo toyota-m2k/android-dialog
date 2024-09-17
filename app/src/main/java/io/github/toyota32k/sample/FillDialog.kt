@@ -7,9 +7,14 @@ import android.widget.TextView
 import io.github.toyota32k.R
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.ListViewBinding
+import io.github.toyota32k.binder.clickBinding
 import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.list.ObservableList
+import io.github.toyota32k.binder.listViewBinding
 import io.github.toyota32k.dialog.UtDialog
+import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.showOkCancelMessageBox
 
 class FillDialog : UtDialog() {
     init {
@@ -39,21 +44,24 @@ class FillDialog : UtDialog() {
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         return inflater.inflate(R.layout.sample_fill_dialog).apply {
             listView = findViewById(R.id.list_view)
-            binder.register (
-                ListViewBinding.create(listView, observableList, R.layout.string_list_item) { _, view, text->
+            binder
+                .owner(this@FillDialog)
+                .listViewBinding(listView, observableList, R.layout.string_list_item) { _, view, text->
                     view.findViewById<TextView>(R.id.text_view).text = text
-                },
-                Command().connectAndBind(this@FillDialog, findViewById(R.id.add_item_button)) {
+                }
+                .clickBinding(findViewById(R.id.add_item_button)) {
                     count++
                     observableList.add("Item - $count")
-                },
-                Command().connectAndBind(this@FillDialog, findViewById(R.id.del_item_button)) {
+                }
+                .clickBinding(findViewById(R.id.del_item_button)) {
                     observableList.removeLastOrNull()
-                },
-                Command().connectAndBind(this@FillDialog, findViewById(R.id.sub_dialog_button)) {
-                    SubCompactDialog.open()
-                },
-            )
+                }
+                .clickBinding(findViewById(R.id.sub_dialog_button)) {
+                    SubCompactDialog.open(isDialog)
+//                    UtImmortalSimpleTask.run("MessageBoxOnDialog") {
+//                        showOkCancelMessageBox("Message Box", "Final Answer?")
+//                    }
+                }
         }
     }
 }
