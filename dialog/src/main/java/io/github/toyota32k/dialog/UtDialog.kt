@@ -117,6 +117,12 @@ abstract class UtDialog: UtDialogBase() {
      * false: ヘッダあり（デフォルト）
      */
     var noHeader:Boolean by bundle.booleanFalse
+    /**
+     * フッタ（新UIのok/cancelボタンやタイトル）無しにするか？
+     * true: フッタなし
+     * false: フッタあり（デフォルト）
+     */
+    var noFooter:Boolean by bundle.booleanFalse
 
 
     /**
@@ -1197,6 +1203,12 @@ abstract class UtDialog: UtDialogBase() {
             if(noHeader) {
                 rootView.findViewById<View>(R.id.header).visibility = View.GONE
                 rootView.findViewById<View>(R.id.separator).visibility = View.GONE
+            }
+            if(noFooter) {
+                val footer = rootView.findViewById<View>(R.id.footer)
+                if(footer != null) {
+                    footer.visibility = View.GONE
+                }
             }
             leftButton = rootView.findViewById(R.id.left_button)
             rightButton = rootView.findViewById(R.id.right_button)
