@@ -7,6 +7,10 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.ListAdapter
+import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.showMultiSelectionBox
+import io.github.toyota32k.dialog.task.showRadioSelectionBox
+import io.github.toyota32k.dialog.task.showSingleSelectionBox
 
 interface IUtSingleSelectionResult {
     val selectedIndex: Int
@@ -57,6 +61,11 @@ open class UtSingleSelectionBox : UtDialogBase(), DialogInterface.OnClickListene
                 this.title = title
             }
         }
+        suspend fun open(title:String?, items:Array<String>) : Int {
+            return UtImmortalSimpleTask.executeAsync {
+                showSingleSelectionBox(title,items)
+            }
+        }
     }
 }
 
@@ -93,13 +102,18 @@ open class UtRadioSelectionBox : UtMessageBox(), DialogInterface.OnClickListener
     }
 
     companion object {
-        fun create(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=null) : UtRadioSelectionBox {
+        fun create(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text) : UtRadioSelectionBox {
             return UtRadioSelectionBox().apply {
                 this.title = title
                 this.items = items
                 this.selectedIndex = initialSelection
                 this.okLabel = okLabel
                 this.cancelLabel = cancelLabel
+            }
+        }
+        suspend fun open(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text) : Int {
+            return UtImmortalSimpleTask.executeAsync {
+                showRadioSelectionBox(title,items,initialSelection,okLabel,cancelLabel)
             }
         }
     }
@@ -125,13 +139,19 @@ class UtMultiSelectionBox
     }
 
     companion object {
-        fun create(title:String, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=null) : UtMultiSelectionBox {
+        fun create(title:String?, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=null) : UtMultiSelectionBox {
             return UtMultiSelectionBox().apply {
                 this.title = title
                 this.items = items
                 this.selectionFlags = initialSelections ?: BooleanArray(items.size) { false }
                 this.okLabel = okLabel
                 this.cancelLabel = cancelLabel
+            }
+        }
+
+        suspend fun open(title:String?, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=null): BooleanArray {
+            return UtImmortalSimpleTask.executeAsync {
+                showMultiSelectionBox(title,items,initialSelections,okLabel,cancelLabel)
             }
         }
     }

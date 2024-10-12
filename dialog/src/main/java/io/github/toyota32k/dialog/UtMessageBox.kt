@@ -4,6 +4,11 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
+import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.showConfirmMessageBox
+import io.github.toyota32k.dialog.task.showOkCancelMessageBox
+import io.github.toyota32k.dialog.task.showThreeChoicesMessageBox
+import io.github.toyota32k.dialog.task.showYesNoMessageBox
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
@@ -75,13 +80,34 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
             return createForOkCancel(title,message,yesLabel,noLabel)
         }
 
-        fun createFor(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : UtMessageBox {
+        fun createForThreeChoices(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : UtMessageBox {
             return UtMessageBox().apply {
                 this.title = title
                 this.message = message
                 this.okLabel = positiveLabel
                 this.cancelLabel = negativeLabel
                 this.otherLabel = neutralLabel
+            }
+        }
+        suspend fun openForConfirm(title:String?, message:String?, okLabel:String= UtStandardString.OK.text) {
+            UtImmortalSimpleTask.runAsync {
+                showConfirmMessageBox(title, message, okLabel)
+                true
+            }
+        }
+        suspend fun openForOkCancel(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancelLabel:String= UtStandardString.CANCEL.text) : Boolean {
+            return UtImmortalSimpleTask.runAsync {
+                showOkCancelMessageBox(title, message, okLabel, cancelLabel)
+            }
+        }
+        suspend fun openForYesNo(title:String?, message:String?, yesLabel:String= UtStandardString.YES.text, noLabel:String= UtStandardString.NO.text) : Boolean {
+            return UtImmortalSimpleTask.runAsync {
+                showYesNoMessageBox(title, message, yesLabel, noLabel)
+            }
+        }
+        suspend fun openForThreeChoices(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : IUtDialog.Status {
+            return UtImmortalSimpleTask.executeAsync {
+                showThreeChoicesMessageBox(title, message, positiveLabel, neutralLabel, negativeLabel)
             }
         }
     }

@@ -11,6 +11,9 @@ import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtMessageBox
+import io.github.toyota32k.dialog.UtMultiSelectionBox
+import io.github.toyota32k.dialog.UtRadioSelectionBox
+import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
 import java.lang.IllegalStateException
 
@@ -29,8 +32,20 @@ suspend fun UtImmortalTaskBase.showYesNoMessageBox(title:String?, message:String
     return showDialog("internalYesNo") { UtMessageBox.createForYesNo(title,message,yesLabel,noLabel) }.status.yes
 }
 
-suspend fun UtImmortalTaskBase.showMessageBox(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : IUtDialog.Status {
-    return showDialog("internalPositiveNeutralNegative") { UtMessageBox.createFor(title,message,positiveLabel,neutralLabel,negativeLabel) }.status
+suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : IUtDialog.Status {
+    return showDialog("internalPositiveNeutralNegative") { UtMessageBox.createForThreeChoices(title,message,positiveLabel,neutralLabel,negativeLabel) }.status
+}
+
+suspend fun UtImmortalTaskBase.showSingleSelectionBox(title:String?, items:Array<String>) : Int {
+    return showDialog("internalSingleSelection") { UtSingleSelectionBox.create(title, items) }.selectedIndex
+}
+
+suspend fun UtImmortalTaskBase.showRadioSelectionBox(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text) : Int {
+    return showDialog("internalRadioSelection") { UtRadioSelectionBox.create(title, items, initialSelection, okLabel, cancelLabel) }.selectedIndex
+}
+
+suspend fun UtImmortalTaskBase.showMultiSelectionBox(title:String?, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text) : BooleanArray {
+    return showDialog("internalMultiSelection") { UtMultiSelectionBox.create(title, items, initialSelections, okLabel, cancelLabel) }.selectionFlags
 }
 
 /**

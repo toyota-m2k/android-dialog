@@ -25,6 +25,7 @@ import io.github.toyota32k.databinding.ActivityMainBinding
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialog.WidthOption
 import io.github.toyota32k.dialog.UtDialogConfig
+import io.github.toyota32k.dialog.UtRadioSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.dialog.task.UtMortalActivity
@@ -73,7 +74,7 @@ class MainActivity : UtMortalActivity() {
         val commandAutoScrollDialog = LiteUnitCommand(::showAutoScrollDialog)
         val commandFillDialog = LiteUnitCommand(::showFillHeightDialog)
         val commandCustomDialog = LiteUnitCommand(::showCustomDialog)
-        val commandMessageBox = LiteUnitCommand(::showMessageBox)
+        val commandMessageBox = LiteUnitCommand(::showRadioSelectionBox)
 
         var currentTheme = R.style.Theme_DialogSample_Legacy
         val selectedTheme:Int get() = if(noActionBarTheme.value) materialTheme.value.noActionBarThemeId else materialTheme.value.themeId
@@ -198,7 +199,23 @@ class MainActivity : UtMortalActivity() {
             UtImmortalSimpleTask.run("MessageBox"){
                 logger.debug("Message Box...")
                 showYesNoMessageBox("Message Box", "Final Answer?")
-                logger.debug("Closed: CustomDialog")
+                logger.debug("Closed: MessageBox")
+                true
+            }
+        }
+        private fun showRadioSelectionBox() {
+            UtImmortalSimpleTask.run("RadioSelectionBox") {
+                logger.debug("Radio Selection Box...")
+                val sel = showDialog(taskName) {
+                    UtRadioSelectionBox.create(
+                        title = "Radio Selection Box",
+                        items = arrayOf("Confirm", "OkCancel", "YesNo", "MultiSelection"),
+                        initialSelection = 0)
+                }.selectedItem
+                logger.debug("Closed: RadioSelectionBox ($sel)")
+                if(sel=="Confirm") {
+                    showMessageBox()
+                }
                 true
             }
         }
