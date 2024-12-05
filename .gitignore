@@ -26,3 +26,4 @@ app/release
 .idea/deploymentTargetSelector.xml
 .idea/other.xml
 .kotlin
+.idea/runConfigurations.xml
