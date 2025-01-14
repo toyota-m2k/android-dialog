@@ -27,3 +27,4 @@ app/release
 .idea/other.xml
 .kotlin
 .idea/runConfigurations.xml
+.idea/kotlinc.xml

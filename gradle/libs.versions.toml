@@ -20,9 +20,9 @@ rxkotlin = "3.0.1"
 junit = "4.13.2"
 androidxJunit = "1.2.1"
 espressoCore = "3.6.1"
-androidUtilities = "2.7.1"
-androidBinding = "1.3.8"
-androidViewex = "1.1.4"
+androidUtilities = "2.7.2"
+androidBinding = "1.3.9"
+androidViewex = "1.1.6"
 activityVersion = "1.9.3"
 
 [libraries]
