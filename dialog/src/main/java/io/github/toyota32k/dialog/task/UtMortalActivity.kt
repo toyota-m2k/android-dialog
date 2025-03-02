@@ -2,51 +2,32 @@ package io.github.toyota32k.dialog.task
 
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.*
 import io.github.toyota32k.utils.Disposer
 
 /**
  * ImmortalTask と協調動作するActivityの基本実装
+ * ベースActivityクラスの変更が困難、または、AppCompatActivity以外から派生する場合は、このクラスの実装を参考に、実装を追加してください。
+ *
  */
-abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityCanBePrivate") val dialogHostManager: UtDialogHostManager) : AppCompatActivity(), IUtDialogHost by dialogHostManager {
-    constructor() : this(UtDialogHostManager())
-
-    /**
-     * タスク名のテーブル
-     */
-    protected open val immortalTaskNameList:Array<String> = emptyArray()
+abstract class UtMortalActivity private constructor(
+    val mortalActivityCore: UtMortalActivityCore) : AppCompatActivity(), IUtDialogHost by mortalActivityCore {
+    constructor() : this(UtMortalActivityCore())
 
     /**
      * タスクの結果を受け取るハンドラ
-     * Activityがタスクの結果を知る必要がある場合はオーバーライドする。
-     * 放置でよければ、オーバーライド不要。
+     * Activityがタスクの結果を知る必要がある場合は onCreate() でハンドラをセットする
      */
-    protected open fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {}
-
-    /**
-     * Activity終了時にタスクをdisposeするかどうかを返す。
-     * ActivityをまたいでTaskを残したいとき以外はtrueを返せばよいと思う。
-     */
-    protected open fun queryDisposeTaskOnFinishActivity(name:String):Boolean {
-        return true
-    }
-
-    private val observersDisposer = Disposer()
+//    protected open fun notifyImmortalTaskResult(taskInfo: UtImmortalTaskManager.ITaskInfo) {}
+    protected var immortalTaskResultHandler: ((taskInfo: UtImmortalTaskManager.ITaskInfo)->Unit)? = null
 
     /**
      * Activity が前面に上がる時点で、reserveTask()を呼び出して、タスクテーブルに登録しておく。
      */
     override fun onResume() {
         super.onResume()
-
-        // ImmortalTask に接続する
-        UtImmortalTaskManager.registerOwner(toDialogOwner())
-        for(name in immortalTaskNameList) {
-            val task = UtImmortalTaskManager.reserveTask(name)
-            observersDisposer.register(task.registerStateObserver(this) {
-                onImmortalTaskStateChanged(name, it)
-            })
-        }
+        mortalActivityCore.onResume(this, immortalTaskResultHandler)
     }
 
     /**
@@ -54,21 +35,12 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
      */
     override fun onPause() {
         super.onPause()
-        for(name in immortalTaskNameList) {
-//            UtImmortalTaskManager.onOwnerPaused(name, toDialogOwner())
-            if(isFinishing&&queryDisposeTaskOnFinishActivity(name)) {
-                UtImmortalTaskManager.disposeTask(name)
-            }
-        }
-        observersDisposer.reset()
-        UtImmortalTaskManager.unregisterOwner(toDialogOwner())
+        mortalActivityCore.onPause(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if(isFinishing) {
-            UtDialogHelper.forceCloseAllDialogs(this)
-        }
+        mortalActivityCore.onDestroy(this)
     }
 
     /**
@@ -86,54 +58,12 @@ abstract class UtMortalActivity private constructor(@Suppress("MemberVisibilityC
      * - handleKeyEvent()がfalseを返したら、親クラス(FragmentActivity）の onKeyDownを呼ぶ。
      */
     final override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        val currentDialog: UtDialog? = UtDialogHelper.currentDialog(this)
-        if (currentDialog != null) {
-            logger.debug { "key event consumed by dialog: $keyCode (${event}) : ${currentDialog.javaClass.simpleName}" }
-            if(currentDialog.onKeyDown(keyCode, event)) {
-                // ダイアログがイベントを処理した
-                return true
-            }
-            if(!currentDialog.isDialog) {
-                // フラグメントモードの場合は、ダイアログでイベントを処理しなくても、消費したことにする（ダイアログの後ろで、Activityが操作されてしまうのを防止）
-                return true
-            }
-        }
-        // サブクラスの処理を呼ぶ
-        if(handleKeyEvent(keyCode, event)) {
-            return true
-        }
-        // イベントを消費しなかったなら、親クラスへ
-        return super.onKeyDown(keyCode, event)
-    }
-
-//    override fun onBackPressed() {
-//        if(UtDialogHelper.cancelCurrentDialog(this)) {
-//            return
-//        }
-//        super.onBackPressed()
-//    }
-
-    /**
-     * ImmortalTask の状態変化を受け取るハンドラ
-     * - 終了ステータス以外は無視。
-     * - 終了ステータスの場合は、notifyImmortalTaskResult()を呼ぶ
-     */
-    private fun onImmortalTaskStateChanged(taskName:String, state:UtImmortalTaskState) {
-        if(state.finished) {
-            val task = UtImmortalTaskManager.taskOf(taskName) ?: return
-            notifyImmortalTaskResult(task)
+        return if (mortalActivityCore.onKeyDown(this, keyCode, event)) {
+            true
+        } else {
+            super.onKeyDown(keyCode, event)
         }
     }
-
-    /**
-     * タスクの状態監視オブザーバー登録メソッド
-     */
-//    private fun observeImmortalTask(taskName:String, task: UtImmortalTaskManager.ITaskInfo) {
-//        logger.debug("")
-//        observersDisposer.register(data.disposableObserve(this){
-//            onImmortalTaskStateChanged(taskName, it)
-//        })
-//    }
 
     open val logger = UtImmortalTaskManager.logger
 }
