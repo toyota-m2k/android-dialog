@@ -1,10 +1,9 @@
-package io.github.toyota32k.dialog.task
+package io.github.toyota32k.dialog.mortal
 
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.*
-import io.github.toyota32k.utils.Disposer
+import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 
 /**
  * ImmortalTask と協調動作するActivityの基本実装
@@ -12,8 +11,8 @@ import io.github.toyota32k.utils.Disposer
  *
  */
 abstract class UtMortalActivity private constructor(
-    val mortalActivityCore: UtMortalActivityCore) : AppCompatActivity(), IUtDialogHost by mortalActivityCore {
-    constructor() : this(UtMortalActivityCore())
+    val mortalActivityCore: UtMortalTaskKeeper) : AppCompatActivity(), IUtDialogHost by mortalActivityCore {
+    constructor() : this(UtMortalTaskKeeper())
 
     /**
      * タスクの結果を受け取るハンドラ
@@ -27,7 +26,7 @@ abstract class UtMortalActivity private constructor(
      */
     override fun onResume() {
         super.onResume()
-        mortalActivityCore.onResume(this, immortalTaskResultHandler)
+        mortalActivityCore.onResume(this)
     }
 
     /**

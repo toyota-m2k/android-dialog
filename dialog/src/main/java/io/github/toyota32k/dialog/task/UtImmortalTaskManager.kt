@@ -67,7 +67,7 @@ object UtImmortalTaskManager : Closeable  {
     /**
      * Activity/Fragment を取得するための仕掛け i/f
      */
-    val mortalInstanceSource:IUiMortalInstanceSource = dialogOwnerStack
+    val mortalInstanceSource:IUtMortalInstanceSource = dialogOwnerStack
 
     /**
      * getString()などのために、ActivityやView以外からapplicationContextが欲しくなることが多いので、ここから取れるようにしておく。

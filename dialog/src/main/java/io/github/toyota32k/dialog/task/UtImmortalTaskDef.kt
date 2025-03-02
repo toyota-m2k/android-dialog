@@ -28,7 +28,7 @@ interface IUtImmortalTask : Closeable, IUtImmortalTaskContextSource {
 /**
  * ライフサイクルオブジェクト（死んだり生き返ったりするオブジェクト:Activity/Fragment）を取得するための i/f
  */
-interface IUiMortalInstanceSource {
+interface IUtMortalInstanceSource {
     suspend fun getOwner() : UtDialogOwner
     suspend fun getOwnerOf(clazz:Class<*>) : UtDialogOwner
     suspend fun getOwnerBy(filter:(LifecycleOwner)->Boolean):UtDialogOwner
@@ -37,24 +37,24 @@ interface IUiMortalInstanceSource {
     fun getOwnerOrNull(): UtDialogOwner?
 }
 
-suspend inline fun <T> IUiMortalInstanceSource.withOwner(fn:(UtDialogOwner)->T):T {
+suspend inline fun <T> IUtMortalInstanceSource.withOwner(fn:(UtDialogOwner)->T):T {
     return fn(getOwner())
 }
 
-suspend inline fun <T> IUiMortalInstanceSource.withOwner(clazz:Class<*>, fn:(UtDialogOwner)->T):T {
+suspend inline fun <T> IUtMortalInstanceSource.withOwner(clazz:Class<*>, fn:(UtDialogOwner)->T):T {
     return fn(getOwnerOf(clazz))
 }
 
-suspend inline fun <T> IUiMortalInstanceSource.withOwner(noinline ownerChooser:(LifecycleOwner)->Boolean, fn:(UtDialogOwner)->T):T {
+suspend inline fun <T> IUtMortalInstanceSource.withOwner(noinline ownerChooser:(LifecycleOwner)->Boolean, fn:(UtDialogOwner)->T):T {
     return fn(getOwnerBy(ownerChooser))
 }
 
-suspend inline fun <reified T: FragmentActivity> IUiMortalInstanceSource.getActivity():T {
+suspend inline fun <reified T: FragmentActivity> IUtMortalInstanceSource.getActivity():T {
     return getOwnerOf(T::class.java).asActivity() as? T ?: throw java.lang.IllegalStateException("not target activity")
 }
 
 @Suppress("unused")
-suspend inline fun <reified T:FragmentActivity, R> IUiMortalInstanceSource.withActivity(fn:(FragmentActivity)->R):R {
+suspend inline fun <reified T:FragmentActivity, R> IUtMortalInstanceSource.withActivity(fn:(FragmentActivity)->R):R {
     return fn(getActivity<T>())
 }
 

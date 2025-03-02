@@ -28,7 +28,7 @@ import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtRadioSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.UtMortalActivity
+import io.github.toyota32k.dialog.mortal.UtMortalActivity
 import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.sample.AutoScrollDialog
 import io.github.toyota32k.sample.CompactDialog

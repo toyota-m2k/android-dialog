@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 
-class UtDialogOwnerStack: IUiMortalInstanceSource {
+class UtDialogOwnerStack: IUtMortalInstanceSource {
     private val list = mutableListOf<UtOwner>()
     private val ownerFlow = MutableStateFlow<UtOwner?>(null)
     inner class UtOwner(lifecycleOwner: LifecycleOwner): UtDialogWeakOwner(lifecycleOwner) {
