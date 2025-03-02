@@ -1,13 +1,12 @@
 # DialogFragment - Lifecycle の苦悩
 
-iOS や Windows に比べて、Androidは何か様子がおかしい。はじめてのころ、Activityを、iOSのViewController, Windows の Window(WFP)かPage(UWP)くらいに考えてた。そして「普通に」作っていたら、デバイスを回転するだけで、「いろいろな不具合」が起きた。ActivityやView のインスタンスがコロコロ入れ替わる。コールバックして帰ってきたら、呼び出し元のActivityがもういない。仕事して帰宅したら、家がなくなっているような感じ。
+十数年前に、はじめて Android アプリの開発に携わった当時、Activityを、iOSのViewController, Windows の Window(WFP)かPage(UWP)くらいに考えてた。そして「普通に」作っていたら、デバイスを回転するだけで、「いろいろな不具合」が起きた。ActivityやView のインスタンスがコロコロ入れ替わる。コールバックして帰ってきたら、呼び出し元のActivityがもういない。仕事して帰宅したら、自分の家（だと思っている家）に知らない人が住んでいるような感じだ。
 
 なかでも、ダイアログやメッセージボックスを表示して、ユーザーの判断によって処理を分岐する、というありふれたフローの実装がやたらと難しく、いたるところに不適切な実装が見られる。Kotlinとかコルーチンとか、あるいは、ViewModel, LiveData といった、新しい仕掛けが次々に登場したが、ActivityやFragmentの本質的な気持ち悪さは一貫して変わっていない。
 
 では、ダイアログの結果を待ち受けるにはどうすればよいのか、何が正解なのか？
 
-というわけで、AndroidでDialogをなんとかうまい具合に実装できないモノかと、さまざま模索、試行錯誤した結果、
-[公式のドキュメント](https://developer.android.com/guide/topics/ui/dialogs?hl=ja) に記載された方法が一番マシ、という結論に達したわけだが、この結論に至るまでの苦悩の過程を遺しておこうと思う。
+というわけで、AndroidでDialogをなんとかうまい具合に実装できないモノかと、さまざま模索、試行錯誤した結果、[公式のドキュメント](https://developer.android.com/guide/topics/ui/dialogs?hl=ja) の、[ダイアログのホストにイベントを渡す](https://developer.android.com/develop/ui/views/components/dialogs?hl=ja#PassingEvents) に記載された方法しかない、という結論に達したわけだが、この結論に至るまでの苦悩の過程を遺しておこうと思う。
 
 尚、ダイアログの結果を外部（Activityなど）から受け取ろうとするから苦労するのであって、ダイアログ内でユーザー判断後の処理が閉じている場合、すなわち、onDone()などの中で、ViewModel や、SharedPreferences を書き換える、といった処理なら、何も難しくない。逆に、それで済むように、ロジックを考えることが、一番の解決策かもしれない。
 
@@ -61,7 +60,7 @@ class MainActivity:AppCompatActivity() {
 
 - ActivityやFragmentのインスタンスが再作成される場合（onDestroy/onCreate）
 - Fragmentのビューだけ再作成される場合(onDestroyView/onCreateView)
-- 同じインスタンスが再利用される場合（onStop/onStart) 
+- 同じインスタンスが再利用される場合 (onStop/onStart) 
 
 など、いろいろなパターンがある。これは、Activityの起動オプション（Intent#flagなど）やActivityスタックの状態、操作方法などによっても変化する。つまり、状態遷移のパターンが一通りではないので、ちょっと動いたからと言って安心してはいけない。特に、一番シビアな、インスタンスが再作成されるケースでちゃんと動くかどうかの確認を忘れずに。
 
@@ -76,9 +75,9 @@ class MainActivity:AppCompatActivity() {
 
 これで、確認したい画面が正しく復元され、その画面上での操作が正常に行われたら OK 
 
-え？この操作で、ダイアログやメッセージボックスが消えた？
+え？この操作で、ダイアログやメッセージボックスが何事もなく閉じたって？
 正しく実装できていれば、ダイアログ（Fragment）は OSが復元してくれるはず。
-だから、それは消えたんじゃなくて、異常終了して、OSが親切に再起動してくれたのかもしれないよ。
+だから、それは閉じたんじゃなくて、異常終了して、OSが親切に再起動してくれたのかもしれないよ。
 
 -----
 ## 【２】 では、どうするのが正しいの？

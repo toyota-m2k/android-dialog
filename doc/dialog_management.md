@@ -1,10 +1,21 @@
 
 # IUtDialog の結果を Activity/Fragment/ViewModel で受け取るには
 
-## 実装に取り掛かる前に
+## はじめに
 
-本ドキュメントでは、IUtDialogの結果を外部(Activity/Fragment/ViewModel)で受け取る方法を説明する。
-これは、ダイアログの結果（＝ユーザーの判断）よって、処理フローを分岐するのが目的である。もし、ViewModelやSharedPreferencesなどのデータ操作だけで済むなら、onCompletedなどのイベントハンドラで処理を完結するように構成することで、ここに記載された実装を省略できる。特に、特定のActivityでのみ使用されるダイアログの場合は、ViewModelを介して状態変化をやり取りできる場合が多い。本当にダイアログから結果を受け取る必要があるかどうか、慎重に判断されたい。
+当初、このライブラリは、Windowsアプリのボタンクリックイベントで、例えば、
+void OnButton
+
+
+
+
+onCompletedなどのイベントハンドラで処理を完結するように構成できるなら、ここで説明する複雑な実装は不要です。実際、１つのActivityでのみ使用されるダイアログの場合は、ViewModelを介して状態変化をやり取りできる場合が多く、ダイアログの onCompletedで、ViewModelの Observableな(MutableFlowやMutableLiveDataの)フィールドに値を書き込む、あるいは、[android-binding](https://github.com/toyota-m2k/android-binding) の [ICommand](https://github.com/toyota-m2k/android-binding#command-classes) を使ってActivity にコールバックすることにより、大部分の機能は実現できるはずです。
+
+このドキュメントでは、ダイアログの結果（＝ユーザーの判断）よって、処理フローを分岐するために、IUtDialogの結果を外部(Activity/Fragment/ViewModel)で受け取る方法を説明します。
+
+尚、ここで説明する実装は、すべて UtMortalActivity クラスに実装されており、Activity を、AppCompatActivityの代わりに、UtMortalActivity から派生すれば、一切の処理を
+
+尚、onCompletedなどのイベントハンドラで処理を完結するように構成できるなら、ここで説明する複雑な実装は不要です。実際、１つのActivityでのみ使用されるダイアログの場合は、ViewModelを介して状態変化をやり取りできる場合が多く、ダイアログの onCompletedで、ViewModelの Observableな(MutableFlowやMutableLiveDataの)フィールドに値を書き込む、あるいは、[android-binding](https://github.com/toyota-m2k/android-binding) の [ICommand](https://github.com/toyota-m2k/android-binding#command-classes) を使ってActivity にコールバックすることにより、大部分の機能は実現できるはずです。
 
 ## インターフェース
 
