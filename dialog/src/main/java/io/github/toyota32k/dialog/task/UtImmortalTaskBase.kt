@@ -10,6 +10,7 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.reflect.full.createInstance
 
 /**
  * ImmortalTask の基本実装
@@ -102,6 +103,13 @@ abstract class UtImmortalTaskBase(
      */
     suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D where D:IUtDialog {
         return internalShowDialog(tag, takeOwner = UtImmortalTaskManager.mortalInstanceSource::getOwner, dialogSource = dialogSource)
+    }
+
+    /**
+     * showDialogの簡略版
+     */
+    suspend inline fun <reified D> showDialog(tag:String):D where D:IUtDialog {
+        return showDialog(tag) { D::class.createInstance() }
     }
 
     /**

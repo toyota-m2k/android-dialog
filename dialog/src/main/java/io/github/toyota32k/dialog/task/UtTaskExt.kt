@@ -83,17 +83,17 @@ val IUtImmortalTaskMutableContextSource.application : Application get() {
     return UtImmortalTaskManager.application
 }
 
-inline fun <reified VM> IUtImmortalTask.createViewModel(application: Application): VM where VM : AndroidViewModel, VM:IUtImmortalTaskMutableContextSource {
-    return ViewModelProvider(this.immortalTaskContext, ViewModelProvider.AndroidViewModelFactory(application))[VM::class.java].also { vm->
-        vm.immortalTaskContext = this.immortalTaskContext
-    }
-}
-
-inline fun <reified VM> IUtImmortalTask.createViewModel(): VM where VM : ViewModel, VM:IUtImmortalTaskMutableContextSource {
-    return ViewModelProvider(this.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[VM::class.java].also { vm->
-        vm.immortalTaskContext = this.immortalTaskContext
-    }
-}
+//inline fun <reified VM> IUtImmortalTask.createViewModel(application: Application): VM where VM : AndroidViewModel, VM:IUtImmortalTaskMutableContextSource {
+//    return ViewModelProvider(this.immortalTaskContext, ViewModelProvider.AndroidViewModelFactory(application))[VM::class.java].also { vm->
+//        vm.immortalTaskContext = this.immortalTaskContext
+//    }
+//}
+//
+//inline fun <reified VM> IUtImmortalTask.createViewModel(): VM where VM : ViewModel, VM:IUtImmortalTaskMutableContextSource {
+//    return ViewModelProvider(this.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[VM::class.java].also { vm->
+//        vm.immortalTaskContext = this.immortalTaskContext
+//    }
+//}
 
 inline fun <reified VM:ViewModel> IUtImmortalTaskContext.getViewModel():VM  {
     return ViewModelProvider(this, ViewModelProvider.NewInstanceFactory())[VM::class.java]
