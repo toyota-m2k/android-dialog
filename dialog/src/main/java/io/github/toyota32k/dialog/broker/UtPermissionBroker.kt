@@ -5,10 +5,14 @@ import android.content.pm.PackageManager
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
+import io.github.toyota32k.dialog.broker.pickers.UtFilePickerStore
+import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 
-class UtPermissionBroker(val activity:FragmentActivity) : UtActivityBroker<String, Boolean>() {
-    val context: Context get() = activity.applicationContext!!
-    init { register(activity) }
+interface IUtPermissionBrokerProvider {
+    val permissionBroker: UtPermissionBroker
+}
+
+class UtPermissionBroker() : UtActivityBroker<String, Boolean>() {
     companion object {
         fun isPermitted(context: Context, permission: String):Boolean {
             return context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
@@ -16,7 +20,7 @@ class UtPermissionBroker(val activity:FragmentActivity) : UtActivityBroker<Strin
     }
     @Suppress("MemberVisibilityCanBePrivate")
     fun isPermitted(permission: String):Boolean {
-        return isPermitted(context, permission)
+        return isPermitted(UtImmortalTaskManager.application, permission)
     }
     override val contract: ActivityResultContract<String, Boolean>
         get() = ActivityResultContracts.RequestPermission()
@@ -31,10 +35,7 @@ class UtPermissionBroker(val activity:FragmentActivity) : UtActivityBroker<Strin
 }
 
 @Suppress("unused")
-class UtMultiPermissionsBroker(val activity: FragmentActivity) : UtActivityBroker<Array<String>, Map<String,Boolean>>() {
-    val context: Context get() = activity.applicationContext!!
-    init { register(activity) }
-
+class UtMultiPermissionsBroker() : UtActivityBroker<Array<String>, Map<String,Boolean>>() {
     override val contract: ActivityResultContract<Array<String>, Map<String,Boolean>>
         get() = ActivityResultContracts.RequestMultiplePermissions()
 
@@ -42,7 +43,7 @@ class UtMultiPermissionsBroker(val activity: FragmentActivity) : UtActivityBroke
         private val list = mutableListOf<String>()
         private var requiredFlags = mutableMapOf<String,Boolean>()
         fun add(permission:String, required:Boolean=true):Request {
-            if(!UtPermissionBroker.isPermitted(context,permission)) {
+            if(!UtPermissionBroker.isPermitted(UtImmortalTaskManager.application,permission)) {
                 list.add(permission)
                 requiredFlags[permission] = required
             }

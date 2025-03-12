@@ -11,8 +11,15 @@ import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtStandardString
+import io.github.toyota32k.dialog.broker.IUtBuiltInActivityBrokerStoreProvider
+import io.github.toyota32k.dialog.broker.UtBuiltInActivityBrokerStore
+import io.github.toyota32k.dialog.broker.UtMultiPermissionsBroker
 import io.github.toyota32k.dialog.broker.pickers.IUtFilePickerStoreProvider
 import io.github.toyota32k.dialog.broker.pickers.UtFilePickerStore
+import io.github.toyota32k.dialog.broker.pickers.UtOpenFilePicker
+import io.github.toyota32k.dialog.broker.pickers.UtOpenMultiFilePicker
+import io.github.toyota32k.dialog.broker.pickers.UtOpenReadOnlyFilePicker
+import io.github.toyota32k.dialog.broker.pickers.UtOpenReadOnlyMultiFilePicker
 import io.github.toyota32k.dialog.mortal.UtMortalActivity
 import io.github.toyota32k.dialog.sample.databinding.ActivityMainBinding
 import io.github.toyota32k.dialog.sample.dialog.AutoScrollDialog
@@ -27,7 +34,7 @@ import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class MainActivity : UtMortalActivity(), IUtFilePickerStoreProvider {
+class MainActivity : UtMortalActivity(), IUtBuiltInActivityBrokerStoreProvider {
     class MainActivityViewModel : UtDialogViewModel() {
         val outputString = MutableStateFlow("")
         val commandMessageBox = LiteUnitCommand {
@@ -81,8 +88,8 @@ class MainActivity : UtMortalActivity(), IUtFilePickerStoreProvider {
             launchTask {
                 withOwner {
                     val activity = it.asActivity()
-                    if(activity is IUtFilePickerStoreProvider) {
-                        val uri = activity.filePickers.openFilePicker.selectFile()
+                    if(activity is IUtBuiltInActivityBrokerStoreProvider) {
+                        val uri = activity.activityBrokers.openFilePicker.selectFile()
                         if (uri!=null) {
                            outputString.value = "selected: ${uri}"
                         } else {
@@ -104,7 +111,7 @@ class MainActivity : UtMortalActivity(), IUtFilePickerStoreProvider {
         }
     }
 
-    override val filePickers = UtFilePickerStore(this)
+    override val activityBrokers = UtBuiltInActivityBrokerStore().activate(this, UtOpenFilePicker(), UtOpenReadOnlyFilePicker(),UtOpenReadOnlyMultiFilePicker(),UtMultiPermissionsBroker())
     private lateinit var controls: ActivityMainBinding
     private val binder = Binder()
     private val viewModel by viewModels<MainActivityViewModel>()

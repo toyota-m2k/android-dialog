@@ -13,6 +13,7 @@ import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.binder.recyclerViewGestureBinding
 import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.dialog.UtDialogEx
+import io.github.toyota32k.dialog.broker.IUtBuiltInActivityBrokerStoreProvider
 import io.github.toyota32k.dialog.broker.pickers.IUtFilePickerStoreProvider
 import io.github.toyota32k.dialog.sample.R
 import io.github.toyota32k.dialog.sample.databinding.DialogNestedBinding
@@ -38,8 +39,8 @@ class NestedDialog : UtDialogEx() {
             launchSubTask {
                 withOwner {
                     val activity = it.asActivity()
-                    if(activity is IUtFilePickerStoreProvider) {
-                        val uri = activity.filePickers.openReadOnlyFilePicker.selectFile()
+                    if(activity is IUtBuiltInActivityBrokerStoreProvider) {
+                        val uri = activity.activityBrokers.openReadOnlyFilePicker.selectFile()
                         if (uri != null) {
                             observableList.add(getFileName(activity, uri))
                         }
@@ -51,8 +52,8 @@ class NestedDialog : UtDialogEx() {
             launchSubTask {
                 withOwner {
                     val activity = it.asActivity()
-                    if(activity is IUtFilePickerStoreProvider) {
-                        val uris = activity.filePickers.openReadOnlyMultiFilePicker.selectFiles()
+                    if(activity is IUtBuiltInActivityBrokerStoreProvider) {
+                        val uris = activity.activityBrokers.openReadOnlyMultiFilePicker.selectFiles()
                         if (uris.isNotEmpty()) {
                             observableList.addAll(uris.map { getFileName(activity, it) })
                         }
