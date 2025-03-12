@@ -28,3 +28,4 @@ app/release
 .kotlin
 .idea/runConfigurations.xml
 .idea/kotlinc.xml
+.idea/AndroidProjectSystem.xml

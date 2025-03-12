@@ -36,7 +36,7 @@ object UtImmortalViewModelHelper {
      */
     @Deprecated("Use UtViewModel.instanceFor instead.")
     fun <T> instanceFor(clazz: Class<T>, dialog: IUtDialog):T where T:ViewModel {
-        return UtViewModel.instanceOf(clazz, dialog.immortalTaskName?:throw java.lang.IllegalStateException("no task name in the dialog."))
+        return UtDialogViewModel.instanceOf(clazz, dialog.immortalTaskName?:throw java.lang.IllegalStateException("no task name in the dialog."))
     }
 
 }

@@ -1,6 +1,7 @@
-package io.github.toyota32k.dialog.mortal
+package io.github.toyota32k.dialog.mortal.legacy
 
 import androidx.fragment.app.FragmentActivity
+import io.github.toyota32k.dialog.mortal.UtMortalTaskKeeper
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.Disposer
 
@@ -17,7 +18,7 @@ interface IUtImmortalTaskResultReceiver {
     /**
      * タスク名のテーブル
      */
-    val staticImmortalTaskList:Array<String>
+    val reservedImmortalTaskNames:Array<String>
     /**
      * Activity終了時にタスクをdisposeするかどうかを返す。
      * 子アクティビティで開始したタスクを親アクティビティで処理する場合など、Activityをまたがるタスクに対しては false を返す。
@@ -30,7 +31,7 @@ interface IUtImmortalTaskResultReceiver {
 /**
  * static reserve task (タスクの結果を Activity で受け取る）を使う構成用
  */
-abstract class UtMortalStaticTaskKeeper : UtMortalTaskKeeper() {
+open class UtMortalStaticTaskKeeper : UtMortalTaskKeeper() {
     private val observersDisposer = Disposer()
 
     /**
@@ -41,7 +42,7 @@ abstract class UtMortalStaticTaskKeeper : UtMortalTaskKeeper() {
         super.onResume(activity)
         val resultReceiver = activity as? IUtImmortalTaskResultReceiver
         if(resultReceiver != null) {
-            for (taskName in resultReceiver.staticImmortalTaskList) {
+            for (taskName in resultReceiver.reservedImmortalTaskNames) {
                 val task = UtImmortalTaskManager.reserveTask(taskName)
                 observersDisposer.register(task.registerStateObserver(activity) { state ->
                     if (state.finished) {
@@ -59,7 +60,7 @@ abstract class UtMortalStaticTaskKeeper : UtMortalTaskKeeper() {
     override fun onPause(activity: FragmentActivity) {
         val resultReceiver = activity as? IUtImmortalTaskResultReceiver
         if(resultReceiver != null) {
-            for (name in resultReceiver.staticImmortalTaskList) {
+            for (name in resultReceiver.reservedImmortalTaskNames) {
                 // デフォルトの動作では、Activityが完全終了(finish)するときに ImmortalTask も削除する。
                 // アクティビティが終了してもタスクの動作を継続する場合は、queryDisposeTaskOnFinishActivity をオーバーライドして false を返す。
                 if (activity.isFinishing && resultReceiver.queryDisposeTaskOnFinishActivity(name)) {

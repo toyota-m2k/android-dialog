@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import io.github.toyota32k.binder.*
+import io.github.toyota32k.binder.command.LiteUnitCommand
+import io.github.toyota32k.binder.command.bindCommand
 import kotlinx.coroutines.flow.Flow
 
 /**

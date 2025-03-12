@@ -2,35 +2,36 @@
 
 package io.github.toyota32k.dialog.task
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.dialog.IUtDialog
-import io.github.toyota32k.dialog.task.UtViewModel.Companion.create
 
-open class  UtViewModel : ViewModel(), IUtImmortalTaskMutableContextSource {
+/**
+ * IUtImmortalTaskMutableContextSource を実装し、
+ * UtImmortalTask / UtDialog と協調的に動作する ViewModel の基底クラス
+ */
+open class  UtDialogViewModel : ViewModel(), IUtImmortalTaskMutableContextSource {
     override lateinit var immortalTaskContext: IUtImmortalTaskContext
     companion object {
         /**
          * タスク開始時の初期化用
          * タスクのexecute()処理の中から実行する
          */
-        suspend fun <T> createAsync(clazz: Class<T>, task: IUtImmortalTask, initialize:(suspend (T)->Unit)) : T where T: UtViewModel {
+        suspend fun <T> createAsync(clazz: Class<T>, task: IUtImmortalTask, initialize:(suspend (T)->Unit)) : T where T: UtDialogViewModel {
             return ViewModelProvider(task.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[clazz]
                 .apply {
                     immortalTaskContext = task.immortalTaskContext
                     initialize.invoke(this)
                 }
         }
-        fun <T> create(clazz: Class<T>, task: IUtImmortalTask, initialize:((T)->Unit)?=null) : T where T: UtViewModel {
+        fun <T> create(clazz: Class<T>, task: IUtImmortalTask, initialize:((T)->Unit)?=null) : T where T: UtDialogViewModel {
             return ViewModelProvider(task.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[clazz]
                 .apply {
                     immortalTaskContext = task.immortalTaskContext
                     initialize?.invoke(this)
                 }
         }
-        inline fun <reified T> createOnTask(task: IUtImmortalTask, noinline initialize:((T)->Unit)?=null) : T where T: UtViewModel {
+        inline fun <reified T> createOnTask(task: IUtImmortalTask, noinline initialize:((T)->Unit)?=null) : T where T: UtDialogViewModel {
             return create(T::class.java, task, initialize)
         }
         /**
@@ -54,13 +55,37 @@ open class  UtViewModel : ViewModel(), IUtImmortalTaskMutableContextSource {
             return instanceFor(T::class.java, dialog)
         }
     }
+
+    /**
+     * ViewModel内から、実行中のImmortalTask上で、サブタスクを開始する。
+     * （やりっぱなし）
+     */
+    fun launchSubTask(fn:suspend UtImmortalTaskBase.()->Unit) {
+        this.immortalTaskContext.launchSubTask(fn)
+    }
+    /**
+     * ViewModel内から、実行中のImmortalTask上で、サブタスクを開始する。
+     * （終了を待つ）
+     */
+    suspend fun awaitSubTask(fn:suspend UtImmortalTaskBase.()->Unit) {
+        this.immortalTaskContext.awaitSubTask(fn)
+    }
+    /**
+     * ViewModel内から、実行中のImmortalTask上で、サブタスクを開始する。
+     * （結果を待つ）
+     */
+    suspend fun <T> awaitSubTaskResult(fn:suspend UtImmortalTaskBase.()->T) {
+        this.immortalTaskContext.awaitSubTaskResult(fn)
+    }
 }
+
+
 
 /**
  * ImmortalTask 内で、createViewModel<ViewModelType>() によってViewModelインスタンスを作成してから、showDialogを呼び出すと、
  * UtDialog派生クラスからは getViewModel<ViewModelType>() を使用して、そのViewModelインスタンスが取得できます。
  * ```
- *     class MyViewModel : UtViewModel() {
+ *     class MyViewModel : UtDialogViewModel() {
  *         // ...
  *     }
  *     class MyDialog : UtDialogEx() {
@@ -80,19 +105,15 @@ open class  UtViewModel : ViewModel(), IUtImmortalTaskMutableContextSource {
  *     }
  * ```
  */
-inline fun <reified T> IUtImmortalTask.createViewModel(noinline initialize:(T.()->Unit)?=null) : T where T: UtViewModel {
-    return UtViewModel.create(T::class.java, this) { it->
+inline fun <reified T> IUtImmortalTask.createViewModel(noinline initialize:(T.()->Unit)?=null) : T where T: UtDialogViewModel {
+    return UtDialogViewModel.create(T::class.java, this) { it->
         if (initialize!=null) {
             it.initialize()
         }
     }
 }
-suspend inline fun <reified T> IUtImmortalTask.withViewModel(noinline block:suspend IUtImmortalTask.(T)->Unit) : T where T: UtViewModel {
-    return UtViewModel.createAsync(T::class.java, this) { it->
-        block(it)
-    }
-}
 
 inline fun <reified VM:ViewModel> IUtDialog.getViewModel():VM  {
-    return UtViewModel.instanceFor(this)
+    return UtDialogViewModel.instanceFor(this)
 }
+

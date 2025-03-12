@@ -26,7 +26,15 @@ abstract class UtImmortalTaskBase(
     val parentContext:IUtImmortalTaskContext? = null,
     val allowSequential:Boolean = false) : IUtImmortalTask {
 
-    private var continuation:Continuation<Any?>? = null
+//    private var continuation:Continuation<Any?>? = null
+    // ダイアログの終了待ち用 continuation ... ネストできるようにスタックとする（push/pop）
+    private val continuationStack = mutableListOf<Continuation<Any?>>()
+    private fun pushContinuation(c:Continuation<Any?>) {
+        continuationStack.add(c)
+    }
+    private fun popContinuation():Continuation<Any?>? {
+        return continuationStack.removeLastOrNull()
+    }
 
     override val immortalTaskContext =  UtImmortalTaskContext(taskName, parentContext)
 
@@ -34,8 +42,7 @@ abstract class UtImmortalTaskBase(
      * ダイアログのcomplete待ち用
      */
     override fun resumeTask(value: Any?) {
-        continuation?.resume(value)
-        continuation = null
+        popContinuation()?.resume(value)
     }
 
     /**
@@ -108,8 +115,8 @@ abstract class UtImmortalTaskBase(
     /**
      * showDialogの簡略版
      */
-    suspend inline fun <reified D> showDialog(tag:String):D where D:IUtDialog {
-        return showDialog(tag) { D::class.createInstance() }
+    suspend inline fun <reified D> showDialog(dlg:D):D where D:IUtDialog {
+        return showDialog(dlg.javaClass.name) { dlg }
     }
 
     /**
@@ -136,7 +143,7 @@ abstract class UtImmortalTaskBase(
         val r = withContext(UtImmortalTaskManager.immortalTaskScope.coroutineContext) {
             val owner = takeOwner()
             suspendCoroutine {
-                continuation = it
+                pushContinuation(it)
                 dialogSource(owner).apply { immortalTaskName = taskName }.show(owner, tag)
             }
         } as D
@@ -148,3 +155,4 @@ abstract class UtImmortalTaskBase(
         val logger: UtLog = UtImmortalTaskManager.logger
     }
 }
+

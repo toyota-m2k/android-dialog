@@ -10,49 +10,14 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import io.github.toyota32k.dialog.task.UtImmortalTaskBase
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
 import java.lang.ref.WeakReference
 
 /**
- * Activityでダイアログの結果を受け取る場合に継承すべきi/f
- * フラグメントで結果を受け取る場合ViewModel、または、FragmentManager.setFragmentResult()を使う。
- * Activityでも、ViewModelを使ってもよいが、onCreateでイベントリスナーの再接続が必要となることを考えると、INtDialogHostを実装した方が楽だと思う。
+ * UtDialog / UtMessageBox 共通の基底クラス
  */
-//inline fun <reified T> IUtDialogHost.toLoader():IUtDialogHostLoader? where T:ViewModel {
-//    val vm = this as? ViewModel ?: return null
-//    return UtViewModelDialogHostLoader(ViewModel::class.java)
-//}
-
-//interface IUtDialogHostLoader {
-//    fun load(activity: FragmentActivity) :IUtDialogHost?
-//    fun serialize():String
-//}
-//
-//class UtViewModelDialogHostLoader<T>(private val clazz:Class<T>) : IUtDialogHostLoader where T:ViewModel, T:IUtDialogHost {
-//    override fun load(activity: FragmentActivity): IUtDialogHost {
-//        return ViewModelProvider(activity, SavedStateViewModelFactory(activity.application, activity)).get(clazz)
-//    }
-//
-//    override fun serialize(): String {
-//        return clazz.name
-//    }
-//
-//    companion object {
-//        fun <T> deserialize(ser:String):UtViewModelDialogHostLoader<T> where T:ViewModel, T:IUtDialogHost{
-//            val clz = Class.forName(ser)
-//
-//            return UtViewModelDialogHostLoader<clz.componentType>(clz)
-//        }
-//    }
-//}
-
-//class BundleDelegate(val bundle:Bundle) {
-//    inline operator fun <reified T> getValue(thisRef: BundleDelegate, property: KProperty<*>): T? {
-//        return thisRef.bundle[property.name] as T?
-//    }
-//}
-
 abstract class UtDialogBase : DialogFragment(), IUtDialog {
     val bundle = UtBundleDelegate { ensureArguments() }
 
@@ -347,7 +312,10 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * ダイアログを表示する
      */
     override fun show(activity:FragmentActivity, tag:String?) {
-        if(tag!=null && UtDialogHelper.findDialog(activity, tag) !=null) return
+        if(tag!=null && UtDialogHelper.findDialog(activity, tag) !=null) {
+            logger.error("Dialog ($tag) is already exists.")
+            return
+        }
 
         if(isDialog) {
             super.show(activity.supportFragmentManager, tag)

@@ -2,6 +2,7 @@ package io.github.toyota32k.dialog
 
 import android.content.Context
 import androidx.annotation.StringRes
+import io.github.toyota32k.utils.UtLog
 import java.lang.ref.WeakReference
 
 interface IUtStringTable {
@@ -14,15 +15,15 @@ interface IUtStringTable {
     }
 }
 
-enum class UtStandardString(@StringRes private val resId:Int) {
-    OK(R.string.ut_dialog_ok),
-    CANCEL(R.string.ut_dialog_cancel),
-    CLOSE(R.string.ut_dialog_close),
-    DONE(R.string.ut_dialog_done),
-    YES(R.string.ut_dialog_yes),
-    NO(R.string.ut_dialog_no),
-    BACK(R.string.ut_dialog_back),
-    NONE(0);
+enum class UtStandardString(@StringRes private val resId:Int, val defaultText:String) {
+    OK(R.string.ut_dialog_ok, "OK"),
+    CANCEL(R.string.ut_dialog_cancel, "Cancel"),
+    CLOSE(R.string.ut_dialog_close, "Close"),
+    DONE(R.string.ut_dialog_done, "Done"),
+    YES(R.string.ut_dialog_yes, "Yes"),
+    NO(R.string.ut_dialog_no, "No"),
+    BACK(R.string.ut_dialog_back, "Back"),
+    NONE(0, "");
 
     val text : String
         get() = getText(this)
@@ -44,7 +45,10 @@ enum class UtStandardString(@StringRes private val resId:Int) {
             return table?.get(type) ?: type.resId
         }
         private fun getText(type:UtStandardString) : String {
-            return context?.get()?.getString(getId(type)) ?: ""
+            if(context?.get()==null) {
+                UtLog("UtStandardString").warn("context is null. Call UtStandardString.setContext().")
+            }
+            return context?.get()?.getString(getId(type)) ?: type.defaultText
         }
     }
 }

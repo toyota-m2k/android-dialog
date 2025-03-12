@@ -56,49 +56,50 @@ suspend fun UtImmortalTaskBase.getActivity():FragmentActivity? {
     return UtImmortalTaskManager.mortalInstanceSource.getOwner().asActivity()
 }
 
+/**
+ * UtDialogの immortalTask を取得
+ */
 val UtDialog.immortalTask:IUtImmortalTask get() {
     val taskName = immortalTaskName ?: throw IllegalStateException("no task name")
     return UtImmortalTaskManager.taskOf(taskName)?.task ?: throw IllegalStateException("no such task: $taskName")
 }
 
+/**
+ * UtDialog の immortalTaskContext を取得
+ */
 val UtDialog.immortalTaskContext: IUtImmortalTaskContext get() {
     val taskName = immortalTaskName ?: throw IllegalStateException("no task name")
     return UtImmortalTaskManager.taskOf(taskName)?.task?.immortalTaskContext ?: throw IllegalStateException("no such task: $taskName")
 }
 
+/**
+ * ImmortalTask から Application を取得
+ */
 @Suppress("UnusedReceiverParameter")
 val IUtImmortalTask.application : Application get() {
     return UtImmortalTaskManager.application
 }
 
+/**
+ * ImmortalTask内からはいつでも application が取得できる
+ */
 fun IUtImmortalTask.getString(@StringRes id:Int):String {
     return application.getString(id)
 }
 
 /**
  * ちょっと悪ノリ気味。。。ViewModelからも application を取得できてしまう。
+ * AndroidViewModel はもう不要。
  */
 @Suppress("UnusedReceiverParameter")
 val IUtImmortalTaskMutableContextSource.application : Application get() {
     return UtImmortalTaskManager.application
 }
 
-//inline fun <reified VM> IUtImmortalTask.createViewModel(application: Application): VM where VM : AndroidViewModel, VM:IUtImmortalTaskMutableContextSource {
-//    return ViewModelProvider(this.immortalTaskContext, ViewModelProvider.AndroidViewModelFactory(application))[VM::class.java].also { vm->
-//        vm.immortalTaskContext = this.immortalTaskContext
-//    }
+//inline fun <reified VM:ViewModel> IUtImmortalTaskContext.getViewModel():VM  {
+//    return ViewModelProvider(this, ViewModelProvider.NewInstanceFactory())[VM::class.java]
 //}
 //
-//inline fun <reified VM> IUtImmortalTask.createViewModel(): VM where VM : ViewModel, VM:IUtImmortalTaskMutableContextSource {
-//    return ViewModelProvider(this.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[VM::class.java].also { vm->
-//        vm.immortalTaskContext = this.immortalTaskContext
-//    }
+//inline fun <reified VM:AndroidViewModel> IUtImmortalTaskContext.getViewModel(application: Application):VM  {
+//    return ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))[VM::class.java]
 //}
-
-inline fun <reified VM:ViewModel> IUtImmortalTaskContext.getViewModel():VM  {
-    return ViewModelProvider(this, ViewModelProvider.NewInstanceFactory())[VM::class.java]
-}
-
-inline fun <reified VM:AndroidViewModel> IUtImmortalTaskContext.getViewModel(application: Application):VM  {
-    return ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory(application))[VM::class.java]
-}

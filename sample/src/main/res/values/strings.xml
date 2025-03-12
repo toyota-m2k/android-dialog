@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">UtDialog Sample</string>
+    <string name="main_activity_title">UtDialog Catalog</string>
+    <string name="option_activity_title">UtDialog Options</string>
+    <string name="message_box">Message Box</string>
+    <string name="ok_cancel">OK/Cancel Message</string>
+    <string name="compact_dialog">Compact Dialog</string>
+    <string name="auto_scroll_dialog">Auto Scroll Dialog</string>
+    <string name="full_height_dialog">Full Height Dialog</string>
+    <string name="custom_height_dialog">Custom Height Dialog</string>
+    <string name="file_selection">File Picker</string>
+    <string name="label_your_name">What\'s your name?</string>
+    <string name="button_add">Add</string>
+    <string name="button_del">Del</string>
+    <string name="button_add_text">Text</string>
+    <string name="button_add_file">File</string>
+    <string name="nested_dialog">Nested Dialog</string>
+    <string name="button_add_files">Files</string>
+</resources>
