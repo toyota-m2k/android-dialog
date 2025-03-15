@@ -20,9 +20,9 @@ class FullHeightDialog : UtDialogEx() {
     }
 
     override fun preCreateBodyView() {
-        title="Fill Height"
-        heightOption=HeightOption.FULL
-//        guardColor = Color.argb(0xD0, 0xFF, 0xFF, 0xFF)
+        title="Full Height"
+        heightOption = HeightOption.FULL
+        widthOption = WidthOption.LIMIT(400)
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
     }

@@ -13,8 +13,7 @@ import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.binder.recyclerViewGestureBinding
 import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.dialog.UtDialogEx
-import io.github.toyota32k.dialog.broker.IUtBuiltInActivityBrokerStoreProvider
-import io.github.toyota32k.dialog.broker.pickers.IUtFilePickerStoreProvider
+import io.github.toyota32k.dialog.broker.asActivityBrokerStore
 import io.github.toyota32k.dialog.sample.R
 import io.github.toyota32k.dialog.sample.databinding.DialogNestedBinding
 import io.github.toyota32k.dialog.task.UtDialogViewModel
@@ -37,26 +36,22 @@ class NestedDialog : UtDialogEx() {
         }
         val commandAddFile = LiteUnitCommand {
             launchSubTask {
-                withOwner {
-                    val activity = it.asActivity()
-                    if(activity is IUtBuiltInActivityBrokerStoreProvider) {
-                        val uri = activity.activityBrokers.openReadOnlyFilePicker.selectFile()
-                        if (uri != null) {
-                            observableList.add(getFileName(activity, uri))
-                        }
+                withOwner { owner->
+                    val activityBrokers = owner.asActivityBrokerStore()
+                    val uri = activityBrokers.openReadOnlyFilePicker.selectFile()
+                    if (uri != null) {
+                        observableList.add(getFileName(owner.asContext(), uri))
                     }
                 }
             }
         }
         val commandAddFiles = LiteUnitCommand {
             launchSubTask {
-                withOwner {
-                    val activity = it.asActivity()
-                    if(activity is IUtBuiltInActivityBrokerStoreProvider) {
-                        val uris = activity.activityBrokers.openReadOnlyMultiFilePicker.selectFiles()
-                        if (uris.isNotEmpty()) {
-                            observableList.addAll(uris.map { getFileName(activity, it) })
-                        }
+                withOwner { owner->
+                    val activityBrokers = owner.asActivityBrokerStore()
+                    val uris = activityBrokers.openReadOnlyMultiFilePicker.selectFiles()
+                    if (uris.isNotEmpty()) {
+                        observableList.addAll(uris.map { getFileName(owner.asContext(), it) })
                     }
                 }
             }
@@ -79,8 +74,8 @@ class NestedDialog : UtDialogEx() {
 
     override fun preCreateBodyView() {
         title="Fill Height"
-        heightOption=HeightOption.FULL
-        setLimitWidth(500)
+        heightOption = HeightOption.FULL
+        widthOption = WidthOption.LIMIT(400)
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
     }

@@ -23,7 +23,8 @@ class CustomHeightDialog : UtDialogEx() {
 
     override fun preCreateBodyView() {
         title="Custom Dialog"
-        heightOption=HeightOption.CUSTOM
+        heightOption = HeightOption.CUSTOM
+        widthOption = WidthOption.LIMIT(400)
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
     }

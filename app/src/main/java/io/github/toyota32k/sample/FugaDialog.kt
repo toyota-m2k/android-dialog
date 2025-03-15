@@ -2,10 +2,8 @@ package io.github.toyota32k.sample
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
-import io.github.toyota32k.dialog.UtDialogHelper
 
 class FugaDialog : UtDialog() {
     init {
@@ -13,8 +11,8 @@ class FugaDialog : UtDialog() {
         setRightButton(BuiltInButtonType.DONE)
         title="ふがダイアログ"
         gravityOption = GravityOption.RIGHT_TOP
-        heightOption = HeightOption.COMPACT
-        widthOption = WidthOption.COMPACT
+        heightOption = HeightFlag.COMPACT
+        widthOption = WidthFlag.COMPACT
         cancellable = false
         scrollable = false
         draggable = true

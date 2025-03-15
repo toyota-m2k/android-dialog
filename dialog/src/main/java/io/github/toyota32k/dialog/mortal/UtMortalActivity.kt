@@ -3,8 +3,6 @@ package io.github.toyota32k.dialog.mortal
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
 import io.github.toyota32k.dialog.*
-import io.github.toyota32k.dialog.broker.pickers.IUtFilePickerStoreProvider
-import io.github.toyota32k.dialog.broker.pickers.UtFilePickerStore
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 
 /**
@@ -12,16 +10,16 @@ import io.github.toyota32k.dialog.task.UtImmortalTaskManager
  * ベースActivityクラスの変更が困難、または、AppCompatActivity以外から派生する場合は、このクラスの実装を参考に、実装を追加してください。
  */
 abstract class UtMortalActivity(
-    protected val mortalActivityCore: UtMortalTaskKeeper = UtMortalTaskKeeper())
+    protected val mortalTaskKeeper: UtMortalTaskKeeper = UtMortalTaskKeeper())
     : AppCompatActivity()
-    , IUtDialogHost by mortalActivityCore {
+    , IUtDialogHost by mortalTaskKeeper {
 
     /**
      * Activity が前面に上がる時点で、reserveTask()を呼び出して、タスクテーブルに登録しておく。
      */
     override fun onResume() {
         super.onResume()
-        mortalActivityCore.onResume(this)
+        mortalTaskKeeper.onResume(this)
     }
 
     /**
@@ -29,12 +27,12 @@ abstract class UtMortalActivity(
      */
     override fun onPause() {
         super.onPause()
-        mortalActivityCore.onPause(this)
+        mortalTaskKeeper.onPause(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mortalActivityCore.onDestroy(this)
+        mortalTaskKeeper.onDestroy(this)
     }
 
     /**
@@ -55,7 +53,7 @@ abstract class UtMortalActivity(
      * - handleKeyEvent()がfalseを返したら、親クラス(FragmentActivity）の onKeyDownを呼ぶ。
      */
     final override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        return mortalActivityCore.onKeyDown(this, keyCode, event)
+        return mortalTaskKeeper.onKeyDown(this, keyCode, event)
             || handleKeyEvent(keyCode, event)
             || super.onKeyDown(keyCode, event)
     }

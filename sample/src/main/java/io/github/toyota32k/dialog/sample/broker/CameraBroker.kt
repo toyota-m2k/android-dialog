@@ -15,25 +15,22 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
-import io.github.toyota32k.dialog.broker.IUtBuiltInActivityBrokerStoreProvider
 import io.github.toyota32k.dialog.broker.UtActivityBroker
+import io.github.toyota32k.dialog.broker.asActivityBrokerStore
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.onFalse
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.OutputStream
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
-abstract class CameraBroker(activity: FragmentActivity, val forVideo:Boolean): UtActivityBroker<String?, CameraBroker.MediaFile?>() {
+abstract class CameraBroker(val forVideo:Boolean): UtActivityBroker<String?, CameraBroker.MediaFile?>() {
     companion object {
         val logger = UtLog("Camera")
         val stringNow: String get() = SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(Date())
-    }
-    init {
-        register(activity)
     }
 
 
@@ -179,8 +176,8 @@ abstract class CameraBroker(activity: FragmentActivity, val forVideo:Boolean): U
             // CAMERAパーミッションは、本来、不要のはずだが、Android12 エミュレータなど、
             // カメラアプリが android.hardware.camera2 を使う場合には、CAMERAパーミッションが必要になるらしく、
             // 起動してみるまで、それが必要かどうか判別不可能なので、必要がある・ないに関わらず、必ずパーミッション要求せざるを得ない。ひどい。
-            val ps = UtImmortalTaskManager.mortalInstanceSource.getOwner().asActivity() as? IUtBuiltInActivityBrokerStoreProvider ?: throw IllegalStateException("IPermissionBrokerSource is required.")
-            ps.activityBrokers.multiPermissionBroker.Request()
+            val activityBrokers = UtImmortalTaskManager.mortalInstanceSource.getOwner().asActivityBrokerStore()
+            activityBrokers.multiPermissionBroker.Request()
                 .addIf(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .add(Manifest.permission.CAMERA)
                 .add( { if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) Manifest.permission.ACCESS_MEDIA_LOCATION else null }, required = false)
@@ -213,5 +210,5 @@ abstract class CameraBroker(activity: FragmentActivity, val forVideo:Boolean): U
     }
 }
 
-class VideoCameraBroker(activity: FragmentActivity):CameraBroker(activity, forVideo = true)
-class ImageCameraBroker(activity: FragmentActivity):CameraBroker(activity, forVideo = false)
+class VideoCameraBroker():CameraBroker(forVideo = true)
+class ImageCameraBroker():CameraBroker(forVideo = false)

@@ -13,7 +13,7 @@ class HogeDialog : UtDialog(), View.OnClickListener,
         setRightButton(BuiltInButtonType.DONE)
         title="ほげダイアログ"
         gravityOption = GravityOption.RIGHT_TOP
-        heightOption = HeightOption.AUTO_SCROLL
+        heightOption = HeightFlag.AUTO_SCROLL
         setLimitWidth(700)
         cancellable = true
         scrollable = true

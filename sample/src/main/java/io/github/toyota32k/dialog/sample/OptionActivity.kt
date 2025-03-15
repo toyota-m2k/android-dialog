@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.dialog.UtDialog
+import io.github.toyota32k.dialog.UtDialog.WidthFlag
 import io.github.toyota32k.dialog.UtDialog.WidthOption
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.utils.ApplicationViewModelStoreOwner
@@ -100,15 +101,15 @@ class OptionActivity : AppCompatActivity() {
                     widthOption = WidthOption.FULL
                 }
                 DialogPosition.Left -> {
-                    setLimitWidth(400)
+                    widthOption = UtDialog.WidthOption.LIMIT(400)
                     gravityOption = UtDialog.GravityOption.LEFT_TOP
                 }
                 DialogPosition.Center -> {
-                    setLimitWidth(400)
+                    widthOption = UtDialog.WidthOption.LIMIT(400)
                     gravityOption = UtDialog.GravityOption.CENTER
                 }
                 DialogPosition.Right -> {
-                    setFixedWidth(400)
+                    widthOption = UtDialog.WidthOption.LIMIT(400)
                     gravityOption = UtDialog.GravityOption.RIGHT_TOP
                 }
             }

@@ -6,16 +6,23 @@ import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
-import android.view.*
+import android.view.ContextThemeWrapper
+import android.view.GestureDetector
+import android.view.Gravity
+import android.view.KeyEvent
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.ViewGroup.MarginLayoutParams
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.FrameLayout
@@ -28,6 +35,7 @@ import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -39,7 +47,11 @@ import com.google.android.material.button.MaterialButton
 import io.github.toyota32k.dialog.UtDialogConfig.defaultBodyGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
 import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColorOfCancellableDialog
-import io.github.toyota32k.utils.*
+import io.github.toyota32k.utils.dp2px
+import io.github.toyota32k.utils.setLayoutHeight
+import io.github.toyota32k.utils.setLayoutWidth
+import io.github.toyota32k.utils.setMargin
+import io.github.toyota32k.utils.withAlpha
 import kotlin.math.max
 import kotlin.math.min
 
@@ -201,17 +213,26 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * 幅指定フラグ
      */
-    enum class WidthOption(val param:Int, val isDynamicSizing:Boolean) {
+    enum class WidthFlag(val param:Int, val isDynamicSizing:Boolean) {
         COMPACT(WRAP_CONTENT,false),        // WRAP_CONTENT
         FULL(MATCH_PARENT,false),           // フルスクリーンに対して、MATCH_PARENT
         FIXED(WRAP_CONTENT,false),          // bodyの幅を、widthHint で与えられる値に固定
         LIMIT(WRAP_CONTENT,true),          // FULLと同じだが、widthHintで与えられるサイズでクリップされる。
     }
 
+    data class WidthOption(val flag:WidthFlag, val hint:Int) {
+        companion object {
+            val COMPACT = WidthOption(WidthFlag.COMPACT,0)        // WRAP_CONTENT
+            val FULL = WidthOption(WidthFlag.FULL,0)              // フルスクリーンに対して、MATCH_PARENT
+            fun FIXED(width:Int) = WidthOption(WidthFlag.FIXED,width)
+            fun LIMIT(width:Int) = WidthOption(WidthFlag.LIMIT,width)
+        }
+    }
+
     /**
      * 高さ指定フラグ
      */
-    enum class HeightOption(val param:Int, val isDynamicSizing:Boolean) {
+    enum class HeightFlag(val param:Int, val isDynamicSizing:Boolean) {
         COMPACT(WRAP_CONTENT,false),        // WRAP_CONTENT
         FULL(MATCH_PARENT,false),           // フルスクリーンに対して、MATCH_PARENT
         FIXED(WRAP_CONTENT,false),          // bodyの高さを、heightHint で与えられる値に固定
@@ -220,40 +241,62 @@ abstract class UtDialog: UtDialogBase() {
         CUSTOM(WRAP_CONTENT,true),         // AUTO_SCROLL 的な配置をサブクラスで実装する。その場合、calcCustomContainerHeight() をオーバーライドすること。
     }
 
+    data class HeightOption(val flag:HeightFlag, val hint:Int) {
+        companion object {
+            val COMPACT = HeightOption(HeightFlag.COMPACT,0)        // WRAP_CONTENT
+            val FULL = HeightOption(HeightFlag.FULL,0)              // フルスクリーンに対して、MATCH_PARENT
+            val AUTO_SCROLL = HeightOption(HeightFlag.AUTO_SCROLL,0)
+            val CUSTOM = HeightOption(HeightFlag.CUSTOM,0)
+            fun FIXED(height:Int) = HeightOption(HeightFlag.FIXED,height)
+            fun LIMIT(height:Int) = HeightOption(HeightFlag.LIMIT,height)
+        }
+    }
+
+    private var widthFlag: WidthFlag by bundle.enum(WidthFlag.COMPACT)
+    /**
+     * widthOption = FIXED or LIMIT を指定したときに、ダイアログ幅(dp)を指定
+     */
+    private var widthHint:Int by bundle.intZero
+
     /**
      * 幅の決定方法を指定
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    var widthOption: WidthOption by bundle.enum(WidthOption.COMPACT)
+    var widthOption: WidthOption
+        get() = WidthOption(widthFlag, widthHint)
+        set(v) {
+            widthFlag = v.flag
+            widthHint = v.hint
+        }
+
+
+    private var heightFlag: HeightFlag by bundle.enum(HeightFlag.COMPACT)
+    /**
+     * heightOption = FIXED の場合の、ダイアログ高さ(dp)を指定
+     */
+    private var heightHint:Int by bundle.intZero
 
     /**
      * 高さの決定方法を指定
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    var heightOption: HeightOption by bundle.enum(HeightOption.COMPACT)
-
-    /**
-     * widthOption = FIXED or LIMIT を指定したときに、ダイアログ幅(dp)を指定
-     * setFixedWidth() or setLimitWidth() メソッドの使用を推奨
-     */
-    var widthHint:Int by bundle.intZero
-
-    /**
-     * heightOption = FIXED の場合の、ダイアログ高さ(dp)を指定
-     * setFixedHeight()メソッドの使用を推奨。
-     */
-    var heightHint:Int by bundle.intZero
+    var heightOption: HeightOption
+        get() = HeightOption(heightFlag, heightHint)
+        set(v) {
+            heightFlag = v.flag
+            heightHint = v.hint
+        }
 
     /**
      * ダイアログの高さを指定して、高さ固定モードにする。
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    @Suppress("unused")
+    @Deprecated("use HeightOption.FIXED() instead")
     fun setFixedHeight(height:Int) {
         if(isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
-        heightOption = HeightOption.FIXED
+        heightFlag = HeightFlag.FIXED
         heightHint = height
     }
 
@@ -261,11 +304,12 @@ abstract class UtDialog: UtDialogBase() {
      * ダイアログの高さを指定して、最大高さ指定付き可変高さモードにする。
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
+    @Deprecated("use HeightOption.LIMIT() instead")
     fun setLimitHeight(height:Int) {
         if(isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
-        heightOption = HeightOption.LIMIT
+        heightFlag = HeightFlag.LIMIT
         heightHint = height
     }
 
@@ -273,12 +317,12 @@ abstract class UtDialog: UtDialogBase() {
      * ダイアログの幅を指定して、幅固定モードにする。
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    @Suppress("unused")
+    @Deprecated("use WidthOption.FIXED() instead")
     fun setFixedWidth(width:Int) {
         if(isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
-        widthOption = WidthOption.FIXED
+        widthFlag = WidthFlag.FIXED
         widthHint = width
     }
 
@@ -286,11 +330,12 @@ abstract class UtDialog: UtDialogBase() {
      * ダイアログの幅を指定して、最大幅指定付き可変幅モードにする。
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
+    @Deprecated("use WidthOption.LIMIT() instead")
     fun setLimitWidth(width:Int) {
         if(isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
-        widthOption = WidthOption.LIMIT
+        widthFlag = WidthFlag.LIMIT
         widthHint = width
     }
 
@@ -322,7 +367,7 @@ abstract class UtDialog: UtDialogBase() {
      */
     enum class GravityOption(val gravity:Int) {
         RIGHT_TOP(Gravity.END or Gravity.TOP),          // 右上（デフォルト）
-        CENTER(Gravity.CENTER),                                // 画面中央（メッセージボックス的）
+        CENTER(Gravity.CENTER),                         // 画面中央（メッセージボックス的）
         LEFT_TOP(Gravity.START or Gravity.TOP),         // 左上...ほかの組み合わせも作ろうと思えば作れるが、俺は使わん。
         CUSTOM(Gravity.START or Gravity.TOP),           // customPositionX/customPositionY で座標（rootViewに対するローカル座標）を指定
     }
@@ -330,7 +375,7 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * ダイアログの表示位置を指定
      */
-    var gravityOption: GravityOption by bundle.enum(GravityOption.RIGHT_TOP)
+    var gravityOption: GravityOption by bundle.enum(GravityOption.CENTER)
 
     /**
      * gravityOption == CUSTOM の場合のX座標（rootViewローカル座標）
@@ -436,7 +481,7 @@ abstract class UtDialog: UtDialogBase() {
      */
     protected fun applyGuardColor() {
         val color = managedGuardColor()
-        rootView.background = ColorDrawable(color)
+        rootView.background = color.toDrawable()
     }
 
     // endregion
@@ -510,7 +555,7 @@ abstract class UtDialog: UtDialogBase() {
      * ダイアログの表示/非表示
      */
     var visible:Boolean
-        get() = rootView.visibility == View.VISIBLE
+        get() = rootView.isVisible
         set(v) { rootView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
 
     private val fadeInAnimation get() = UtFadeAnimation(true,UtDialogConfig.fadeInDuration)
@@ -960,17 +1005,17 @@ abstract class UtDialog: UtDialogBase() {
      */
     private fun setupLayout() {
         val params = (dialogView.layoutParams as? FrameLayout.LayoutParams)?.apply {
-            width = widthOption.param
-            height = heightOption.param
+            width = widthFlag.param
+            height = heightFlag.param
             gravity = gravityOption.gravity
             applyDialogMargin(this)
-        } ?: FrameLayout.LayoutParams(widthOption.param, heightOption.param, gravityOption.gravity)
+        } ?: FrameLayout.LayoutParams(widthFlag.param, heightFlag.param, gravityOption.gravity)
 
         dialogView.layoutParams = params
-        if(heightOption== HeightOption.FULL) {
+        if(heightFlag== HeightFlag.FULL) {
             bodyContainer.setLayoutHeight(0)
         }
-        if(widthOption== WidthOption.FULL) {
+        if(widthFlag== WidthFlag.FULL) {
             bodyContainer.setLayoutWidth(0)
         }
         setupFixedSize()
@@ -982,8 +1027,8 @@ abstract class UtDialog: UtDialogBase() {
      * widthHint/heightHintで与えられたサイズに従ってLayoutParamsを設定する。
      */
     private fun setupFixedSize() {
-        val fw = if(widthOption== WidthOption.FIXED) widthHint else null
-        val fh = if(heightOption== HeightOption.FIXED) heightHint else null
+        val fw = if(widthFlag== WidthFlag.FIXED) widthHint else null
+        val fh = if(heightFlag== HeightFlag.FIXED) heightHint else null
         if(fw==null && fh==null) return
 
         val lp = bodyContainer.layoutParams ?: return
@@ -1001,7 +1046,7 @@ abstract class UtDialog: UtDialogBase() {
      * draggable==true または、gravityOption == CUSTOM の場合は、位置補正（画面内にクリップ）のために、それぞれサイズ変更イベントをフックする。
      */
     private fun setupDynamicSize() {
-        if(widthOption.isDynamicSizing || heightOption.isDynamicSizing || draggable || gravityOption == GravityOption.CUSTOM) {
+        if(widthFlag.isDynamicSizing || heightFlag.isDynamicSizing || draggable || gravityOption == GravityOption.CUSTOM) {
             // デバイス回転などによるスクリーンサイズ変更を検出するため、ルートビューのサイズ変更を監視する。
             rootView.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
                 if (or - ol != r - l || ob - ot != b - t) {
@@ -1016,7 +1061,7 @@ abstract class UtDialog: UtDialogBase() {
                 }
             }
         }
-        if(heightOption== HeightOption.AUTO_SCROLL) {
+        if(heightFlag== HeightFlag.AUTO_SCROLL) {
             // コンテンツ（bodyViewの中身）の増減によるbodyViewサイズの変更を監視する。
             bodyView.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
                 if (or - ol != r - l || ob - ot != b - t) {
@@ -1031,7 +1076,7 @@ abstract class UtDialog: UtDialogBase() {
      * （HeightOption.AUTO_SCROLL, HeightOption.CUSTOMのための処理）
      */
     private fun updateDynamicHeight(lp:ConstraintLayout.LayoutParams) : Boolean {
-        if(heightOption.isDynamicSizing) {
+        if(heightFlag.isDynamicSizing) {
             val winHeight = rootView.height
             if(winHeight==0) return false
             val containerHeight = refContainerView.height
@@ -1039,10 +1084,10 @@ abstract class UtDialog: UtDialogBase() {
             val bodyHeight = bodyView.height
             val maxContainerHeight = winHeight - (dlgHeight - containerHeight)
 
-            val newContainerHeight = when(heightOption) {
-                HeightOption.AUTO_SCROLL -> min(bodyHeight, maxContainerHeight)
-                HeightOption.LIMIT -> min(maxContainerHeight, requireContext().dp2px(heightHint))
-                HeightOption.CUSTOM-> calcCustomContainerHeight(bodyHeight,containerHeight,maxContainerHeight)
+            val newContainerHeight = when(heightFlag) {
+                HeightFlag.AUTO_SCROLL -> min(bodyHeight, maxContainerHeight)
+                HeightFlag.LIMIT -> min(maxContainerHeight, requireContext().dp2px(heightHint))
+                HeightFlag.CUSTOM-> calcCustomContainerHeight(bodyHeight,containerHeight,maxContainerHeight)
                 else-> return false
             }
 
@@ -1061,7 +1106,7 @@ abstract class UtDialog: UtDialogBase() {
      * @param lp    bodyContainer の LayoutParams
      */
     private fun updateDynamicWidth(lp:ConstraintLayout.LayoutParams) : Boolean {
-        if(widthOption== WidthOption.LIMIT) {
+        if(widthFlag== WidthFlag.LIMIT) {
             val winWidth = rootView.width
             if(winWidth==0) return false
             val dlgMargin = dialogView.marginStart + dialogView.marginEnd
@@ -1109,7 +1154,7 @@ abstract class UtDialog: UtDialogBase() {
      * bodyViewの高さに合わせて、bodyContainerの高さを更新する。
      */
     private fun onBodyViewSizeChanged() {
-        if (heightOption == HeightOption.AUTO_SCROLL) {
+        if (heightFlag == HeightFlag.AUTO_SCROLL) {
             val lp = bodyContainer.layoutParams as ConstraintLayout.LayoutParams
             if(updateDynamicHeight(lp)) {
                 // bodyView のOnLayoutChangeListenerの中から、コンテナのサイズを変更しても、なんか１回ずつ無視されるので、ちょっと遅延する。
@@ -1131,8 +1176,7 @@ abstract class UtDialog: UtDialogBase() {
      * ダイアログ構築前の処理
      * titleViewなど、UtDialog側のビューを構築するまえに行うべき初期化処理を行う。
      */
-    open fun preCreateBodyView() {
-    }
+    abstract fun preCreateBodyView()
 
     /**
      * ダイアログビュー専用インフレーター
@@ -1169,7 +1213,7 @@ abstract class UtDialog: UtDialogBase() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return Dialog(requireContext(), R.style.dlg_style).apply {
             window?.let { window->
-                window.setBackgroundDrawable(ColorDrawable(GuardColor.TRANSPARENT.color))
+                window.setBackgroundDrawable(GuardColor.TRANSPARENT.color.toDrawable())
 
                 if(isDialog && hideStatusBarOnDialogMode) {
                     val insetsController = WindowCompat.getInsetsController(window, window.decorView)
@@ -1216,13 +1260,13 @@ abstract class UtDialog: UtDialogBase() {
             dialogView = rootView.findViewById(R.id.dialog_view)
             refContainerView = rootView.findViewById(R.id.ref_container_view)
             bodyGuardView = rootView.findViewById(R.id.body_guard_view)
-            bodyGuardView.background = ColorDrawable(resolveColor(bodyGuardColor))
+            bodyGuardView.background = resolveColor(bodyGuardColor).toDrawable()
             centerProgressRing = rootView.findViewById(R.id.center_progress_ring)
             dialogView.isClickable = true   // これをセットしておかないと、ヘッダーなどのクリックで rootViewのonClickが呼ばれて、ダイアログが閉じてしまう。
             title?.let { titleView.text = it }
-            if (heightOption == HeightOption.AUTO_SCROLL) {
+            if (heightFlag == HeightFlag.AUTO_SCROLL) {
                 scrollable = true
-            } else if (heightOption == HeightOption.CUSTOM) {
+            } else if (heightFlag == HeightFlag.CUSTOM) {
                 scrollable = false
             }
             bodyContainer = if (scrollable) {

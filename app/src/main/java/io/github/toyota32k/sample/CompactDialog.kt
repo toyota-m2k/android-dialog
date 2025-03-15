@@ -9,8 +9,8 @@ import io.github.toyota32k.dialog.UtDialog
 class CompactDialog : UtDialog() {
     init {
         title="Compact Dialog"
-        heightOption=HeightOption.COMPACT
-        widthOption=WidthOption.COMPACT
+        heightOption=HeightFlag.COMPACT
+        widthOption=WidthFlag.COMPACT
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
     }

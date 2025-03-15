@@ -12,7 +12,7 @@ class SubCompactDialog: UtDialog() {
         title="サブダイアログ"
         setLimitWidth(400)
         draggable = true
-        heightOption=HeightOption.COMPACT
+        heightOption=HeightFlag.COMPACT
 //        guardColor = GuardColor.DIM.color
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)

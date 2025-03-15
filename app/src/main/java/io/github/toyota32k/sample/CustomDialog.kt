@@ -15,7 +15,7 @@ import io.github.toyota32k.utils.setLayoutHeight
 class CustomDialog : UtDialog() {
     init {
         title="Custom Dialog"
-        heightOption=HeightOption.CUSTOM
+        heightOption=HeightFlag.CUSTOM
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
     }

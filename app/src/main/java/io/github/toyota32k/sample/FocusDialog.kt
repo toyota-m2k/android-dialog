@@ -11,7 +11,7 @@ class FocusDialog : UtDialog() {
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
         setLimitWidth(400)
-        heightOption=HeightOption.COMPACT
+        heightOption=HeightFlag.COMPACT
 //        enableFocusManagement().clear().register(R.id.input_1, R.id.input_2, R.id.input_3, R.id.input_4).setInitialFocus(R.id.input_2)
         enableFocusManagement(true).autoRegister().setInitialFocus(R.id.input_2).setCustomEditorAction()
     }

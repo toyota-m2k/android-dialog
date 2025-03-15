@@ -23,18 +23,18 @@ class CompactDialog : UtDialogEx() {
     override fun preCreateBodyView() {
         title = "Compact Dialog"
         heightOption=HeightOption.COMPACT
-        setLimitWidth(400)
-        gravityOption = UtDialog.GravityOption.CENTER
+        widthOption=WidthOption.LIMIT(400)
+        gravityOption = GravityOption.CENTER
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
         cancellable = false
         draggable = true
+        enableFocusManagement().autoRegister()
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         controls = DialogCompactBinding.inflate(inflater.layoutInflater, null, false)
         binder
-            .owner(this)
             .editTextBinding(controls.nameInput, viewModel.yourName)
             .enableBinding(rightButton, viewModel.yourName.map { it.isNotEmpty() }) // ensure the name is not empty
         return controls.root

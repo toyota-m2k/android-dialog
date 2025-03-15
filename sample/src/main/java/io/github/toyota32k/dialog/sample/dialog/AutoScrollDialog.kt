@@ -24,7 +24,7 @@ class AutoScrollDialog : UtDialogEx() {
     override fun preCreateBodyView() {
         title="Auto Scroll Dialog"
         heightOption=HeightOption.AUTO_SCROLL
-        gravityOption = UtDialog.GravityOption.CENTER
+        gravityOption = GravityOption.CENTER
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
         cancellable = true

@@ -48,6 +48,16 @@ data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
         }
     }
 
+    inline fun <reified T> asType():T {
+        return when(lifecycleOwner) {
+            is T->lifecycleOwner
+            else -> throw IllegalStateException("invalid lifecycleOwner")
+        }
+    }
+    inline fun <reified T> asTypeOrNull():T? {
+        return lifecycleOwner as? T
+    }
+
     val application: Application
         get() = asContext().applicationContext as Application
 }

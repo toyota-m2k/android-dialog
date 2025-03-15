@@ -14,7 +14,7 @@ import io.github.toyota32k.dialog.UtDialog
 class AutoScrollDialog : UtDialog() {
     init {
         title="Auto Scroll Test"
-        heightOption=HeightOption.AUTO_SCROLL
+        heightOption=HeightFlag.AUTO_SCROLL
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
     }

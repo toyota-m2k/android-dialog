@@ -6,20 +6,15 @@ import android.widget.ListView
 import android.widget.TextView
 import io.github.toyota32k.R
 import io.github.toyota32k.binder.Binder
-import io.github.toyota32k.binder.ListViewBinding
 import io.github.toyota32k.binder.clickBinding
-import io.github.toyota32k.binder.command.Command
-import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.binder.listViewBinding
 import io.github.toyota32k.dialog.UtDialog
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.showOkCancelMessageBox
 
 class FillDialog : UtDialog() {
     init {
         title="Fill Height"
-        heightOption=HeightOption.FULL
+        heightOption=HeightFlag.FULL
 //        guardColor = Color.argb(0xD0, 0xFF, 0xFF, 0xFF)
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)

@@ -23,7 +23,7 @@ import io.github.toyota32k.binder.materialRadioButtonGroupBinding
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.databinding.ActivityMainBinding
 import io.github.toyota32k.dialog.UtDialog
-import io.github.toyota32k.dialog.UtDialog.WidthOption
+import io.github.toyota32k.dialog.UtDialog.WidthFlag
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtRadioSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
@@ -143,7 +143,7 @@ class MainActivity : UtMortalActivity() {
             when(dialogPosition.value) {
                 DialogPosition.Full -> {
                     gravityOption = UtDialog.GravityOption.CENTER
-                    widthOption = WidthOption.FULL
+                    widthOption = WidthFlag.FULL
                 }
                 DialogPosition.Left -> {
 //                    widthOption = WidthOption.COMPACT
