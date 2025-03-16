@@ -63,6 +63,10 @@ class UtFocusManager : TextView.OnEditorActionListener {
         return this
     }
 
+
+    /**
+     * TextView.OnEditorActionListener
+     */
     override fun onEditorAction(v: TextView?, actionId: Int, event: KeyEvent?): Boolean {
         val action = v?.imeOptions?.and(EditorInfo.IME_MASK_ACTION) ?: return false
         logger.debug("viewAction:$action calledAction:${actionId.and(EditorInfo.IME_MASK_ACTION)} - $event")
@@ -93,6 +97,7 @@ class UtFocusManager : TextView.OnEditorActionListener {
 
     /**
      * IdRes --> View の解決に使用するルートビューをアタッチする。(Activity#onCreate/Fragment#onCreateView などから呼び出す。
+     * UtDialog の場合は、enableFocusManagement() により、自動的に呼びだされる。
      * @param rootView  ルートビュー
      */
     fun attach(rootView: View) {
@@ -123,30 +128,37 @@ class UtFocusManager : TextView.OnEditorActionListener {
 
     // region Setup operation modes.
 
+    /**
+     * ダイアログを表示したときの初期フォーカスを指定
+     */
     fun setInitialFocus(id: Int): UtFocusManager {
         initialFocus = id
         return this
     }
 
+    /**
+     * ビューの自動登録を有効にする。
+     * rootView を attach() するときに、rootView に含まれるフォーカス受け取り可能なビューを、一括登録します。
+     * 登録順序が期待通りにならない場合は、register系のメソッドを使って明示的に順序を指定してください。
+     */
+    fun autoRegister(): UtFocusManager {
+        autoRegister = true
+        return this
+    }
+
+    /**
+     * TextView の TextView.OnEditorActionListener イベントは、UtFocusManager がフォーカス移動のために消費してしまうが、
+     * このイベントを利用者側でフックする仕組みを提供。
+     */
     fun setCustomEditorAction(fn:UtEditorAction?=null): UtFocusManager {
         customForwardAction = true
         externalEditorAction = fn
         return this
     }
 
-    fun applyInitialFocus(): Boolean {
-        if (initialFocus != 0) {
-            val view = rootViewRef.get()?.findViewById<View?>(initialFocus)
-            if (view != null) {
-                view.forceRequestFocus()
-                return true
-            }
-        }
-        return focusables.mapNotNull { it.fm }.find {
-            it.applyInitialFocus()
-        } != null
-    }
-
+    /**
+     * focusableなビューを渡された順番で、リストの末尾に登録する。
+     */
     fun register(@IdRes vararg ids: Int): UtFocusManager {
         focusables.addAll(ids.map { Focusable(it) })
         return this
@@ -177,16 +189,17 @@ class UtFocusManager : TextView.OnEditorActionListener {
         focusables.add(index,Focusable(fm))
     }
 
+    /**
+     * 子マネージャーを削除する。
+     */
     fun removeChild(fm: UtFocusManager): UtFocusManager {
         focusables.removeAll { it.fm === fm }
         return this
     }
 
-    fun autoRegister(): UtFocusManager {
-        autoRegister = true
-        return this
-    }
-
+    /**
+     * 全クリア
+     */
     fun clear(): UtFocusManager {
         focusables.clear()
         return this
@@ -195,6 +208,24 @@ class UtFocusManager : TextView.OnEditorActionListener {
     // endregion
 
     // Focus management
+
+    /**
+     * 初期フォーカスを適用
+     * ビューが構築された後に呼び出す。UtDialog の場合は、setInitialFocus() しておけば自動的に呼び出される。
+     *
+     */
+    fun applyInitialFocus(): Boolean {
+        if (initialFocus != 0) {
+            val view = rootViewRef.get()?.findViewById<View?>(initialFocus)
+            if (view != null) {
+                view.forceRequestFocus()
+                return true
+            }
+        }
+        return focusables.mapNotNull { it.fm }.find {
+            it.applyInitialFocus()
+        } != null
+    }
 
 //    private fun hideSoftwareKeyboard() {
 //        try {

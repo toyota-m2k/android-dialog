@@ -2,10 +2,12 @@ package io.github.toyota32k.dialog.sample.dialog
 
 import android.os.Bundle
 import android.view.View
+import io.github.toyota32k.binder.command.LiteUnitCommand
+import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.editTextBinding
 import io.github.toyota32k.binder.enableBinding
-import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogEx
+import io.github.toyota32k.dialog.sample.R
 import io.github.toyota32k.dialog.sample.databinding.DialogCompactBinding
 import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.getViewModel
@@ -29,7 +31,9 @@ class CompactDialog : UtDialogEx() {
         setRightButton(BuiltInButtonType.DONE)
         cancellable = false
         draggable = true
-        enableFocusManagement().autoRegister()
+        enableFocusManagement()
+            .autoRegister()
+            .setInitialFocus(R.id.name_input)
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
@@ -37,6 +41,7 @@ class CompactDialog : UtDialogEx() {
         binder
             .editTextBinding(controls.nameInput, viewModel.yourName)
             .enableBinding(rightButton, viewModel.yourName.map { it.isNotEmpty() }) // ensure the name is not empty
+            .bindCommand(LiteUnitCommand(this::onPositive), controls.nameInput)     // enter key on the name input --> onPositive
         return controls.root
     }
 }

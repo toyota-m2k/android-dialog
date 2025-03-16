@@ -1243,6 +1243,8 @@ abstract class UtDialog: UtDialogBase() {
             }
             preCreateBodyView()
             rootView = inflater.inflate(UtDialogConfig.dialogFrameId, container, false) as FrameLayout
+            (rootView as? UtRootFrameLayout)?.apply { ownerDialog = this@UtDialog }
+
             if(noHeader) {
                 rootView.findViewById<View>(R.id.header).visibility = View.GONE
                 rootView.findViewById<View>(R.id.separator).visibility = View.GONE
@@ -1431,7 +1433,7 @@ abstract class UtDialog: UtDialogBase() {
             return true
         }
         // フォーカス管理
-        if(focusManager?.root?.handleTabEvent(keyCode, event) { activity?.currentFocus } == true) {
+        if(focusManager?.root?.handleTabEvent(keyCode, event) { rootView.findFocus() } == true) {
             return true
         }
 

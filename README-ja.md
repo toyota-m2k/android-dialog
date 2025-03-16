@@ -55,14 +55,22 @@ ApplicationまたはActivity派生クラスの onCreate() で、setup()を呼び
 
 その他の設定については、[コンフィギュレーション](./doc/configulation-ja.md) をご参照ください。
 
+## 基本コンセプト
+
+Activity はデバイスを回転したり、他のアプリに切り替えるたびに、インスタンスが生まれ変わる（破棄されて再生する）ライフサイクルを持っています。一方、ダイアログやメッセージボックスを使う処理は、画面に表示してから、ユーザーが操作して決定を下すまでの間が、意味的に１つのライフサイクル（生存期間）なのですが、これが Activity のライフサイクルと一致しないことが、Android 開発の難易度を上げる１つの要因となっています。
+
+UtDialog ライブラリでは、上記のようなライフサイクルの違いを前提に、ユーザーが操作を開始してから完了するまで死ぬことのないタスク (UtImmortalTask)と、OSに生殺与奪の権利を握られている死すべき定めのActivity (UtMortalActivity) というコンポーネントを導入し、それらを協調的に動作するシステムを構築しました。
+
+
 ## UtDialog と Activity の連携準備
 
 UtDialog と Activity は、`IUtDialogHost` インターフェースを介して通信します。
 `AppCompatActivity` の代わりに、`UtMortalActivity` から Activity クラスを派生すれば、必要な実装はすべて用意されています。既存の実装（派生元クラス）を変更できない場合は、 `UtMortalActivity` の実装を参考に、Activityクラスに必要な処理（主に、UtMortalTaskKeeperのイベントハンドラ呼び出し）を追加してください。
 
-## ダイアログを作る
 
-ここでは、ユーザーに文字列を入力させるための、簡単なダイアログ(`UtDialog`)の作り方を説明します。
+## チュートリアル：ダイアログを実装する
+
+ここでは、ユーザーに文字列を入力させる簡単なダイアログ(`UtDialog`)を作って、MainActivityから表示し、入力された文字列をMainActivityに表示する実装例を使って、UtDialog の使い方を説明します。
 
 ### (1) ダイアログのレイアウトを作成
 
@@ -88,7 +96,8 @@ UtDialog と Activity は、`IUtDialogHost` インターフェースを介して
         android:id="@+id/name_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text" />
+        android:inputType="text"
+        android:imeOptions="actionDone"/>
 </LinearLayout>
 ```
 
@@ -161,6 +170,9 @@ override fun preCreateBodyView() {
     setRightButton(UtDialog.BuiltInButtonType.DONE)
     cancellable = false
     draggable = true
+    enableFocusManagement()
+        .autoRegister()
+        .setInitialFocus(R.id.name_input)
 }
 ```
 
@@ -175,23 +187,129 @@ override fun preCreateBodyView() {
 |setRightButton|右ボタンに Done ボタンを割り当てます。デフォルトは NONE (表示しない) です。|
 |cancellable|false を指定すると、ダイアログ外をタップしてもダイアログを閉じません。|
 |draggable|true を指定すると、タイトルバーをドラッグしてダイアログの移動ができます。|
+|enableFocusManagement()<br>  .autoRegister()<br>  .setInitialFocus(R.id.name_input)|フォーカス管理を有効化し、フォーカス可能なビューを自動登録、名前入力欄に初期フォーカスをセットします。|
 
 ダイアログのプロパティについては、[リファレンス](./doc/reference-ja.md) をご参照ください。
 
 
 最後に、UtDialog.createBodyView をオーバーライドして、ダイアログのボディとなるビューを作成し、必要なイベントリスナーの登録を行います。
 
-この例では、ビューの作成には、ViewBinding.inflate() を使い、イベントリスナーの登録は、`binder` ([android-binding] (https://github.com/toyota-m2k/android-binding))によって隠蔽されています。具体的には、ViewModel の `yourName:MutableStateFlow<String>` と、TextView を双方向バインドし、`yourName` に文字列がセットされていないときは、OKボタンを無効化するように構成しています。
-
-ViewBinding を使わない場合は、inflater 引数を使って、layout-xml を inflate()して下さい。尚、savedInstanceState は、FragmentDialog.onCreateDialog() または、Fragment.onCreateView() が受け取った ダイアログ再構築用の Bundle型のデータですが、UtDialogは必ず ViewModel を使うので、ほとんど使いません。もちろん `binder` を使わずに、controls.nameInput に addTextChangedListener() でリスナーを登録して、viewModel.yourName を更新し、viewModel.yourName.onEach() でビューモデルの変更をビューにセットするコードを書いても構いません。
+この例では、ビューの作成には、ViewBinding.inflate() を使い、イベントリスナーの登録は、`binder` ([android-binding] (https://github.com/toyota-m2k/android-binding))によって隠蔽されています。具体的には、`editTextBinding` で、ViewModel の `yourName:MutableStateFlow<String>` と、TextView を双方向バインドし、`enableBinding` で、`yourName` に文字列がセットされていないときは、OKボタンを無効化するように構成しています。さらに、bindCommandを使って、TextView 上でのリターンキー押下を、OKボタンevent（onPositive）にバインドします。
 
 ```kotlin
-    override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
-        controls = DialogCompactBinding.inflate(inflater.layoutInflater, null, false)
-        binder
-            .editTextBinding(controls.nameInput, viewModel.yourName)
-            .enableBinding(rightButton, viewModel.yourName.map { it.isNotEmpty() }) // ensure the name is not empty
-        return controls.root
-    }
+override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
+    controls = DialogCompactBinding.inflate(inflater.layoutInflater, null, false)
+    binder
+        .editTextBinding(controls.nameInput, viewModel.yourName)
+        .enableBinding(rightButton, viewModel.yourName.map { it.isNotEmpty() }) // ensure the name is not empty
+        .bindCommand(LiteUnitCommand(this::onPositive), controls.nameInput)     // enter key on the name input --> onPositive
+    return controls.root
+}
 ```
 
+尚、ViewBinding を使わない場合は、inflater 引数を使って、layout-xml を inflate()して下さい。また、savedInstanceState は、FragmentDialog.onCreateDialog() または、Fragment.onCreateView() が受け取った ダイアログ再構築用の Bundle型のデータですが、UtDialogは必ず ViewModel を使うので、ほとんど使いません。もちろん `binder` を使わずに、controls.nameInput に addTextChangedListener() でリスナーを登録して、viewModel.yourName を更新し、viewModel.yourName.onEach() でビューモデルの変更をビューにセットするコードを書いても構いません。
+
+### (4) Activity のレイアウト
+
+ここからは、Activity側の実装を行います。次の例では、ダイアログを表示するトリガーとなる Button と、ダイアログの結果を表示するデモ用の TextView を配置しました。
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:orientation="vertical"
+    >
+
+    <Button
+        android:id="@+id/btn_compact_dialog"
+        android:text="@string/compact_dialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?attr/materialButtonOutlinedStyle"
+        />
+    <TextView
+        android:id="@id/output_text"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:background="@color/secondaryTextColor"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="2dp"
+        android:textColor="@color/secondaryColor"
+        />
+</LinearLayout>
+```
+
+### (5) MainActivityViewModelの作成
+
+標準の ViewModel を継承して、MainActivityViewModel を作成します。
+まず、ダイアログの結果の文字列を保持する、MutableStateFlow<String> 型の outputString を用意します。
+
+```kotlin
+class MainActivityViewModel : ViewModel() {
+    val outputString = MutableStateFlow("")
+}
+```
+
+### (6) UtDialog を表示するための実装
+
+`CompactDialog` を表示するための実装を行います。Activityのどこに実装しても構いませんが、このサンプルでは、[android-binding] (https://github.com/toyota-m2k/android-binding) の `LiteUnitCommand` を使って、MainActivityViewModel に実装します。ビューモデルのプロパティを更新するコマンドハンドラを、ViewModel 内にまとめることで、ソースコードが整理され、見通しがよくなります。
+
+`UtImmortalTask.launchTask()` 関数を利用して、UtImmortalTaskのスコープを作成して、UtDialog を表示します。UtImmortalTask 内では、ビューモデル作成関数 `createViewModel()` や、ダイアログ表示関数 `showDialog()` が使え、必ず、ダイアログのビューモデルを作成してから、ダイアログを表示します。showDialog() は、UtDialog が閉じられるまで待機（サスペンド）し、UtDialogインスタンスを返します。ダイアログがどのように閉じられたかは、`IUtDialog#status` で確認します。
+
+```kotlin
+class MainActivityViewModel : ViewModel() {
+    val outputString = MutableStateFlow("")
+    val commandCompactDialog = LiteUnitCommand {
+        launchTask {
+            outputString.value = "Compact Dialog opening"
+            val vm = createViewModel<CompactDialogViewModel>()
+            if(showDialog(CompactDialog()).status.ok) {
+                outputString.value = "Your name is ${vm.yourName.value}."
+            } else {
+                outputString.value = "Canceled."
+            }
+        }
+    }
+}
+```
+
+### (7) MainActivityの実装
+
+MainActivity は、UtMortalDialog を派生して実装します。
+とはいえ、必要な処理は、ほとんど MainActivityViewModel に実装済みなので、[android-binding] (https://github.com/toyota-m2k/android-binding) を使って ViewModel とビューをバインドしているだけです。
+
+
+```kotlin
+class MainActivity : UtMortalActivity() {
+    private lateinit var controls: ActivityMainBinding
+    private val binder = Binder()
+    private val viewModel by viewModels<MainActivityViewModel>()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        controls = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(controls.root)
+
+        // use default button labels
+        binder
+        .owner(this)
+        .bindCommand(viewModel.commandCompactDialog, controls.btnCompactDialog)
+        .textBinding(controls.outputText, viewModel.outputString)
+    }
+}
+```
+
+## リファレンス
+
+- [メッセージボックスを表示する](./doc/messagebox-ja.md)
+- [高度なダイアログ--HeightOptionの使い方](./doc/height-option-ja.md)
+- [ファイルピッカー/Permission/...](./doc/activity-broker-ja.md)
+- [ネストするダイアログ/タスクの使い方](./doc/task-ja.md)
+- [フォーカスマネージャ](./doc/focus-manager-ja.md)
+- [ダイアログオプション](./doc/dialog-options-ja.md)
+- [コンフィギュレーション](./doc/configuration-ja.md)

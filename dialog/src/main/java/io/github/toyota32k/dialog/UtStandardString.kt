@@ -2,6 +2,7 @@ package io.github.toyota32k.dialog
 
 import android.content.Context
 import androidx.annotation.StringRes
+import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
 import java.lang.ref.WeakReference
 
@@ -32,23 +33,21 @@ enum class UtStandardString(@StringRes private val resId:Int, val defaultText:St
         get() = getId(this)
 
     companion object {
-        private var context:WeakReference<Context>? = null
+        private var contextRef:WeakReference<Context>? = null
         private var table:IUtStringTable? = null
         @JvmStatic
         @JvmOverloads
         fun setContext(context:Context, table:IUtStringTable?=null) {
-            this.context = WeakReference(context)
+            this.contextRef = WeakReference(context)
             this.table = table
         }
         @StringRes
         private fun getId(type:UtStandardString) : Int {
             return table?.get(type) ?: type.resId
         }
+        private val context get() = contextRef?.get() ?: UtImmortalTaskManager.application
         private fun getText(type:UtStandardString) : String {
-            if(context?.get()==null) {
-                UtLog("UtStandardString").warn("context is null. Call UtStandardString.setContext().")
-            }
-            return context?.get()?.getString(getId(type)) ?: type.defaultText
+            return context.getString(getId(type))
         }
     }
 }

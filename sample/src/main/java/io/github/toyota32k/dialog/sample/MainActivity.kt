@@ -5,6 +5,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModel
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
@@ -34,7 +35,7 @@ import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
-    class MainActivityViewModel : UtDialogViewModel() {
+    class MainActivityViewModel : ViewModel() {
         val outputString = MutableStateFlow("")
         val commandMessageBox = LiteUnitCommand {
             launchTask {
@@ -119,7 +120,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         setContentView(controls.root)
 
         UtStandardString.setContext(this)
-        UtDialogConfig.showInDialogModeAsDefault = false
+        UtDialogConfig.showInDialogModeAsDefault = true
         UtDialogConfig.solidBackgroundOnPhone = false
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
