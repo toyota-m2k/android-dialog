@@ -642,6 +642,13 @@ abstract class UtDialog: UtDialogBase() {
         NONE(UtStandardString.NONE, false, false),          // ボタンなし
     }
 
+    data class ButtonType(val stringId:Int, val positive:Boolean, val blueColor:Boolean) {
+        companion object {
+            val OK = ButtonType(UtStandardString.OK.id, true, true)
+        }
+    }
+
+
     private fun idToButtonType(@StringRes id:Int, positive: Boolean):BuiltInButtonType {
         return when(id) {
             UtStandardString.OK.id -> BuiltInButtonType.OK
