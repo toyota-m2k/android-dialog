@@ -6,7 +6,7 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.task.IUtImmortalTaskContext
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.getActivity
 import io.github.toyota32k.utils.UtLog
 import kotlin.coroutines.Continuation
@@ -76,7 +76,7 @@ abstract class UtActivityBroker<I,O>
 
     // for java
     fun invoke(input:I, callback:(FragmentActivity,O)->Unit) {
-        UtImmortalSimpleTask.run {
+        UtImmortalTask.launchTask {
             val r = invoke(input)
             val activity = getActivity()
             if(activity!=null) {

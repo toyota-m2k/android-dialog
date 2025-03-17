@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import io.github.toyota32k.dialog.task.showOkCancelMessageBox
 import io.github.toyota32k.dialog.task.showThreeChoicesMessageBox
@@ -89,26 +90,37 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
                 this.otherLabel = neutralLabel
             }
         }
-        suspend fun openForConfirm(title:String?, message:String?, okLabel:String= UtStandardString.OK.text) {
-            UtImmortalSimpleTask.runAsync {
-                showConfirmMessageBox(title, message, okLabel)
-                true
-            }
-        }
-        suspend fun openForOkCancel(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancelLabel:String= UtStandardString.CANCEL.text) : Boolean {
-            return UtImmortalSimpleTask.runAsync {
-                showOkCancelMessageBox(title, message, okLabel, cancelLabel)
-            }
-        }
-        suspend fun openForYesNo(title:String?, message:String?, yesLabel:String= UtStandardString.YES.text, noLabel:String= UtStandardString.NO.text) : Boolean {
-            return UtImmortalSimpleTask.runAsync {
-                showYesNoMessageBox(title, message, yesLabel, noLabel)
-            }
-        }
-        suspend fun openForThreeChoices(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : IUtDialog.Status {
-            return UtImmortalSimpleTask.executeAsync {
-                showThreeChoicesMessageBox(title, message, positiveLabel, neutralLabel, negativeLabel)
-            }
-        }
+
+//        fun openToNotify(title:String?, message:String?, okLabel:String= UtStandardString.OK.text) {
+//            UtImmortalTask.launchTask {
+//                showConfirmMessageBox(title, message, okLabel)
+//            }
+//        }
+//
+//        /**
+//         * 確認ダイアログを表示
+//         * ユーザーが OK ボタンを押すのを待つ。
+//         */
+//        suspend fun openToConfirm(title:String?, message:String?, okLabel:String= UtStandardString.OK.text) {
+//            UtImmortalTask.awaitTask<Unit> {
+//                showConfirmMessageBox(title, message, okLabel)
+//            }
+//        }
+//
+//        suspend fun openForOkCancel(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancelLabel:String= UtStandardString.CANCEL.text) : Boolean {
+//            return UtImmortalTask.awaitTaskResult<Boolean> {
+//                showOkCancelMessageBox(title, message, okLabel, cancelLabel)
+//            }
+//        }
+//        suspend fun openForYesNo(title:String?, message:String?, yesLabel:String= UtStandardString.YES.text, noLabel:String= UtStandardString.NO.text) : Boolean {
+//            return UtImmortalTask.awaitTaskResult<Boolean> {
+//                showYesNoMessageBox(title, message, yesLabel, noLabel)
+//            }
+//        }
+//        suspend fun openForThreeChoices(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : IUtDialog.Status {
+//            return UtImmortalTask.awaitTaskResult<IUtDialog.Status> {
+//                showThreeChoicesMessageBox(title, message, positiveLabel, neutralLabel, negativeLabel)
+//            }
+//        }
     }
 }

@@ -2,25 +2,40 @@
 
 ## はじめに
 
-Androidアプリの開発においては、
-Application, Activity, Fragment など、
-ライフサイクル（生存期間と表現した方が感覚に近いかも）が異なるアプリケーションコンポーネントの存在が、実装の難易度・複雑さを上げ、ソースの可読性を低下させる最大の要因ではないかと思います。Androidアプリでも、例えば、Windowsアプリ（WPF/UWP/WinUI...)では当たり前の、
-```
-val dlg = SomeDialog()
-val result = dlg.show()
-if(result) {
-    ...
-}
-```
-のような直感的な実装ができたら、便利だと思いませんか？
-
-## このライブラリの目的
-
-このライブラリは、主に次の２つの目的で作成しました。
-
+このライブラリは、
+1. Activityの生存期間に影響されないユーザー操作スコープの導入による実装の簡潔化を目的として開発しました。さらに、
 1. ActivityやFragmentのライフサイクルを正しく扱い、ダイアログでのユーザー操作の結果を確実に受け取るためのフレームワーク。
 1. 扱いにくい DialogFragment や AlertDialog をラップし、コンテンツ(layout)を定義するだけで適切に表示できる汎用的なダイアログレンダリングシステム。
-1. Activityの生存期間に影響されないユーザー操作スコープの導入による実装の簡潔化。
+
+などを目標に開発しました。
+
+Androidアプリの開発においては、
+Application, Activity, Fragment など、
+ライフサイクル（生存期間）が異なるアプリケーションコンポーネントの存在が、実装の難易度・複雑さを上げ、ソースの可読性を低下させる最大の要因ではないかと思います。例えば、Windowsアプリ（WPF/UWP/WinUI...）なら、
+```kotlin
+// if it were windows ...
+val dlg = WhatsYourNameDialog()
+val result = dlg.show()
+if(result!=null) {
+    output.value = result.yourName
+}
+```
+のように、直感的な実装が可能ですが、Androidではそうはいきません。
+同じような書き方が Android でもできたら、便利だと思いませんか？ この `UtDialog` ライブラリを使えば、 `UtImmortalTask` ブロック（コルーチンスコープ）内で、次のように書けます。
+```kotlin
+UtImmortalTask.launchTask {
+    val vm = createViewModel<WhatsYourNameViewModel>()
+    if(showDialog<WhatsYourNameDialog>().status.ok) {
+        output.value = vm.yourName.value
+    }
+}
+```
+
+## 基本コンセプト
+
+Activity はデバイスを回転したり、他のアプリに切り替えるたびに、インスタンスが生まれ変わる（破棄されて再生する）ライフサイクルを持っています。一方、ダイアログやメッセージボックスを使う処理は、画面に表示してから、ユーザーが操作して決定を下すまでの間が、意味的に１つのライフサイクル（生存期間）なのですが、これが Activity のライフサイクルと一致しないことが、Android 開発の難易度を上げる１つの要因となっています。
+
+UtDialog ライブラリでは、上記のようなライフサイクルの違いを前提に、ユーザーが操作を開始してから完了するまで死ぬことのないタスク (UtImmortalTask)と、OSに生殺与奪の権利を握られている死すべき定めのActivity (UtMortalActivity) と定義し、それらを協調的に動作するシステムを構築しました。
 
 ## インストール (Gradle)
 
@@ -45,28 +60,11 @@ dependencies {
 }
 ```
 
-## コンフィギュレーション
-
-ダイアログの動作は、`UtDialogConfig` で設定します。
-ApplicationまたはActivity派生クラスの onCreate() で、setup()を呼び出します。
-```
-    UtDialogConfig.setup(this)
-```
-
-その他の設定については、[コンフィギュレーション](./doc/configulation-ja.md) をご参照ください。
-
-## 基本コンセプト
-
-Activity はデバイスを回転したり、他のアプリに切り替えるたびに、インスタンスが生まれ変わる（破棄されて再生する）ライフサイクルを持っています。一方、ダイアログやメッセージボックスを使う処理は、画面に表示してから、ユーザーが操作して決定を下すまでの間が、意味的に１つのライフサイクル（生存期間）なのですが、これが Activity のライフサイクルと一致しないことが、Android 開発の難易度を上げる１つの要因となっています。
-
-UtDialog ライブラリでは、上記のようなライフサイクルの違いを前提に、ユーザーが操作を開始してから完了するまで死ぬことのないタスク (UtImmortalTask)と、OSに生殺与奪の権利を握られている死すべき定めのActivity (UtMortalActivity) というコンポーネントを導入し、それらを協調的に動作するシステムを構築しました。
-
-
 ## UtDialog と Activity の連携準備
 
-UtDialog と Activity は、`IUtDialogHost` インターフェースを介して通信します。
-`AppCompatActivity` の代わりに、`UtMortalActivity` から Activity クラスを派生すれば、必要な実装はすべて用意されています。既存の実装（派生元クラス）を変更できない場合は、 `UtMortalActivity` の実装を参考に、Activityクラスに必要な処理（主に、UtMortalTaskKeeperのイベントハンドラ呼び出し）を追加してください。
+UtImmortalTask, UtDialog と Activity は、`IUtDialogHost` インターフェースを介して通信します。
 
+`AppCompatActivity` の代わりに、`UtMortalActivity` から Activity クラスを派生すれば、必要な実装はすべて用意されています。既存の実装（派生元クラス）を変更できない場合は、 `UtMortalActivity` の実装を参考に、Activityクラスに必要な処理（主に、UtMortalTaskKeeperのイベントハンドラ呼び出し）を追加してください。
 
 ## チュートリアル：ダイアログを実装する
 
@@ -266,7 +264,7 @@ class MainActivityViewModel : ViewModel() {
 class MainActivityViewModel : ViewModel() {
     val outputString = MutableStateFlow("")
     val commandCompactDialog = LiteUnitCommand {
-        launchTask {
+        UtImmortalTask.launchTask {
             outputString.value = "Compact Dialog opening"
             val vm = createViewModel<CompactDialogViewModel>()
             if(showDialog(CompactDialog()).status.ok) {

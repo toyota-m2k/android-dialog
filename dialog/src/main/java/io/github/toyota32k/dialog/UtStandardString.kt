@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.annotation.StringRes
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.utils.getStringOrDefault
 import java.lang.ref.WeakReference
 
 interface IUtStringTable {
@@ -47,7 +48,7 @@ enum class UtStandardString(@StringRes private val resId:Int, val defaultText:St
         }
         private val context get() = contextRef?.get() ?: UtImmortalTaskManager.application
         private fun getText(type:UtStandardString) : String {
-            return context.getString(getId(type))
+            return context.getStringOrDefault(getId(type), type.defaultText)
         }
     }
 }

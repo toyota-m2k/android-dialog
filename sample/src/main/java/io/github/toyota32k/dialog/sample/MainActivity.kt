@@ -1,7 +1,10 @@
 package io.github.toyota32k.dialog.sample
 
+import android.net.Uri
 import android.os.Bundle
+import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -11,6 +14,7 @@ import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.dialog.UtDialogConfig
+import io.github.toyota32k.dialog.UtMessageBox
 import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.dialog.broker.IUtActivityBrokerStoreProvider
 import io.github.toyota32k.dialog.broker.UtActivityBrokerStore
@@ -29,6 +33,7 @@ import io.github.toyota32k.dialog.sample.dialog.FullHeightDialog
 import io.github.toyota32k.dialog.sample.dialog.NestedDialog
 import io.github.toyota32k.dialog.task.UtImmortalTask.Companion.launchTask
 import io.github.toyota32k.dialog.task.UtDialogViewModel
+import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import io.github.toyota32k.dialog.task.showYesNoMessageBox
@@ -46,6 +51,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         }
         val commandOkCancel = LiteUnitCommand {
             launchTask {
+                showDialog("confirm") { UtMessageBox.createForConfirm("Download File", "Completed.") }
                 outputString.value = "Yes/No MessageBox opening"
                 if (showYesNoMessageBox("Yes/No", "Are you ok?")) {
                     outputString.value = "You are ok."
@@ -129,6 +135,8 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             insets
         }
 
+        val imageView = ImageView(this)
+        imageView.setImageURI()
         binder
             .owner(this)
             .bindCommand(viewModel.commandMessageBox, controls.btnMessageBox)
@@ -140,5 +148,24 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             .bindCommand(viewModel.commandFileSelection, controls.btnFileSelection)
             .bindCommand(viewModel.commandNestedDialog, controls.btnNestedDialog)
             .textBinding(controls.outputText, viewModel.outputString)
+    }
+
+    val filePicker = UtOpenReadOnlyFilePicker().apply { register(this@MainActivity) }
+    private fun setImage(uri:Uri?) {
+        findViewById<ImageView>(R.id.image_view).setImageURI(uri)
+    }
+
+    private val launcher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        findViewById<ImageView>(R.id.image_view).setImageURI(uri)
+        startActivity(Intent())
+    }
+    fun hoge() {
+        UtImmortalTask.launchTask {
+            val uri = filePicker.selectFile()
+            findViewById<ImageView>(R.id.image_view).setImageURI(uri)
+            true
+        }
     }
 }

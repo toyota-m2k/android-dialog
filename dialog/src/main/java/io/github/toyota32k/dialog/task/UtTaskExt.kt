@@ -15,25 +15,41 @@ import io.github.toyota32k.dialog.UtMultiSelectionBox
 import io.github.toyota32k.dialog.UtRadioSelectionBox
 import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
+import io.github.toyota32k.utils.getStringOrNull
 import java.lang.IllegalStateException
 
+private fun UtImmortalTaskBase.id2str(@StringRes id:Int):String? {
+    if(id==0) return null
+    return getStringOrNull(id)
+}
 /**
- * ImmortalTask内からメッセージボックスを表示するための拡張関数
+ * 確認メッセージボックスを表示
  */
 suspend fun UtImmortalTaskBase.showConfirmMessageBox(title:String?, message:String?, okLabel:String= UtStandardString.OK.text) {
     showDialog("internalConfirm") { UtMessageBox.createForConfirm(title,message,okLabel) }
+}
+suspend fun UtImmortalTaskBase.showConfirmMessageBox(title:Int, message:Int) {
+    showConfirmMessageBox(id2str(title),id2str(message))
 }
 
 suspend fun UtImmortalTaskBase.showOkCancelMessageBox(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancelLabel:String= UtStandardString.CANCEL.text) : Boolean {
     return showDialog("internalOkCancel") { UtMessageBox.createForOkCancel(title,message,okLabel, cancelLabel) }.status.ok
 }
-
+suspend fun UtImmortalTaskBase.showOkCancelMessageBox(title:Int, message:Int):Boolean {
+    return showOkCancelMessageBox(id2str(title),id2str(message))
+}
 suspend fun UtImmortalTaskBase.showYesNoMessageBox(title:String?, message:String?, yesLabel:String= UtStandardString.YES.text, noLabel:String= UtStandardString.NO.text) : Boolean {
     return showDialog("internalYesNo") { UtMessageBox.createForYesNo(title,message,yesLabel,noLabel) }.status.yes
+}
+suspend fun UtImmortalTaskBase.showYesNoMessageBox(title:Int, message:Int):Boolean {
+    return showYesNoMessageBox(id2str(title),id2str(message))
 }
 
 suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : IUtDialog.Status {
     return showDialog("internalPositiveNeutralNegative") { UtMessageBox.createForThreeChoices(title,message,positiveLabel,neutralLabel,negativeLabel) }.status
+}
+suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(title:Int, message:Int, positiveLabel:Int, neutralLabel:Int, negativeLabel:Int):IUtDialog.Status {
+    showThreeChoicesMessageBox(id2str(title),id2str(message),id2str(positiveLabel)!!,id2str(neutralLabel)!!,id2str(negativeLabel)!!)
 }
 
 suspend fun UtImmortalTaskBase.showSingleSelectionBox(title:String?, items:Array<String>) : Int {
@@ -81,11 +97,17 @@ val IUtImmortalTask.application : Application get() {
 }
 
 /**
- * ImmortalTask内からはいつでも application が取得できる
+ * ImmortalTask内からはいつでも リソース文字列 が取得できる
  */
-fun IUtImmortalTask.getString(@StringRes id:Int):String {
-    return application.getString(id)
+fun IUtImmortalTask.getStringOrNull(@StringRes id:Int):String? {
+    return try {
+        if(id==0) return null       // ゼロは無効値として扱う
+        application.getString(id)
+    } catch (e: Throwable) {
+        null
+    }
 }
+
 
 /**
  * ちょっと悪ノリ気味。。。ViewModelからも application を取得できてしまう。

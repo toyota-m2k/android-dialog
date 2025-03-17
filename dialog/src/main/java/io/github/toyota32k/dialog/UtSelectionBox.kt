@@ -8,6 +8,7 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.ListAdapter
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.showMultiSelectionBox
 import io.github.toyota32k.dialog.task.showRadioSelectionBox
 import io.github.toyota32k.dialog.task.showSingleSelectionBox
@@ -61,11 +62,11 @@ open class UtSingleSelectionBox : UtDialogBase(), DialogInterface.OnClickListene
                 this.title = title
             }
         }
-        suspend fun open(title:String?, items:Array<String>) : Int {
-            return UtImmortalSimpleTask.executeAsync {
-                showSingleSelectionBox(title,items)
-            }
-        }
+//        suspend fun open(title:String?, items:Array<String>) : Int {
+//            return UtImmortalTask.awaitTaskResult<Int> {
+//                showSingleSelectionBox(title,items)
+//            }
+//        }
     }
 }
 
@@ -111,11 +112,11 @@ open class UtRadioSelectionBox : UtMessageBox(), DialogInterface.OnClickListener
                 this.cancelLabel = cancelLabel
             }
         }
-        suspend fun open(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text) : Int {
-            return UtImmortalSimpleTask.executeAsync {
-                showRadioSelectionBox(title,items,initialSelection,okLabel,cancelLabel)
-            }
-        }
+//        suspend fun open(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text) : Int {
+//            return UtImmortalTask.awaitTaskResult<Int> {
+//                showRadioSelectionBox(title,items,initialSelection,okLabel,cancelLabel)
+//            }
+//        }
     }
 }
 
@@ -149,11 +150,11 @@ class UtMultiSelectionBox
             }
         }
 
-        suspend fun open(title:String?, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=null): BooleanArray {
-            return UtImmortalSimpleTask.executeAsync {
-                showMultiSelectionBox(title,items,initialSelections,okLabel,cancelLabel)
-            }
-        }
+//        suspend fun open(title:String?, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=null): BooleanArray {
+//            return UtImmortalTask.awaitTaskResult<BooleanArray> {
+//                showMultiSelectionBox(title,items,initialSelections,okLabel,cancelLabel)
+//            }
+//        }
     }
 }
 
