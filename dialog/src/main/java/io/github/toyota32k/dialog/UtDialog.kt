@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package io.github.toyota32k.dialog
 
 import android.annotation.SuppressLint
@@ -630,93 +632,82 @@ abstract class UtDialog: UtDialogBase() {
      * - 「閉じる」ボタンは、右（CLOSE：Positive）にも、左（CLOSE_LEFT:Negative）にも配置可能。
      * setLeftButton(), setRightButton()で、これら標準以外のボタンを作成することは可能だが、あまりポリシーから逸脱しないように。
      */
-    enum class BuiltInButtonType(val string:UtStandardString, val positive:Boolean, val blueColor:Boolean) {
-        OK(UtStandardString.OK, true, true),                // OK
-        DONE(UtStandardString.DONE, true, true),            // 完了
-        CLOSE(UtStandardString.CLOSE, true, true),          // 閉じる
+//    enum class BuiltInButtonType(val string:UtStandardString, val positive:Boolean, val blueColor:Boolean) {
+//        OK(UtStandardString.OK, true, true),                // OK
+//        DONE(UtStandardString.DONE, true, true),            // 完了
+//        CLOSE(UtStandardString.CLOSE, true, true),          // 閉じる
+//
+//        CANCEL(UtStandardString.CANCEL, false, false),      // キャンセル
+//        BACK(UtStandardString.BACK, false, false),          // 戻る
+//        CLOSE_LEFT(UtStandardString.CLOSE, false, false),   // 閉じる
+//
+//        NONE(UtStandardString.NONE, false, false),          // ボタンなし
+//    }
 
-        CANCEL(UtStandardString.CANCEL, false, false),      // キャンセル
-        BACK(UtStandardString.BACK, false, false),          // 戻る
-        CLOSE_LEFT(UtStandardString.CLOSE, false, false),   // 閉じる
+    data class ButtonType(val string:String?, val positive:Boolean) {
+        constructor(@StringRes stringId:Int, positive:Boolean) : this(UtStandardString.getText(stringId), positive)
 
-        NONE(UtStandardString.NONE, false, false),          // ボタンなし
-    }
-
-    data class ButtonType(val stringId:Int, val positive:Boolean, val blueColor:Boolean) {
         companion object {
-            val OK = ButtonType(UtStandardString.OK.id, true, true)
+            val OK get() = ButtonType(UtStandardString.OK.id, true)
+            val DONE get() = ButtonType(UtStandardString.DONE.id, true)
+            val CLOSE get() = ButtonType(UtStandardString.CLOSE.id, true)
+            val CANCEL get() = ButtonType(UtStandardString.CANCEL.id, false)
+            val BACK get() = ButtonType(UtStandardString.BACK.id, false)
+            val NEGATIVE_CLOSE get() = ButtonType(UtStandardString.CLOSE.id, false)
+            val POSITIVE_BACK get() = ButtonType(UtStandardString.BACK.id, true)
+            val NONE = ButtonType(null, false)
+
+            fun CUSTOM(string:String, positive:Boolean) = ButtonType(string, positive)
+            fun CUSTOM(@StringRes stringId:Int, positive:Boolean) = ButtonType(stringId, positive)
         }
     }
 
-
-    private fun idToButtonType(@StringRes id:Int, positive: Boolean):BuiltInButtonType {
-        return when(id) {
-            UtStandardString.OK.id -> BuiltInButtonType.OK
-            UtStandardString.DONE.id-> BuiltInButtonType.DONE
-            UtStandardString.CLOSE.id -> if(positive) BuiltInButtonType.CLOSE else BuiltInButtonType.CLOSE_LEFT
-            UtStandardString.CANCEL.id -> BuiltInButtonType.CANCEL
-            UtStandardString.BACK.id -> BuiltInButtonType.BACK
-            else-> BuiltInButtonType.NONE
-        }
-    }
-
-    protected val leftButtonType: BuiltInButtonType
-        get() = idToButtonType(leftButtonText, leftButtonPositive)
-    protected val rightButtonType: BuiltInButtonType
-        get() = idToButtonType(rightButtonText, rightButtonPositive)
+    var leftButtonType: ButtonType
+        get() = ButtonType(leftButtonText, leftButtonPositive)
+        set(v) = setLeftButton(v.string, v.positive)
+    var rightButtonType: ButtonType
+        get() = ButtonType(rightButtonText, rightButtonPositive)
+        set(v) = setRightButton(v.string, v.positive)
 
     // 左ボタンのプロパティ (setLeftButton()で設定）
-    private var leftButtonText:Int by bundle.intZero
+    private var leftButtonText:String? by bundle.stringNullable
     private var leftButtonPositive:Boolean by bundle.booleanFalse
-    private var leftButtonBlue:Boolean by bundle.booleanFalse
     @Suppress("unused")
     val hasLeftButton:Boolean
-        get() = leftButtonText > 0
+        get() = leftButtonText != null
 
     // 右ボタンのプロパティ（setRightButton()で設定）
-    private var rightButtonText:Int by bundle.intZero
+    private var rightButtonText:String? by bundle.stringNullable
     private var rightButtonPositive:Boolean by bundle.booleanFalse
     private var rightButtonBlue:Boolean by bundle.booleanFalse
     @Suppress("unused")
     val hasRightButton:Boolean
-        get() = rightButtonText > 0
+        get() = rightButtonText != null
 
     /**
      * 左ボタンのプロパティを細かく指定
      * @param id        ボタンキャプションの文字列リソースID
      * @param positive  true:Positiveボタン(タップしてonPositiveを発行）
      *                  false:Negativeボタン（タップしてonNegativeを発行）
-     * @param blue      true:Blueボタン（通常、Positiveボタンに使用）
-     *                  false:Whiteボタン（通常、Negativeボタンに使用）
      */
-    fun setLeftButton(@StringRes id:Int, positive: Boolean=false, blue:Boolean=positive) {
-        leftButtonText = id
+    private fun setLeftButton(string:String?, positive: Boolean=false) {
+        leftButtonText = string
         leftButtonPositive = positive
-        leftButtonBlue = blue
         if(isViewInitialized) {
             updateLeftButton()
         }
     }
 
-    /**
-     * 左ボタンのプロパティをタイプで指定
-     */
-    fun setLeftButton(type: BuiltInButtonType) {
-        setLeftButton(type.string.id, type.positive, type.blueColor)
-    }
 
     /**
      * 右ボタンのプロパティを細かく指定
      * @param id        ボタンキャプションの文字列リソースID
      * @param positive  true:Positiveボタン(タップしてonPositiveを発行）
      *                  false:Negativeボタン（タップしてonNegativeを発行）
-     * @param blue      true:Blueボタン（通常、Positiveボタンに使用）
-     *                  false:Whiteボタン（通常、Negativeボタンに使用）
      */
-    fun setRightButton(@StringRes id:Int, positive: Boolean=false, blue:Boolean=positive) {
-        rightButtonText = id
+    fun setRightButton(string:String?, positive: Boolean=false) {
+        rightButtonText = string
         rightButtonPositive = positive
-        rightButtonBlue = blue
         if(isViewInitialized) {
             updateRightButton()
         }
@@ -725,9 +716,9 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * 右ボタンのプロパティをタイプで指定
      */
-    fun setRightButton(type: BuiltInButtonType) {
-        setRightButton(type.string.id, type.positive)
-    }
+//    fun setRightButton(type: BuiltInButtonType) {
+//        setRightButton(type.string.id, type.positive)
+//    }
 
     private val themedContext:Context by lazy { ContextThemeWrapper(super.getContext(), UtDialogConfig.dialogTheme) }
     override fun getContext(): Context {
@@ -737,11 +728,12 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * ボタンプロパティを、ビュー(Button)に反映する
      */
-    private fun updateButton(button:Button, @StringRes id:Int, blue:Boolean) {
+    private fun updateButton(button:Button, label:String, positive:Boolean) {
         activity?.apply {
-            button.text = getText(id)
+            button.text = label
             if(button !is MaterialButton) {
-                if (blue) {
+                // legacy design
+                if (positive) {
                     button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_blue)
                     button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_blue))
                 } else {
@@ -756,9 +748,9 @@ abstract class UtDialog: UtDialogBase() {
      * 左ボタンのプロパティをビュー(Button)に反映
      */
     private fun updateLeftButton() {
-        val id = leftButtonText
-        if(id!=0) {
-            updateButton(leftButton, id, leftButtonBlue)
+        val label = leftButtonText
+        if(label!=null) {
+            updateButton(leftButton, label, leftButtonPositive)
         } else {
             leftButton.visibility = if(noInvisibleHeaderButton) View.GONE else View.INVISIBLE
         }
@@ -767,9 +759,9 @@ abstract class UtDialog: UtDialogBase() {
      * 右ボタンのプロパティをビュー(Button)に反映
      */
     private fun updateRightButton() {
-        val id = rightButtonText
-        if(id!=0) {
-            updateButton(rightButton, id, rightButtonBlue)
+        val label = rightButtonText
+        if(label!=null) {
+            updateButton(rightButton, label, rightButtonBlue)
         } else {
             rightButton.visibility = if(noInvisibleHeaderButton) View.GONE else View.INVISIBLE
         }

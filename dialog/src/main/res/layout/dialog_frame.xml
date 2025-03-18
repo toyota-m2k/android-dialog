@@ -161,25 +161,24 @@
             app:layout_constraintBottom_toBottomOf="parent"
             android:orientation="horizontal"
             android:gravity="end|center_vertical"
-            android:background="?attr/colorPrimaryContainer"
+            android:background="?attr/color_m3_dlg_footer_bg"
             android:layout_marginStart="1dp"
             android:layout_marginEnd="1dp"
             android:layout_marginBottom="1dp"
             >
             <Button
+                style="@style/dlg_m3_button_style"
                 android:id="@+id/left_button"
-                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="?attr/colorOnPrimaryContainer"
                 tools:text="キャンセル"
                 />
             <Button
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/dlg_m3_button_style"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/right_button"
-                android:textColor="?attr/colorOnPrimaryContainer"
+                android:layout_marginEnd="4dp"
                 tools:text="OK"
                 />
 

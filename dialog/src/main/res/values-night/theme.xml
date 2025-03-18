@@ -12,6 +12,17 @@
         <item name="color_dlg_title_separator_upper">@color/transparent</item>
         <item name="color_dlg_title_separator_lower">@color/transparent</item>
 
+        <item name="color_m3_dlg_footer_bg">?attr/colorPrimaryContainer</item>
+        <item name="color_m3_button_text">?attr/colorOnPrimaryContainer</item>
+        <item name="color_m3_button_text_pressed">?attr/colorPrimary</item>
+        <item name="color_m3_button_text_disabled">@color/gray40</item>
+        <item name="color_m3_accent_button_bg">?attr/colorPrimary</item>
+        <item name="color_m3_accent_button_bg_pressed">?attr/colorPrimaryContainer</item>
+        <item name="color_m3_accent_button_bg_disabled">@color/gray50</item>
+        <item name="color_m3_accent_button_text">?attr/colorOnPrimary</item>
+        <item name="color_m3_accent_button_text_pressed">?attr/colorOnPrimaryContainer</item>
+        <item name="color_m3_accent_button_text_disabled">@color/white</item>
+
         <!-- Colors for DONE button -->
         <item name="color_dlg_button_bg_normal">?attr/colorSecondary</item>
         <item name="color_dlg_button_bg_pressed">@color/secondary_70</item>

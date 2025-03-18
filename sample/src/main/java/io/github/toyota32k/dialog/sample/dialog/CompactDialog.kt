@@ -27,8 +27,8 @@ class CompactDialog : UtDialogEx() {
         heightOption=HeightOption.COMPACT
         widthOption=WidthOption.LIMIT(400)
         gravityOption = GravityOption.CENTER
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
         cancellable = false
         draggable = true
         enableFocusManagement()

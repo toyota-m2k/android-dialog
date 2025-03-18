@@ -126,8 +126,8 @@ class CompactDialog : UtDialogEx() {
         heightOption=HeightOption.COMPACT
         setLimitWidth(400)
         gravityOption = UtDialog.GravityOption.CENTER
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        leftButtonType = UtDialog.ButtonType.CANCEL
+        rightButtonType = UtDialog.ButtonType.DONE
         cancellable = false
         draggable = true
     }
@@ -164,8 +164,8 @@ override fun preCreateBodyView() {
     heightOption = UtDialog.HeightOption.COMPACT
     widthOption = UtDialog.WidthOption.LIMIT(400)
     gravityOption = UtDialog.GravityOption.CENTER
-    setLeftButton(UtDialog.BuiltInButtonType.CANCEL)
-    setRightButton(UtDialog.BuiltInButtonType.DONE)
+    leftButtonType = UtDialog.ButtonType.CANCEL
+    rightButtonType = UtDialog.ButtonType.DONE
     cancellable = false
     draggable = true
     enableFocusManagement()
@@ -181,8 +181,8 @@ override fun preCreateBodyView() {
 |hightOption|ダイアログ高さの指定。COMPACT は、WRAP_CONTENT に相当します。|
 |widthOption|ダイアログの幅の指定。LIMIT(400) は、画面幅が 400 以下の場合は、FULL（MATCH_PARENT）として動作し、それ以上の場合は最大幅 400dp に制限します。|
 |gravityOption|ダイアログの配置方法。CENTER を指定すると画面中央に配置します。|
-|setLeftButton|左ボタンに Cancel ボタンを割り当てます。デフォルトは NONE (表示しない) です。|
-|setRightButton|右ボタンに Done ボタンを割り当てます。デフォルトは NONE (表示しない) です。|
+|leftButtonType|左ボタンに Cancel ボタンを割り当てます。デフォルトは NONE (表示しない) です。|
+|rightButtonType|右ボタンに Done ボタンを割り当てます。デフォルトは NONE (表示しない) です。|
 |cancellable|false を指定すると、ダイアログ外をタップしてもダイアログを閉じません。|
 |draggable|true を指定すると、タイトルバーをドラッグしてダイアログの移動ができます。|
 |enableFocusManagement()<br>  .autoRegister()<br>  .setInitialFocus(R.id.name_input)|フォーカス管理を有効化し、フォーカス可能なビューを自動登録、名前入力欄に初期フォーカスをセットします。|

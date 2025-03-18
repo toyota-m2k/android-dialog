@@ -236,7 +236,7 @@ class SomeActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 }
 ```
 
-こうすれば、OtherViewModel は次のように書け、SomeActivityへの依存を解消できます。
+これで、OtherViewModel は次のように書け、SomeActivityへの依存を解消できました。
 
 ```kotlin
 class OtherViewModel : ViewModel() {

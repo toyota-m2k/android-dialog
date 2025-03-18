@@ -37,24 +37,24 @@
         <item name="android:windowClipToOutline">false</item>
     </style>
 
-    <!-- Ok/Cancelなどの作り付けボタン -->
+    <!-- legacy: Ok/Cancelなどの作り付けボタン -->
     <style name="dlg_button_style">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">@dimen/dlg_header_button_height</item>
         <item name="android:textAllCaps">false</item>
     </style>
-    <!-- タイトルの左側ボタン -->
+    <!-- legacy: タイトルの左側ボタン -->
     <style name="dlg_left_button_style" parent="dlg_button_style">
         <item name="android:layout_gravity">start|center</item>
         <item name="android:layout_marginStart">@dimen/dlg_header_button_horz_margin</item>
     </style>
-    <!-- タイトルの右側ボタン -->
+    <!-- legacy: タイトルの右側ボタン -->
     <style name="dlg_right_button_style" parent="dlg_button_style">
         <item name="android:layout_gravity">end|center</item>
         <item name="android:layout_marginEnd">@dimen/dlg_header_button_horz_margin</item>
     </style>
 
-    <!-- ダイアログタイトル -->
+    <!-- material3/legacy共通: ダイアログタイトル -->
     <style name="dlg_title_style">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -63,6 +63,17 @@
         <item name="android:gravity">center</item>
         <item name="android:textColor">?attr/color_dlg_title_text</item>
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="dlg_m3_button_style" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/dlg_m3_button_text</item>
+    </style>
+
+    <style name="dlg_m3_accent_button_style" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/dlg_m3_accent_button_bg</item>
+<!--        <item name="rippleColor">?attr/colorSecondary</item>-->
+        <item name="strokeColor">@color/dlg_m3_accent_button_bg</item>
+        <item name="android:textColor">@color/dlg_m3_accent_button_text</item>
     </style>
 
 </resources>

@@ -25,8 +25,8 @@ class AutoScrollDialog : UtDialogEx() {
         title="Auto Scroll Dialog"
         heightOption=HeightOption.AUTO_SCROLL
         gravityOption = GravityOption.CENTER
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
         cancellable = true
     }
 

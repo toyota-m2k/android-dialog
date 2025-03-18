@@ -49,7 +49,7 @@ suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(title:String?, message
     return showDialog("internalPositiveNeutralNegative") { UtMessageBox.createForThreeChoices(title,message,positiveLabel,neutralLabel,negativeLabel) }.status
 }
 suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(title:Int, message:Int, positiveLabel:Int, neutralLabel:Int, negativeLabel:Int):IUtDialog.Status {
-    showThreeChoicesMessageBox(id2str(title),id2str(message),id2str(positiveLabel)!!,id2str(neutralLabel)!!,id2str(negativeLabel)!!)
+    return showThreeChoicesMessageBox(id2str(title),id2str(message),id2str(positiveLabel)!!,id2str(neutralLabel)!!,id2str(negativeLabel)!!)
 }
 
 suspend fun UtImmortalTaskBase.showSingleSelectionBox(title:String?, items:Array<String>) : Int {

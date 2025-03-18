@@ -51,7 +51,6 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         }
         val commandOkCancel = LiteUnitCommand {
             launchTask {
-                showDialog("confirm") { UtMessageBox.createForConfirm("Download File", "Completed.") }
                 outputString.value = "Yes/No MessageBox opening"
                 if (showYesNoMessageBox("Yes/No", "Are you ok?")) {
                     outputString.value = "You are ok."
@@ -135,8 +134,6 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             insets
         }
 
-        val imageView = ImageView(this)
-        imageView.setImageURI()
         binder
             .owner(this)
             .bindCommand(viewModel.commandMessageBox, controls.btnMessageBox)
@@ -148,24 +145,5 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             .bindCommand(viewModel.commandFileSelection, controls.btnFileSelection)
             .bindCommand(viewModel.commandNestedDialog, controls.btnNestedDialog)
             .textBinding(controls.outputText, viewModel.outputString)
-    }
-
-    val filePicker = UtOpenReadOnlyFilePicker().apply { register(this@MainActivity) }
-    private fun setImage(uri:Uri?) {
-        findViewById<ImageView>(R.id.image_view).setImageURI(uri)
-    }
-
-    private val launcher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
-        findViewById<ImageView>(R.id.image_view).setImageURI(uri)
-        startActivity(Intent())
-    }
-    fun hoge() {
-        UtImmortalTask.launchTask {
-            val uri = filePicker.selectFile()
-            findViewById<ImageView>(R.id.image_view).setImageURI(uri)
-            true
-        }
     }
 }
