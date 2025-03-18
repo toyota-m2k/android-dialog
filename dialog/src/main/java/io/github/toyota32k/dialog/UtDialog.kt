@@ -1267,7 +1267,7 @@ abstract class UtDialog: UtDialogBase() {
             title?.let { titleView.text = it }
             if (heightFlag == HeightFlag.AUTO_SCROLL) {
                 scrollable = true
-            } else if (heightFlag == HeightFlag.CUSTOM) {
+            } else if (heightFlag == HeightFlag.COMPACT) {
                 scrollable = false
             }
             bodyContainer = if (scrollable) {

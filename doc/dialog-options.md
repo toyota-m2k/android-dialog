@@ -1,7 +1,37 @@
-# ダイアログのオプション
+# UtDialog Reference Manual
 
-var scrollable:Boolean 
-    デフォルト: false
+### ダイアログの動作を指定するプロパティ
+
+
+### var isDialog : Boolean
+
+デフォルト：false<br>
+UtDialogConfig.showInDialogModeAsDefault を設定することにより、デフォルト値は変更できます。
+
+false（デフォルト）の場合は、フラグメントモードとして動作し、FragmentManager のトランザクションにより、ActivityのWindow上にダイアログが表示されます。
+
+true にすると、ダイアログモードで動作し、DialogFragment#show() によって表示されます。この場合は、（ActivityのWindowではなく）新しいWindowが作成され、その上にダイアログが表示されます。Activityの上に、独立したwindow を重ねる構成となるため、動作が安定していましたが、edge-to-edge が標準になると、Activityの状態（NoActionBar + statusBar非表示の場合など）と整合をとるのが難しくなってきたので、v4以降、デフォルトは false にしています。
+
+### var edgeToEdgeEnabled : Boolean
+
+デフォルト: true<br>
+UtDialogConfig.edgeToEdgeEnabled を設定することにより、デフォルト値は変更できます。
+
+Activityで、edge-to-edge を有効にしない場合は、false にします。true にすると、
+isDialog=false (フラグメントモード) の場合に、setOnApplyWindowInsetsListenerを呼び出して、insets の調整を行います。
+
+### var cancellable:Boolean
+
+デフォルト: true<br>
+
+ダイアログ（またはメッセージボックス）の画面外をタップしたときキャンセルしてダイアログを閉じるかどうかを指定します。画面外をタップしてもダイアログを閉じないようにする場合は、false にします。
+
+### var scrollable:Boolean 
+
+デフォルト: false<br>
+
+コンテナビューでスクロールを有効にするかどうかを指定します。ただし、heightOption=COMPACT の場合は、scrollable=trueを設定しても効果はありません。また、heightOption=AUTO_SCROLL の場合は常に scrollable=true として動作します。
+
 var positiveCancellable:Boolean
     デフォルト: false
     画面外をタップしてダイアログを閉じるとき、Positive()扱いにするか？
