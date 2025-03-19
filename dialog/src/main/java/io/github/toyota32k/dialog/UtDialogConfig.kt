@@ -49,25 +49,22 @@ object UtDialogConfig {
      * サブダイアログに切り替わるときに、一瞬、後ろが透けて見えるのがブサイク、という意見があるので。
      * true にすると、UtDialog.isPhone==true のとき、ダイアログの背景をGuardColor.SOLID_GRAY にする。
      */
-    var solidBackgroundOnPhone:Boolean = true
+    var solidBackgroundOnPhone:Boolean = false
 
     /**
      * ダイアログの外側のウィンドウを覆うガードビューの色
      */
-    @ColorInt
-    var defaultGuardColor:Int = UtDialog.GuardColor.THEME_DIM.color
+    var defaultGuardColor:UtDialog.GuardColor = UtDialog.GuardColor.THEME_DIM
 
     /**
-     * ダイアログの外側をタップして閉じるタイプのダイアログのガードビューの色
+     * ダイアログの外側をタップして閉じるタイプ(cancellable=true)のダイアログのガードビューの色
      */
-    @ColorInt
-    var defaultGuardColorOfCancellableDialog:Int = UtDialog.GuardColor.TRANSPARENT.color
+    var defaultGuardColorOfCancellableDialog:UtDialog.GuardColor = UtDialog.GuardColor.TRANSPARENT
 
     /**
      * ダイアログがビジーの時にボディビューを覆うボディガードビューの色
      */
-    @ColorInt
-    var defaultBodyGuardColor:Int = UtDialog.GuardColor.THEME_SEE_THROUGH.color
+    var defaultBodyGuardColor:UtDialog.GuardColor = UtDialog.GuardColor.THEME_SEE_THROUGH
 
     /**
      * ダイアログのスタイル

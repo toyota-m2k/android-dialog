@@ -6,13 +6,11 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.GestureDetector
 import android.view.Gravity
@@ -36,7 +34,6 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -46,10 +43,8 @@ import androidx.core.view.marginEnd
 import androidx.core.view.marginStart
 import androidx.core.view.marginTop
 import com.google.android.material.button.MaterialButton
-import io.github.toyota32k.dialog.UtDialogConfig.defaultBodyGuardColor
-import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColor
-import io.github.toyota32k.dialog.UtDialogConfig.defaultGuardColorOfCancellableDialog
 import io.github.toyota32k.utils.dp2px
+import io.github.toyota32k.utils.getAttrColor
 import io.github.toyota32k.utils.setLayoutHeight
 import io.github.toyota32k.utils.setLayoutWidth
 import io.github.toyota32k.utils.setMargin
@@ -140,12 +135,17 @@ abstract class UtDialog: UtDialogBase() {
 
 
     /**
-     * ヘッダーボタン(ok/cancelなど）を非表示(BuiltInButtonType.NONE)にしたとき、そのボタンの領域をなくすか、見えないがそこにあるものとしてレンダリングするか？
+     * ビルトインボタン(ok/cancelなど）を非表示(BuiltInButton.NONE)にしたとき、そのボタンの領域をなくすか、見えないがそこにあるものとしてレンダリングするか？
      * （早い話、Goneにするか、Invisibleにするか）
      * true: ボタンの領域をなくす（Gone) ... ボタンの片方だけ表示すると、タイトルが左右に偏って表示されるので注意。
      * false: ボタンは見えなくても、そこにある感じにレンダリング(Invisible) : default
      */
-    var noInvisibleHeaderButton:Boolean by bundle.booleanFalse
+    var invisibleBuiltInButton:Boolean by bundle.booleanTrue
+
+    @Deprecated("use noInvisibleBuiltInButton instead")
+    var noInvisibleHeaderButton: Boolean
+        get() = !invisibleBuiltInButton
+        set(v) { invisibleBuiltInButton = !v }
 
     /**
      * bodyContainerのマージン
@@ -398,28 +398,64 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * ガードビュー（ダイアログの「画面外」）の背景の描画方法フラグ
      */
-    enum class GuardColor(@ColorInt val color:Int) {
-        INVALID(Color.argb(0,0,0,0)),                       // 透明（無効値）
-        TRANSPARENT(Color.argb(0,0xFF,0xFF,0xFF)),          // 透明（通常、 cancellable == true のとき用）
-        DIM(Color.argb(0xB0,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
-        SEE_THROUGH(Color.argb(0xB0,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
-        SOLID_GRAY(Color.rgb(0xc1,0xc1,0xc1)),
+//    enum class GuardColorX(@ColorInt val color:Int) {
+//        INVALID(Color.argb(0,0,0,0)),                       // 透明（無効値）
+//        TRANSPARENT(Color.argb(0,0xFF,0xFF,0xFF)),          // 透明（通常、 cancellable == true のとき用）
+//        DIM(Color.argb(0xB0,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
+//        SEE_THROUGH(Color.argb(0xB0,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
+//        SOLID_GRAY(Color.rgb(0xc1,0xc1,0xc1)),
+//
+//        THEME_DIM(Color.argb(0, 2,2,2)),                    // colorSurface の反対色で目立つように覆う（colorSurfaceが白なら黒っぽい/黒なら白っぽい色で覆う）
+//        THEME_SEE_THROUGH(Color.argb(0, 3,3,3)),            // colorSurface と同じ色で、コントラストを落とすような感じ。
+//    }
+    data class GuardColor(@ColorInt val rawColor:Int, @AttrRes val dynamic:Int?, val dynamicAlpha:Int=0xB0) {
+        constructor(@ColorInt color:Int) : this(color, null)
 
-        THEME_DIM(Color.argb(0, 2,2,2)),                    // colorSurface の反対色で目立つように覆う（colorSurfaceが白なら黒っぽい/黒なら白っぽい色で覆う）
-        THEME_SEE_THROUGH(Color.argb(0, 3,3,3)),            // colorSurface と同じ色で、コントラストを落とすような感じ。
+        @ColorInt
+        fun color(context:Context):Int {
+            return if(dynamic!=null) {
+                context.theme.getAttrColor(dynamic, rawColor).withAlpha(dynamicAlpha)
+            } else {
+                rawColor
+            }
+        }
+        val isValid:Boolean get() = rawColor != 0
+        val isDynamic:Boolean get() = dynamic != null
+
+        companion object {
+            const val INVALID_COLOR = 0
+            val INVALID = GuardColor(INVALID_COLOR)
+            val TRANSPARENT = GuardColor(Color.argb(0,0xFF,0xFF,0xFF))
+            val DIM = GuardColor(Color.argb(0xB0,0,0,0))
+            val SEE_THROUGH = GuardColor(Color.argb(0xB0,0xFF, 0xFF, 0xFF))
+            val SOLID_GRAY = GuardColor(Color.rgb(0xc1,0xc1,0xc1))
+            val THEME_DIM = GuardColor(Color.argb(0xB0, 0,0,0), R.attr.color_dlg_text)
+            val THEME_SEE_THROUGH = GuardColor(Color.argb(0xB0, 0,0,0), R.attr.color_dlg_bg)
+            fun CUSTOM(@ColorInt color:Int) = GuardColor(color)
+        }
     }
+
 
     /**
      * ガードビューの色
      */
     // @ColorInt
-    var guardColor:Int by bundle.intNonnull(GuardColor.INVALID.color)
+    private var guardColorValue:Int by bundle.intNonnull(GuardColor.INVALID_COLOR)
+    private var guardColorDynamic:Int? by bundle.intNullable
+    private var guardColorDynamicAlpha:Int by bundle.intNonnull(0xB0)
+    var guardColor:GuardColor
+        get() = if(guardColorValue!=GuardColor.INVALID_COLOR) GuardColor(guardColorValue, guardColorDynamic, guardColorDynamicAlpha) else GuardColor.INVALID
+        set(v) {
+            guardColorValue = v.rawColor
+            guardColorDynamic = v.dynamic
+            guardColorDynamicAlpha = v.dynamicAlpha
+        }
 
     /**
      * ガードビューに色は設定されているか？
      */
     private val hasGuardColor:Boolean
-        get() = guardColor != GuardColor.INVALID.color
+        get() = guardColorValue != GuardColor.INVALID_COLOR
 
     /**
      * ボディガードビュー の色
@@ -428,38 +464,47 @@ abstract class UtDialog: UtDialogBase() {
      * ガードビュー: ダイアログの外側の操作を禁止するために、Window全体を覆うビュー（== rootView)
      */
     // @ColorInt
-    var bodyGuardColor:Int by bundle.intNonnull(defaultBodyGuardColor)
-
-    @ColorInt
-    private fun Resources.Theme.getAttrColor(@AttrRes attr:Int, @ColorInt def:Int):Int {
-        val typedValue = TypedValue()
-        if(resolveAttribute(attr, typedValue, true)) {
-            return typedValue.data
-        } else {
-            return def
+    private var bodyGuardColorValue:Int by bundle.intNonnull(GuardColor.INVALID_COLOR)
+    private var bodyGuardColorDynamic:Int? by bundle.intNullable
+    private var bodyGuardColorDynamicAlpha:Int by bundle.intNonnull(0xB0)
+    var bodyGuardColor:GuardColor
+        get() = if(guardColorValue!=GuardColor.INVALID_COLOR) GuardColor(guardColorValue, guardColorDynamic, guardColorDynamicAlpha) else UtDialogConfig.defaultBodyGuardColor
+        set(v) {
+            guardColorValue = v.rawColor
+            guardColorDynamic = v.dynamic
+            guardColorDynamicAlpha = v.dynamicAlpha
         }
-    }
 
-    private fun isDark(@ColorInt color:Int) :Boolean {
-        val hsl = FloatArray(3)
-        ColorUtils.colorToHSL(color, hsl)
-        return hsl[2] < 0.5f
-    }
-    private fun autoDim(context:Context):Int {
-        return context.theme.getAttrColor(R.attr.color_dlg_text, 0).withAlpha(0xB0)
-    }
-    private fun autoSeeThrough(context:Context):Int {
-        return context.theme.getAttrColor(R.attr.color_dlg_bg, 0).withAlpha(0xB0)
-    }
-
-    @ColorInt
-    fun resolveColor(@ColorInt color:Int): Int  {
-        return when(color) {
-            GuardColor.THEME_DIM.color -> autoDim(context) //context.getColor(R.color.guard_dim)
-            GuardColor.THEME_SEE_THROUGH.color -> autoSeeThrough(context)   // context.getColor(R.color.guard_see_through)
-            else -> color
-        }
-    }
+//    @ColorInt
+//    private fun Resources.Theme.getAttrColor(@AttrRes attr:Int, @ColorInt def:Int):Int {
+//        val typedValue = TypedValue()
+//        if(resolveAttribute(attr, typedValue, true)) {
+//            return typedValue.data
+//        } else {
+//            return def
+//        }
+//    }
+//
+//    private fun isDark(@ColorInt color:Int) :Boolean {
+//        val hsl = FloatArray(3)
+//        ColorUtils.colorToHSL(color, hsl)
+//        return hsl[2] < 0.5f
+//    }
+//    private fun autoDim(context:Context):Int {
+//        return context.theme.getAttrColor(R.attr.color_dlg_text, 0).withAlpha(0xB0)
+//    }
+//    private fun autoSeeThrough(context:Context):Int {
+//        return context.theme.getAttrColor(R.attr.color_dlg_bg, 0).withAlpha(0xB0)
+//    }
+//
+//    @ColorInt
+//    fun resolveColor(@ColorInt color:Int): Int  {
+//        return when(color) {
+//            GuardColor.THEME_DIM.color -> autoDim(context) //context.getColor(R.color.guard_dim)
+//            GuardColor.THEME_SEE_THROUGH.color -> autoSeeThrough(context)   // context.getColor(R.color.guard_see_through)
+//            else -> color
+//        }
+//    }
 
     /**
      * 実際に描画するガードビューの背景色を取得
@@ -471,10 +516,10 @@ abstract class UtDialog: UtDialogBase() {
     @ColorInt
     private fun managedGuardColor():Int {
         return when {
-            UtDialogConfig.solidBackgroundOnPhone && isPhone -> GuardColor.SOLID_GRAY.color
-            hasGuardColor -> resolveColor(guardColor)
-            !cancellable-> resolveColor(defaultGuardColor)
-            else-> resolveColor(defaultGuardColorOfCancellableDialog)
+            UtDialogConfig.solidBackgroundOnPhone && isPhone -> GuardColor.SOLID_GRAY.rawColor
+            hasGuardColor -> guardColor.color(context)
+            cancellable-> UtDialogConfig.defaultGuardColorOfCancellableDialog.color(context)
+            else-> UtDialogConfig.defaultGuardColor.color(context)
         }
     }
 
@@ -752,7 +797,7 @@ abstract class UtDialog: UtDialogBase() {
         if(label!=null) {
             updateButton(leftButton, label, leftButtonPositive)
         } else {
-            leftButton.visibility = if(noInvisibleHeaderButton) View.GONE else View.INVISIBLE
+            leftButton.visibility = if(invisibleBuiltInButton) View.INVISIBLE else View.GONE
         }
     }
     /**
@@ -763,7 +808,7 @@ abstract class UtDialog: UtDialogBase() {
         if(label!=null) {
             updateButton(rightButton, label, rightButtonBlue)
         } else {
-            rightButton.visibility = if(noInvisibleHeaderButton) View.GONE else View.INVISIBLE
+            rightButton.visibility = if(invisibleBuiltInButton) View.INVISIBLE else View.GONE
         }
     }
 
@@ -1212,7 +1257,7 @@ abstract class UtDialog: UtDialogBase() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return Dialog(requireContext(), R.style.dlg_style).apply {
             window?.let { window->
-                window.setBackgroundDrawable(GuardColor.TRANSPARENT.color.toDrawable())
+                window.setBackgroundDrawable(GuardColor.TRANSPARENT.rawColor.toDrawable())
 
                 if(isDialog && hideStatusBarOnDialogMode) {
                     val insetsController = WindowCompat.getInsetsController(window, window.decorView)
@@ -1261,7 +1306,7 @@ abstract class UtDialog: UtDialogBase() {
             dialogView = rootView.findViewById(R.id.dialog_view)
             refContainerView = rootView.findViewById(R.id.ref_container_view)
             bodyGuardView = rootView.findViewById(R.id.body_guard_view)
-            bodyGuardView.background = resolveColor(bodyGuardColor).toDrawable()
+            bodyGuardView.background = bodyGuardColor.color(context).toDrawable()
             centerProgressRing = rootView.findViewById(R.id.center_progress_ring)
             dialogView.isClickable = true   // これをセットしておかないと、ヘッダーなどのクリックで rootViewのonClickが呼ばれて、ダイアログが閉じてしまう。
             title?.let { titleView.text = it }

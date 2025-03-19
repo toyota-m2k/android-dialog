@@ -64,8 +64,6 @@ interface IUtDialog {
      */
     fun forceDismiss()
 
-    fun ensureArguments(): Bundle
-
     val asFragment: DialogFragment
 }
 

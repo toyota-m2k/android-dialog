@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import io.github.toyota32k.binder.*
+import io.github.toyota32k.binder.command.ICommand
+import io.github.toyota32k.binder.command.IUnitCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import kotlinx.coroutines.flow.Flow
@@ -33,23 +35,18 @@ abstract class UtDialogEx : UtDialog() {
     fun Binder.dialogTitle(data: LiveData<String>):Binder
             = textBinding(titleView, data)
     fun Binder.dialogTitle(data: Flow<String>):Binder
-            = dialogTitle(data.asLiveData())
+            = textBinding(titleView, data)
 
     /**
-     * 左ボタンの表示/非表示をモデルにバインドする
+     * cancellableプロパティ（ダイアログ外タップによるキャンセルを許可するか）をモデルとバインドする。
      */
-    fun Binder.dialogLeftButtonVisibility(data: LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
-            = visibilityBinding(leftButton, data, boolConvert,VisibilityBinding.HiddenMode.HideByGone)
-    fun Binder.dialogLeftButtonVisibility(data: Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
-            = dialogLeftButtonVisibility(data.asLiveData(),boolConvert)
+    fun Binder.dialogCancellable(data:LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
+            = genericBoolBinding(rootView, data, boolConvert) {_,b-> cancellable = b }
+    fun Binder.dialogCancellable(data:Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
+            = genericBoolBinding(rootView, data, boolConvert) {_,b-> cancellable = b }
 
-    /**
-     * 右ボタンの表示/非表示をモデルにバインドする
-     */
-    fun Binder.rightButtonVisibility(data: LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
-            = visibilityBinding(rightButton, data, boolConvert,VisibilityBinding.HiddenMode.HideByGone)
-    fun Binder.rightButtonVisibility(data: Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
-            = rightButtonVisibility(data.asLiveData(), boolConvert)
+
+    // region Left Button
 
     /**
      * 左ボタンの有効/無効とモデルをバインドする。
@@ -57,7 +54,33 @@ abstract class UtDialogEx : UtDialog() {
     fun Binder.dialogLeftButtonEnable(data: LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
             = enableBinding(leftButton, data, boolConvert)
     fun Binder.dialogLeftButtonEnable(data: Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
-            = dialogLeftButtonEnable(data.asLiveData(), boolConvert)
+            = enableBinding(leftButton, data, boolConvert)
+
+    /**
+     * 左ボタンの表示/非表示をモデルにバインドする
+     */
+    fun Binder.dialogLeftButtonVisibility(data: LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight, hiddenMode:VisibilityBinding.HiddenMode = VisibilityBinding.HiddenMode.HideByGone):Binder
+            = visibilityBinding(leftButton, data, boolConvert,hiddenMode)
+    fun Binder.dialogLeftButtonVisibility(data: Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight, hiddenMode:VisibilityBinding.HiddenMode = VisibilityBinding.HiddenMode.HideByGone):Binder
+            = visibilityBinding(leftButton, data, boolConvert,hiddenMode)
+
+    /**
+     * 右ボタンにテキストをバインドする。
+     */
+    fun Binder.dialogLeftButtonString(data: LiveData<String>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
+            = textBinding(leftButton, data)
+    fun Binder.dialogLeftButtonString(data: Flow<String>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
+            = textBinding(leftButton, data)
+
+    /**
+     * 右ボタンにコマンドをバインドする
+     */
+    fun Binder.dialogLeftButtonCommand(command: IUnitCommand):Binder
+            = bindCommand(command, leftButton)
+
+    // endregion
+
+    // region Right Button
 
     /**
      * 右ボタンの有効/無効とモデルをバインドする。
@@ -65,7 +88,32 @@ abstract class UtDialogEx : UtDialog() {
     fun Binder.dialogRightButtonEnable(data: LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
             = enableBinding(rightButton, data, boolConvert)
     fun Binder.dialogRightButtonEnable(data: Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
-            = dialogRightButtonEnable(data.asLiveData(),boolConvert)
+            = enableBinding(rightButton, data, boolConvert)
+
+    /**
+     * 右ボタンの表示/非表示をモデルにバインドする
+     */
+    fun Binder.dialogRightButtonVisibility(data: LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight, hiddenMode:VisibilityBinding.HiddenMode = VisibilityBinding.HiddenMode.HideByGone):Binder
+            = visibilityBinding(rightButton, data, boolConvert, hiddenMode)
+    fun Binder.dialogRightButtonVisibility(data: Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight, hiddenMode:VisibilityBinding.HiddenMode = VisibilityBinding.HiddenMode.HideByGone):Binder
+            = visibilityBinding(rightButton, data, boolConvert, hiddenMode)
+
+    /**
+     * 右ボタンにテキストをバインドする。
+     */
+    fun Binder.dialogRightButtonString(data: LiveData<String>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
+            = textBinding(rightButton, data)
+    fun Binder.dialogRightButtonString(data: Flow<String>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
+            = textBinding(rightButton, data)
+    /**
+     * 右ボタンにコマンドをバインドする
+     */
+    fun Binder.dialogRightButtonCommand(command: IUnitCommand):Binder
+        = bindCommand(command, rightButton)
+
+    // endregion
+
+    // region GuardView / Progress Rings
 
     /**
      * ガードビューの表示/非表示をモデルとバインドする。
@@ -75,8 +123,10 @@ abstract class UtDialogEx : UtDialog() {
         centerProgressRing.visibility = if(showProgressRing) View.VISIBLE else View.GONE
         return visibilityBinding(bodyGuardView, data, boolConvert, VisibilityBinding.HiddenMode.HideByGone)
     }
-    fun Binder.dialogGuardViewVisibility(data:Flow<Boolean>, showProgressRing:Boolean=false, boolConvert: BoolConvert=BoolConvert.Straight):Binder
-            = dialogGuardViewVisibility(data.asLiveData(), showProgressRing,boolConvert)
+    fun Binder.dialogGuardViewVisibility(data:Flow<Boolean>, showProgressRing:Boolean=false, boolConvert: BoolConvert=BoolConvert.Straight):Binder {
+        centerProgressRing.visibility = if(showProgressRing) View.VISIBLE else View.GONE
+        return visibilityBinding(bodyGuardView, data, boolConvert, VisibilityBinding.HiddenMode.HideByGone)
+    }
 
     /**
      * タイトルバー上のプログレスリングの表示/非表示をモデルにバインドする。
@@ -84,15 +134,7 @@ abstract class UtDialogEx : UtDialog() {
     fun Binder.dialogProgressRingOnTitleTitleBarVisibility(data:LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
             = visibilityBinding(progressRingOnTitleBar, data, boolConvert, VisibilityBinding.HiddenMode.HideByInvisible)
     fun Binder.dialogProgressRingOnTitleTitleBarVisibility(data:Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
-            = dialogProgressRingOnTitleTitleBarVisibility(data.asLiveData(), boolConvert)
+            = visibilityBinding(progressRingOnTitleBar, data, boolConvert, VisibilityBinding.HiddenMode.HideByInvisible)
 
-
-    /**
-     * cancellableプロパティ（ダイアログ外タップによるキャンセルを許可するか）をモデルとバインドする。
-     */
-    fun Binder.dialogCancellable(data:LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
-            = genericBoolBinding(rootView, data, boolConvert) {_,b-> cancellable = b }
-    fun Binder.dialogCancellable(data:Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
-            = dialogCancellable(data.asLiveData(), boolConvert)
-
+    // endregion
 }
