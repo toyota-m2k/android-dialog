@@ -779,11 +779,11 @@ abstract class UtDialog: UtDialogBase() {
             if(button !is MaterialButton) {
                 // legacy design
                 if (positive) {
-                    button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_blue)
-                    button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_blue))
+                    button.background = ContextCompat.getDrawable(context, R.drawable.legacy_dlg_button_bg_blue)
+                    button.setTextColor(context.getColorStateList(R.color.legacy_dlg_button_text_blue))
                 } else {
-                    button.background = ContextCompat.getDrawable(context, R.drawable.dlg_button_bg_white)
-                    button.setTextColor(context.getColorStateList(R.color.dlg_button_fg_white))
+                    button.background = ContextCompat.getDrawable(context, R.drawable.legacy_dlg_button_bg_white)
+                    button.setTextColor(context.getColorStateList(R.color.legacy_dlg_button_text_white))
                 }
             }
         }

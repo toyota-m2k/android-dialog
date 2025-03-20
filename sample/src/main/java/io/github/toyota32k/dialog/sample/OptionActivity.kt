@@ -15,6 +15,7 @@ import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialog.WidthFlag
 import io.github.toyota32k.dialog.UtDialog.WidthOption
 import io.github.toyota32k.dialog.UtDialogConfig
+import io.github.toyota32k.dialog.task.UtImmortalTaskManager.application
 import io.github.toyota32k.utils.ApplicationViewModelStoreOwner
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -64,12 +65,12 @@ class OptionActivity : AppCompatActivity() {
                 }
             }
         }
-        enum class GuardColorEx(@IdRes val id:Int, val color:Int) {
-            None(R.id.radio_guard_color_none, UtDialog.GuardColor.INVALID.color),
-            Dim(R.id.radio_guard_color_dim, UtDialog.GuardColor.DIM.color),
-            SeeThrough(R.id.radio_guard_color_see_through, UtDialog.GuardColor.SEE_THROUGH.color),
-            AutoDim(R.id.radio_guard_color_auto, UtDialog.GuardColor.THEME_DIM.color),
-            AutoST(R.id.radio_guard_color_auto_s, UtDialog.GuardColor.THEME_SEE_THROUGH.color)
+        enum class GuardColorEx(@IdRes val id:Int, val color:UtDialog.GuardColor) {
+            None(R.id.radio_guard_color_none, UtDialog.GuardColor.INVALID),
+            Dim(R.id.radio_guard_color_dim, UtDialog.GuardColor.DIM),
+            SeeThrough(R.id.radio_guard_color_see_through, UtDialog.GuardColor.SEE_THROUGH),
+            AutoDim(R.id.radio_guard_color_auto, UtDialog.GuardColor.THEME_DIM),
+            AutoST(R.id.radio_guard_color_auto_s, UtDialog.GuardColor.THEME_SEE_THROUGH)
             ;
             object IdValueResolver : IIDValueResolver<GuardColorEx> {
                 override fun id2value(id: Int): GuardColorEx {

@@ -35,8 +35,8 @@
             <android.widget.Button
                 style="@style/dlg_left_button_style"
                 android:id="@+id/left_button"
-                android:background="@drawable/dlg_button_bg_white"
-                android:textColor="@color/dlg_button_fg_white"
+                android:background="@drawable/legacy_dlg_button_bg_white"
+                android:textColor="@color/legacy_dlg_button_text_white"
                 tools:text="キャンセル"
                 />
             <io.github.toyota32k.viewex.library.Viewbox
@@ -74,8 +74,8 @@
             <android.widget.Button
                 style="@style/dlg_right_button_style"
                 android:id="@+id/right_button"
-                android:background="@drawable/dlg_button_bg_blue"
-                android:textColor="@color/dlg_button_fg_blue"
+                android:background="@drawable/legacy_dlg_button_bg_blue"
+                android:textColor="@color/legacy_dlg_button_text_blue"
                 tools:text="完了"
                 tools:visibility="invisible"
                 />

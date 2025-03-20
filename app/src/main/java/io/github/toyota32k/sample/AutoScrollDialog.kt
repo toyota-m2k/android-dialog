@@ -12,11 +12,11 @@ import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 
 class AutoScrollDialog : UtDialog() {
-    init {
+    override fun preCreateBodyView() {
         title="Auto Scroll Test"
-        heightOption=HeightFlag.AUTO_SCROLL
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        heightOption=HeightOption.AUTO_SCROLL
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
     }
 
     var count:Int = 0

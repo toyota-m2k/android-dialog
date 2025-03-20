@@ -5,8 +5,8 @@
             <corners android:radius="@dimen/dlg_button_corner_radius" />
             <stroke
                 android:width="@dimen/dlg_button_border_thickness"
-                android:color="?attr/color_dlg_white_button_border_disabled"/>
-            <solid android:color="?attr/color_dlg_white_button_bg_disabled"/>
+                android:color="?attr/color_legacy_dlg_white_button_border_disabled"/>
+            <solid android:color="?attr/color_legacy_dlg_white_button_bg_disabled"/>
         </shape>
     </item>
     <item android:state_pressed="false">
@@ -14,8 +14,8 @@
             <corners android:radius="@dimen/dlg_button_corner_radius" />
             <stroke
                 android:width="@dimen/dlg_button_border_thickness"
-                android:color="?attr/color_dlg_white_button_border_normal"/>
-            <solid android:color="?attr/color_dlg_white_button_bg_normal"/>
+                android:color="?attr/color_legacy_dlg_white_button_border_normal"/>
+            <solid android:color="?attr/color_legacy_dlg_white_button_bg_normal"/>
         </shape>
 
     </item>
@@ -24,8 +24,8 @@
             <corners android:radius="@dimen/dlg_button_corner_radius" />
             <stroke
                 android:width="@dimen/dlg_button_border_thickness"
-                android:color="?attr/color_dlg_white_button_border_pressed"/>
-            <solid android:color="?attr/color_dlg_white_button_bg_pressed"/>
+                android:color="?attr/color_legacy_dlg_white_button_border_pressed"/>
+            <solid android:color="?attr/color_legacy_dlg_white_button_bg_pressed"/>
         </shape>
     </item>
 

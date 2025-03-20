@@ -82,7 +82,7 @@
             </io.github.toyota32k.viewex.library.Viewbox>
         </FrameLayout>
 
-        <!-- ヘッダーとボディのセパレータ -->
+        <!-- ヘッダーとボディのセパレータ（legacyとの互換のために残しているが非表示) -->
         <View
             android:id="@+id/separator"
             android:layout_height="2dp"
@@ -90,7 +90,6 @@
             app:layout_constraintTop_toBottomOf="@+id/header"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:background="@drawable/dlg_header_separator"
             android:layout_marginStart="1dp"
             android:layout_marginEnd="1dp"
             android:visibility="gone"
@@ -161,20 +160,20 @@
             app:layout_constraintBottom_toBottomOf="parent"
             android:orientation="horizontal"
             android:gravity="end|center_vertical"
-            android:background="?attr/color_m3_dlg_footer_bg"
+            android:background="?attr/color_dlg_footer_bg"
             android:layout_marginStart="1dp"
             android:layout_marginEnd="1dp"
             android:layout_marginBottom="1dp"
             >
             <Button
-                style="@style/dlg_m3_button_style"
+                style="@style/dlg_footer_button_style"
                 android:id="@+id/left_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 tools:text="キャンセル"
                 />
             <Button
-                style="@style/dlg_m3_button_style"
+                style="@style/dlg_footer_button_style"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/right_button"

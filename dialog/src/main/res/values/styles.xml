@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 全画面表示、タイトルなしのダイアログスタイル
+    <!--
+        全画面表示、タイトルなしのダイアログスタイル
         UtDialogのコンストラクタで isDialog = true にしたときに使用される。
-        たぶん、もう使わない。
     -->
     <style name="dlg_style">
 <!--        <item name="android:windowFrame">@null</item>-->
@@ -65,15 +65,8 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="dlg_m3_button_style" parent="Widget.Material3.Button.TextButton">
-        <item name="android:textColor">@color/dlg_m3_button_text</item>
-    </style>
-
-    <style name="dlg_m3_accent_button_style" parent="Widget.Material3.Button">
-        <item name="backgroundTint">@color/dlg_m3_accent_button_bg</item>
-<!--        <item name="rippleColor">?attr/colorSecondary</item>-->
-        <item name="strokeColor">@color/dlg_m3_accent_button_bg</item>
-        <item name="android:textColor">@color/dlg_m3_accent_button_text</item>
+    <style name="dlg_footer_button_style" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/dlg_footer_button_text</item>
     </style>
 
 </resources>

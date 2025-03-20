@@ -1,56 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="UtDialogTheme">
-        <!-- Colors for Dialog Body -->
-        <item name="color_dlg_bg">?attr/colorSurface</item>
-        <item name="color_dlg_text">?attr/colorOnSurface</item>
-        <item name="color_dlg_border">?attr/colorPrimary</item>
+<!--    <style name="UtDialogTheme">-->
+<!--        &lt;!&ndash; Colors for Dialog Body &ndash;&gt;-->
+<!--        <item name="color_dlg_bg">?attr/colorSurface</item>-->
+<!--        <item name="color_dlg_text">?attr/colorOnSurface</item>-->
+<!--        <item name="color_dlg_border">?attr/colorPrimary</item>-->
 
-        <!-- Colors for Dialog Title bar -->
-        <item name="color_dlg_title_bg">?attr/colorPrimary</item>
-        <item name="color_dlg_title_text">?attr/colorOnPrimary</item>
-        <item name="color_dlg_title_separator_upper">@color/transparent</item>
-        <item name="color_dlg_title_separator_lower">@color/transparent</item>
+<!--        &lt;!&ndash; Colors for Dialog Title bar &ndash;&gt;-->
+<!--        <item name="color_dlg_title_bg">?attr/colorPrimary</item>-->
+<!--        <item name="color_dlg_title_text">?attr/colorOnPrimary</item>-->
+<!--        <item name="color_dlg_title_separator_upper">@color/transparent</item>-->
+<!--        <item name="color_dlg_title_separator_lower">@color/transparent</item>-->
 
-        <item name="color_m3_dlg_footer_bg">?attr/colorPrimaryContainer</item>
-        <item name="color_m3_button_text">?attr/colorOnPrimaryContainer</item>
-        <item name="color_m3_button_text_pressed">?attr/colorPrimary</item>
-        <item name="color_m3_button_text_disabled">@color/gray40</item>
-        <item name="color_m3_accent_button_bg">?attr/colorPrimary</item>
-        <item name="color_m3_accent_button_bg_pressed">?attr/colorPrimaryContainer</item>
-        <item name="color_m3_accent_button_bg_disabled">@color/gray50</item>
-        <item name="color_m3_accent_button_text">?attr/colorOnPrimary</item>
-        <item name="color_m3_accent_button_text_pressed">?attr/colorOnPrimaryContainer</item>
-        <item name="color_m3_accent_button_text_disabled">@color/white</item>
+<!--        <item name="color_dlg_footer_bg">?attr/colorPrimaryContainer</item>-->
+<!--        <item name="color_m3_button_text">?attr/colorOnPrimaryContainer</item>-->
+<!--        <item name="color_m3_button_text_pressed">?attr/colorPrimary</item>-->
+<!--        <item name="color_m3_button_text_disabled">@color/gray40</item>-->
+<!--        <item name="color_m3_accent_button_bg">?attr/colorPrimary</item>-->
+<!--        <item name="color_m3_accent_button_bg_pressed">?attr/colorPrimaryContainer</item>-->
+<!--        <item name="color_m3_accent_button_bg_disabled">@color/gray50</item>-->
+<!--        <item name="color_m3_accent_button_text">?attr/colorOnPrimary</item>-->
+<!--        <item name="color_m3_accent_button_text_pressed">?attr/colorOnPrimaryContainer</item>-->
+<!--        <item name="color_m3_accent_button_text_disabled">@color/white</item>-->
 
-        <!-- Colors for DONE button -->
-        <item name="color_dlg_button_bg_normal">?attr/colorSecondary</item>
-        <item name="color_dlg_button_bg_pressed">@color/secondary_70</item>
-        <item name="color_dlg_button_bg_disabled">@color/on_surface_30</item>
+<!--        &lt;!&ndash; Colors for DONE button &ndash;&gt;-->
+<!--        <item name="color_dlg_button_bg_normal">?attr/colorSecondary</item>-->
+<!--        <item name="color_dlg_button_bg_pressed">@color/secondary_70</item>-->
+<!--        <item name="color_dlg_button_bg_disabled">@color/on_surface_30</item>-->
 
-        <item name="color_dlg_button_border_normal">@color/secondary_70</item>
-        <item name="color_dlg_button_border_pressed">@color/secondary_70</item>
-        <item name="color_dlg_button_border_disabled">@color/on_surface_50</item>
+<!--        <item name="color_dlg_button_border_normal">@color/secondary_70</item>-->
+<!--        <item name="color_dlg_button_border_pressed">@color/secondary_70</item>-->
+<!--        <item name="color_dlg_button_border_disabled">@color/on_surface_50</item>-->
 
-        <item name="color_dlg_button_text_normal">?attr/colorOnSecondary</item>
-        <item name="color_dlg_button_text_pressed">@color/on_secondary_70</item>
-        <item name="color_dlg_button_text_disabled">@color/on_surface_70</item>
+<!--        <item name="color_dlg_button_text_normal">?attr/colorOnSecondary</item>-->
+<!--        <item name="color_dlg_button_text_pressed">@color/on_secondary_70</item>-->
+<!--        <item name="color_dlg_button_text_disabled">@color/on_surface_70</item>-->
 
-        <!-- Colors for Cancel button -->
-        <item name="color_dlg_white_button_bg_normal">?attr/colorSurface</item>
-        <item name="color_dlg_white_button_bg_pressed">@color/on_surface_50</item>
-        <item name="color_dlg_white_button_bg_disabled">@color/on_surface_30</item>
+<!--        &lt;!&ndash; Colors for Cancel button &ndash;&gt;-->
+<!--        <item name="color_dlg_white_button_bg_normal">?attr/colorSurface</item>-->
+<!--        <item name="color_dlg_white_button_bg_pressed">@color/on_surface_50</item>-->
+<!--        <item name="color_dlg_white_button_bg_disabled">@color/on_surface_30</item>-->
 
-        <item name="color_dlg_white_button_border_normal">@color/on_surface_50</item>
-        <item name="color_dlg_white_button_border_pressed">@color/on_surface_50</item>
-        <item name="color_dlg_white_button_border_disabled">@color/on_surface_50</item>
+<!--        <item name="color_dlg_white_button_border_normal">@color/on_surface_50</item>-->
+<!--        <item name="color_dlg_white_button_border_pressed">@color/on_surface_50</item>-->
+<!--        <item name="color_dlg_white_button_border_disabled">@color/on_surface_50</item>-->
 
-        <item name="color_dlg_white_button_text_normal">?attr/colorOnSurface</item>
-        <item name="color_dlg_white_button_text_pressed">?attr/colorOnSurface</item>
-        <item name="color_dlg_white_button_text_disabled">@color/on_surface_70</item>
+<!--        <item name="color_dlg_white_button_text_normal">?attr/colorOnSurface</item>-->
+<!--        <item name="color_dlg_white_button_text_pressed">?attr/colorOnSurface</item>-->
+<!--        <item name="color_dlg_white_button_text_disabled">@color/on_surface_70</item>-->
 
-        <item name="color_translucent_dim">#40FFFFFF</item>
-        <item name="color_translucent_see_through">#D0000000</item>
-    </style>
+<!--        <item name="color_translucent_dim">#40FFFFFF</item>-->
+<!--        <item name="color_translucent_see_through">#D0000000</item>-->
+<!--    </style>-->
 
 </resources>

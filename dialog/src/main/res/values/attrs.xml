@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Colors for Dialog Body -->
+<!--    &lt;!&ndash; Colors for Dialog Body &ndash;&gt;-->
     <attr name="color_dlg_bg" format="color"/>
     <attr name="color_dlg_text" format="color"/>
     <attr name="color_dlg_border" format="color"/>
@@ -8,47 +8,51 @@
     <!-- Colors for Dialog Title bar -->
     <attr name="color_dlg_title_bg" format="color"/>
     <attr name="color_dlg_title_text" format="color"/>
-    <attr name="color_dlg_title_separator_upper" format="color"/>
-    <attr name="color_dlg_title_separator_lower" format="color"/>
 
     <!-- Colors for Dialog Footer -->
-    <attr name="color_m3_dlg_footer_bg" format="color"/>
-    <attr name="color_m3_button_text" format="color"/>
-    <attr name="color_m3_button_text_pressed" format="color"/>
-    <attr name="color_m3_button_text_disabled" format="color"/>
-    <attr name="color_m3_accent_button_bg" format="color"/>
-    <attr name="color_m3_accent_button_bg_disabled" format="color"/>
-    <attr name="color_m3_accent_button_bg_pressed" format="color"/>
-    <attr name="color_m3_accent_button_text" format="color"/>
-    <attr name="color_m3_accent_button_text_pressed" format="color"/>
-    <attr name="color_m3_accent_button_text_disabled" format="color"/>
+    <attr name="color_dlg_footer_bg" format="color"/>
+    <attr name="color_footer_button_text" format="color"/>
+    <attr name="color_footer_button_text_pressed" format="color"/>
+    <attr name="color_footer_button_text_disabled" format="color"/>
 
-    <!-- Colors for DONE button -->
-    <attr name="color_dlg_button_bg_normal" format="color"/>
-    <attr name="color_dlg_button_bg_pressed" format="color"/>
-    <attr name="color_dlg_button_bg_disabled" format="color"/>
+    <!--    <attr name="color_m3_accent_button_bg" format="color"/>-->
+<!--    <attr name="color_m3_accent_button_bg_disabled" format="color"/>-->
+<!--    <attr name="color_m3_accent_button_bg_pressed" format="color"/>-->
+<!--    <attr name="color_m3_accent_button_text" format="color"/>-->
+<!--    <attr name="color_m3_accent_button_text_pressed" format="color"/>-->
+<!--    <attr name="color_m3_accent_button_text_disabled" format="color"/>-->
 
-    <attr name="color_dlg_button_border_normal" format="color"/>
-    <attr name="color_dlg_button_border_pressed" format="color"/>
-    <attr name="color_dlg_button_border_disabled" format="color"/>
+    <!-- Colors for Legacy DONE button -->
+    <attr name="color_legacy_dlg_blue_button_bg_normal" format="color"/>
+    <attr name="color_legacy_dlg_blue_button_bg_pressed" format="color"/>
+    <attr name="color_legacy_dlg_blue_button_bg_disabled" format="color"/>
 
-    <attr name="color_dlg_button_text_normal" format="color"/>
-    <attr name="color_dlg_button_text_pressed" format="color"/>
-    <attr name="color_dlg_button_text_disabled" format="color"/>
+    <attr name="color_legacy_dlg_blue_button_border_normal" format="color"/>
+    <attr name="color_legacy_dlg_blue_button_border_pressed" format="color"/>
+    <attr name="color_legacy_dlg_blue_button_border_disabled" format="color"/>
 
-    <!-- Colors for Cancel button -->
-    <attr name="color_dlg_white_button_bg_normal" format="color"/>
-    <attr name="color_dlg_white_button_bg_pressed" format="color"/>
-    <attr name="color_dlg_white_button_bg_disabled" format="color"/>
+    <attr name="color_legacy_dlg_blue_button_text_normal" format="color"/>
+    <attr name="color_legacy_dlg_blue_button_text_pressed" format="color"/>
+    <attr name="color_legacy_dlg_blue_button_text_disabled" format="color"/>
 
-    <attr name="color_dlg_white_button_border_normal" format="color"/>
-    <attr name="color_dlg_white_button_border_pressed" format="color"/>
-    <attr name="color_dlg_white_button_border_disabled" format="color"/>
+    <!-- Colors for Legacy Cancel button -->
+    <attr name="color_legacy_dlg_white_button_bg_normal" format="color"/>
+    <attr name="color_legacy_dlg_white_button_bg_pressed" format="color"/>
+    <attr name="color_legacy_dlg_white_button_bg_disabled" format="color"/>
 
-    <attr name="color_dlg_white_button_text_normal" format="color"/>
-    <attr name="color_dlg_white_button_text_pressed" format="color"/>
-    <attr name="color_dlg_white_button_text_disabled" format="color"/>
+    <attr name="color_legacy_dlg_white_button_border_normal" format="color"/>
+    <attr name="color_legacy_dlg_white_button_border_pressed" format="color"/>
+    <attr name="color_legacy_dlg_white_button_border_disabled" format="color"/>
 
-    <attr name="color_translucent_dim" format="color"/>
-    <attr name="color_translucent_see_through" format="color"/>
+    <attr name="color_legacy_dlg_white_button_text_normal" format="color"/>
+    <attr name="color_legacy_dlg_white_button_text_pressed" format="color"/>
+    <attr name="color_legacy_dlg_white_button_text_disabled" format="color"/>
+
+    <!-- Title Separator for Legacy Header -->
+    <attr name="color_legacy_dlg_title_separator_upper" format="color"/>
+    <attr name="color_legacy_dlg_title_separator_lower" format="color"/>
+
+
+    <!--    <attr name="color_translucent_dim" format="color"/>-->
+<!--    <attr name="color_translucent_see_through" format="color"/>-->
 </resources>
