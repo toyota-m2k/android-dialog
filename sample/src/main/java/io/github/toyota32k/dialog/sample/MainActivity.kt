@@ -1,5 +1,6 @@
 package io.github.toyota32k.dialog.sample
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.ImageView
@@ -124,9 +125,9 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         controls = ActivityMainBinding.inflate(layoutInflater)
         setContentView(controls.root)
 
-        UtStandardString.setContext(this)
-        UtDialogConfig.showInDialogModeAsDefault = true
-        UtDialogConfig.solidBackgroundOnPhone = false
+//        UtDialogConfig.showInDialogModeAsDefault = true
+//        UtDialogConfig.solidBackgroundOnPhone = true
+        UtDialogConfig.dialogTheme = io.github.toyota32k.dialog.R.style.UtDialogThemeTertiary
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -144,6 +145,11 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             .bindCommand(viewModel.commandCustomHeightDialog, controls.btnCustomHeightDialog)
             .bindCommand(viewModel.commandFileSelection, controls.btnFileSelection)
             .bindCommand(viewModel.commandNestedDialog, controls.btnNestedDialog)
+            .bindCommand(LiteUnitCommand(::startOptionActivity), controls.navigateOptionActivity)
             .textBinding(controls.outputText, viewModel.outputString)
+    }
+
+    fun startOptionActivity() {
+        startActivity(Intent(this, OptionActivity::class.java))
     }
 }

@@ -114,7 +114,7 @@ class CompactDialogViewModel : UtDialogViewModel() {
 
 ### (3) ダイアログクラスの作成
 
-次に、UtDialog を派生してダイアログクラスを作成します。サンプルでは、Android 標準の ViewBinding （layout-xml の定義から、Viewインスタンスの参照を自動生成する仕掛け）に加えて、[android-binding] (https://github.com/toyota-m2k/android-binding)（View-ViewModel Binding ライブラリ）を利用しています。`UtDialogEx` は、`UtDialog` に対して、android-binding を使用するための小さな仕掛けを提供します。具体的には、Binderインスタンスをメンバーに持ち、titleやleftButtin, rightButton などのダイアログが持っているとViewModelとをバインドするための拡張関数を定義しています。ViewBindingも、android-binding も利用は必須ではありませんが、ソースがコンパクトに書けて便利なのでお勧めです。
+次に、UtDialog を派生してダイアログクラスを作成します。サンプルでは、Android 標準の ViewBinding （layout-xml の定義から、Viewインスタンスの参照を自動生成する仕掛け）に加えて、[android-binding](https://github.com/toyota-m2k/android-binding)（View-ViewModel Binding ライブラリ）を利用しています。`UtDialogEx` は、`UtDialog` に対して、android-binding を使用するための小さな仕掛けを提供します。具体的には、Binderインスタンスをメンバーに持ち、titleやleftButtin, rightButton などのダイアログが持っているとViewModelとをバインドするための拡張関数を定義しています。ViewBindingも、android-binding も利用は必須ではありませんが、ソースがコンパクトに書けて便利なのでお勧めです。
 
 ```kotlin
 class CompactDialog : UtDialogEx() {
@@ -178,21 +178,21 @@ override fun preCreateBodyView() {
 |プロパティ|説明|
 |---|---|
 |title|ダイアログのタイトルバーに表示する文字列。|
-|hightOption|ダイアログ高さの指定。COMPACT は、WRAP_CONTENT に相当します。|
-|widthOption|ダイアログの幅の指定。LIMIT(400) は、画面幅が 400 以下の場合は、FULL（MATCH_PARENT）として動作し、それ以上の場合は最大幅 400dp に制限します。|
+|hightOption|[ダイアログ高さの指定](./doc/sizing-option-ja.md)。COMPACT は、WRAP_CONTENT に相当します。|
+|widthOption|[ダイアログの幅の指定](./doc/sizing-option-ja.md)。LIMIT(400) は、画面幅が 400 以下の場合は、FULL（MATCH_PARENT）として動作し、それ以上の場合は最大幅 400dp に制限します。|
 |gravityOption|ダイアログの配置方法。CENTER を指定すると画面中央に配置します。|
 |leftButtonType|左ボタンに Cancel ボタンを割り当てます。デフォルトは NONE (表示しない) です。|
 |rightButtonType|右ボタンに Done ボタンを割り当てます。デフォルトは NONE (表示しない) です。|
 |cancellable|false を指定すると、ダイアログ外をタップしてもダイアログを閉じません。|
 |draggable|true を指定すると、タイトルバーをドラッグしてダイアログの移動ができます。|
-|enableFocusManagement()<br>  .autoRegister()<br>  .setInitialFocus(R.id.name_input)|フォーカス管理を有効化し、フォーカス可能なビューを自動登録、名前入力欄に初期フォーカスをセットします。|
+|enableFocusManagement()<br>  .autoRegister()<br>  .setInitialFocus(R.id.name_input)|[フォーカス管理](./doc/focus-manager-ja.md)を有効化し、フォーカス可能なビューを自動登録、名前入力欄に初期フォーカスをセットします。|
 
 ダイアログのプロパティについては、[リファレンス](./doc/reference-ja.md) をご参照ください。
 
 
 最後に、UtDialog.createBodyView をオーバーライドして、ダイアログのボディとなるビューを作成し、必要なイベントリスナーの登録を行います。
 
-この例では、ビューの作成には、ViewBinding.inflate() を使い、イベントリスナーの登録は、`binder` ([android-binding] (https://github.com/toyota-m2k/android-binding))によって隠蔽されています。具体的には、`editTextBinding` で、ViewModel の `yourName:MutableStateFlow<String>` と、TextView を双方向バインドし、`enableBinding` で、`yourName` に文字列がセットされていないときは、OKボタンを無効化するように構成しています。さらに、bindCommandを使って、TextView 上でのリターンキー押下を、OKボタンevent（onPositive）にバインドします。
+この例では、ビューの作成には、ViewBinding.inflate() を使い、イベントリスナーの登録は、`binder` ([android-binding](https://github.com/toyota-m2k/android-binding)) によって隠蔽されています。具体的には、`editTextBinding` で、ViewModel の `yourName:MutableStateFlow<String>` と、TextView を双方向バインドし、`enableBinding` で、`yourName` に文字列がセットされていないときは、OKボタンを無効化するように構成しています。さらに、bindCommandを使って、TextView 上でのリターンキー押下を、OKボタンevent（onPositive）にバインドします。
 
 ```kotlin
 override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
@@ -256,7 +256,7 @@ class MainActivityViewModel : ViewModel() {
 
 ### (6) UtDialog を表示するための実装
 
-`CompactDialog` を表示するための実装を行います。Activityのどこに実装しても構いませんが、このサンプルでは、[android-binding] (https://github.com/toyota-m2k/android-binding) の `LiteUnitCommand` を使って、MainActivityViewModel に実装します。ビューモデルのプロパティを更新するコマンドハンドラを、ViewModel 内にまとめることで、ソースコードが整理され、見通しがよくなります。
+`CompactDialog` を表示するための実装を行います。Activityのどこに実装しても構いませんが、このサンプルでは、[android-binding](https://github.com/toyota-m2k/android-binding) の `LiteUnitCommand` を使って、MainActivityViewModel に実装します。ビューモデルのプロパティを更新するコマンドハンドラを、ViewModel 内にまとめることで、ソースコードが整理され、見通しがよくなります。
 
 `UtImmortalTask.launchTask()` 関数を利用して、UtImmortalTaskのスコープを作成して、UtDialog を表示します。UtImmortalTask 内では、ビューモデル作成関数 `createViewModel()` や、ダイアログ表示関数 `showDialog()` が使え、必ず、ダイアログのビューモデルを作成してから、ダイアログを表示します。showDialog() は、UtDialog が閉じられるまで待機（サスペンド）し、UtDialogインスタンスを返します。ダイアログがどのように閉じられたかは、`IUtDialog#status` で確認します。
 
@@ -280,7 +280,7 @@ class MainActivityViewModel : ViewModel() {
 ### (7) MainActivityの実装
 
 MainActivity は、UtMortalDialog を派生して実装します。
-とはいえ、必要な処理は、ほとんど MainActivityViewModel に実装済みなので、[android-binding] (https://github.com/toyota-m2k/android-binding) を使って ViewModel とビューをバインドしているだけです。
+とはいえ、必要な処理は、ほとんど MainActivityViewModel に実装済みなので、[android-binding](https://github.com/toyota-m2k/android-binding) を使って ViewModel とビューをバインドしているだけです。
 
 
 ```kotlin
@@ -302,12 +302,211 @@ class MainActivity : UtMortalActivity() {
 }
 ```
 
+以上で CompactDialog と、それを表示するMainActivityの実装ができましたが、ここから、少し改良してみましょう。
+
+現在の実装では、名前が入っていないときに、DONEボタンをグレーアウトしていました。しかし「なぜボタンが押せないのか」がわからないので、状況によってグレーアウトはユーザーエクスペリエンスを低下させることもあります。そこで、グレーアウトをやめて、ボタンを押したときに、名前が空なら、"Input your name." というメッセージボックスを表示してみます。
+
+### CompactDialogViewModel の修正
+
+CompactDialogViewModel にメッセージボックスを表示するための、showErrorMessage() メソッドを追加しました。`UtImmortalTask.launch()` でタスクを開始して、showConfirmMessageBox()を呼ぶだけです。MainActivityViewModel からダイアログを開くのとまったく同じです。ただし、ダイアログを表示したときのタスクと区別するために、launchTaskに"sub"というタグをつけています。
+
+```kotlin
+class CompactDialogViewModel : UtDialogViewModel() {
+    val yourName = MutableStateFlow("")
+    fun showErrorMessage() {
+        UtImmortalTask.launchTask("sub") {
+            showConfirmMessageBox(null, "Input your name.")
+        }
+    }
+}
+```
+
+もちろんこれでも正しく動作しますが、UtDialogViewModel の中からサブタスクを、より効率よく開始するために、ViewModelを作成したタスク上に新しいタスクスコープを作成する `UtDialogViewModel.launchSubTask()` 拡張関数を用意しています。これを使えば、次のように書き直すことができます。
+
+```kotlin
+class CompactDialogViewModel : UtDialogViewModel() {
+    val yourName = MutableStateFlow("")
+    fun showErrorMessage() {
+        launchSubTask {
+            showConfirmMessageBox(null, "Input your name.")
+        }
+    }
+}
+```
+
+### CompactDialog の修正
+
+まず、createBodyView()で enableBinding() の呼び出しを削除（コメントアウト）します。
+
+次に、OKボタン押下時にダイアログを閉じるかどうかのチェックを追加するので、`confirmToCompletePositive()` をオーバーライドし、viewModel.yourName が空なら、上で実装した showErrorMessage() を呼びます。confirmToCompletePositive()が false を返すと、ダイアログは閉じません。
+
+```kotlin
+class CompactDialog : UtDialogEx() {
+    ...
+    override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
+        controls = DialogCompactBinding.inflate(inflater.layoutInflater, null, false)
+        binder
+            .editTextBinding(controls.nameInput, viewModel.yourName)
+        //  .enableBinding(rightButton, viewModel.yourName.map { it.isNotEmpty() }) // ensure the name is not empty
+            .bindCommand(LiteUnitCommand(this::onPositive), controls.nameInput)     // enter key on the name input --> onPositive
+        return controls.root
+    }
+    override fun confirmToCompletePositive(): Boolean {
+        return if(viewModel.yourName.value.isNotEmpty()) {
+            true
+        } else {
+            viewModel.showErrorMessage()
+            false
+        }
+    }
+}
+
+このように、UtImmortalTask を使えば、ダイアログの中からメッセージボックスを表示することも簡単に実現できました。
+
+
+##  チュートリアル２：サブダイアログを表示する
+
+チュートリアル１では、ダイアログから、メッセージボックスを表示するところまで示しましたが、同様に、他のダイアログ（サブダイアログ）を開くことも可能ですし、ファイルピッカーなど、外部アプリを呼び出して結果をダイアログに反映することさえできます。
+
+このチュートリアル２では、サブダイアログで入力したテキストや、ファイルピッカーで選択されたファイルの名前を、リスト(RecyclerView) に追加していくダイアログを作成します。
+
+### (1) レイアウトの作成
+
+テキスト入力用サブダイアログを開くボタンと、ファイルピッカーを開くボタン、および、リスト表示用の RecyclerView を持つレイアウトを作成します。
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <Button
+        android:id="@+id/add_text_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:text="@string/button_add_text"
+        />
+    <Button
+        android:id="@+id/add_file_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        app:layout_constraintStart_toEndOf="@+id/add_text_button"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/button_add_file"
+        />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@+id/add_text_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="?attr/colorSurface"
+        />
+</androidx.constraintlayout.widget.ConstraintLayout>
+```
+
+### (2) ViewModel の作成
+
+ViewModelには、リストに表示する文字列を保持する ObservableList と、テキスト追加コマンド、ファイル選択コマンドを実装しました。`UtDialogViewModel.launchSubTask()`関数で ImmortalTask ブロックを作成していること以外は、ActivityのViewModelから`UtImmortalTask.launchTask()` を使ってダイアログを開いたのと何もかわらないことがわかると思います。
+
+`UtDialogViewModel.launchSubTask()` は、ダイアログを表示した（正確には ViewModel を構築した）ImmortalTask上に、同じコンテキストでImmortalTaskブロックを作成するメソッドです。`UtImmortalTask.launchTask()`を使っても同様に動作しますが、新たなタスクを生成しないぶん launchSubTask() の方が少し効率的です。
+
+```kotlin
+class NestedDialogViewModel : UtDialogViewModel() {
+    val observableList = ObservableList<String>()
+    val commandAddText = LiteUnitCommand {
+        launchSubTask {
+            val vm = createViewModel<CompactDialog.CompactDialogViewModel>()
+            if(showDialog(CompactDialog()).status.ok) {
+                observableList.add(vm.yourName.value)
+            }
+        }
+    }
+    val commandAddFile = LiteUnitCommand {
+        launchSubTask {
+            withOwner { owner->
+                val activityBrokers = owner.asActivityBrokerStore()
+                val uri = activityBrokers.openReadOnlyFilePicker.selectFile()
+                if (uri != null) {
+                    observableList.add(getFileName(owner.asContext(), uri))
+                }
+            }
+        }
+    }
+    private fun getFileName(context:Context, uri:Uri):String {
+        return when(uri.scheme) {
+            ContentResolver.SCHEME_FILE -> uri.path?.let { File(it).name }
+            ContentResolver.SCHEME_CONTENT -> context.contentResolver.query(uri,null,null,null,null,null)?.use { cursor ->
+                cursor.moveToFirst().letOnTrue {
+                    val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (idx != -1) {
+                        cursor.getString(idx)
+                    } else null
+                }
+            }
+            else -> null
+        } ?: "unknown file"
+    }
+}
+```
+
+### (3) UtDialogクラスの作成
+
+サブダイアログだからといって特別な実装はありません。必要なことは、正しく、コマンドをViewにバインドするだけです。チュートリアルの本題から逸れますが、この例では、[android-binding](https://github.com/toyota-m2k/android-binding) の `OvservableList` と `RecyclerViewBinding` を利用したので、RecyclerView の実装がとてもコンパクトになっていることに驚くかもしれません。`recyclerViewGestureBinding()`拡張関数を呼ぶだけで、リストデータとのバインディングはもちろん、横スワイプして削除や、ドラッグして並び替えまで実現できます。
+
+```kotlin
+class NestedDialog : UtDialogEx() {
+    override fun preCreateBodyView() {
+        title="Fill Height"
+        heightOption = HeightOption.FULL
+        widthOption = WidthOption.LIMIT(400)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
+    }
+
+    lateinit var controls: DialogNestedBinding
+    val viewModel by lazy { getViewModel<NestedDialogViewModel>() }
+
+    override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
+        controls = DialogNestedBinding.inflate(inflater.layoutInflater)
+        binder
+            .bindCommand(viewModel.commandAddText, controls.addTextButton)
+            .bindCommand(viewModel.commandAddFile, controls.addFileButton)
+            .recyclerViewGestureBinding(controls.recyclerView, viewModel.observableList, R.layout.item_string_list, dragToMove = true, swipeToDelete=true, deletionHandler = null) {
+                listBinder, view, text->
+                val textView = view.findViewById<TextView>(R.id.text_view)
+                listBinder.textBinding(this@NestedDialog, textView, text.asConstantLiveData())
+            }
+        return controls.root
+    }
+}
+```
+### (4) Activity の準備
+
+ViewModelでファイルピッカーを使うために、`UtActivityBrokerStore` を使っています。
+[ドキュメント](./doc/activity-broker-ja.md) の説明に従ってファイルピッカーを用意してます。
+
+- 呼び出し元の Activity に、`IUtActivityBrokerStoreProvider` インターフェースを追加
+- Activity内に、activityBrokers プロパティをオーバーライド
+
+```kotlin
+class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
+    ...
+    override val activityBrokers = UtActivityBrokerStore(this, UtOpenReadOnlyFilePicker())
+    ...
+}
+```
+
+
+
 ## リファレンス
 
+- [UtDialog リファレンスマニュアル](./doc/dialog-options-ja.md)
 - [メッセージボックスを表示する](./doc/messagebox-ja.md)
-- [高度なダイアログ--HeightOptionの使い方](./doc/height-option-ja.md)
+- [高度なダイアログ--HeightOptionの使い方](./doc/sizing-option-ja.md)
 - [ファイルピッカー/Permission/...](./doc/activity-broker-ja.md)
-- [ネストするダイアログ/タスクの使い方](./doc/task-ja.md)
 - [フォーカスマネージャ](./doc/focus-manager-ja.md)
-- [ダイアログオプション](./doc/dialog-options-ja.md)
-- [コンフィギュレーション](./doc/configuration-ja.md)

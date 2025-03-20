@@ -5,20 +5,20 @@ import android.view.View
 import android.widget.Button
 import io.github.toyota32k.R
 import io.github.toyota32k.dialog.*
+import androidx.core.view.isVisible
 
-class HogeDialog : UtDialog(), View.OnClickListener,
-    IUtDialogHost {
-    init {
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+class HogeDialog : UtDialog(), View.OnClickListener, IUtDialogHost {
+    override fun preCreateBodyView() {
         title="ほげダイアログ"
+        heightOption = HeightOption.AUTO_SCROLL
+        widthOption = WidthOption.LIMIT(700)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
         gravityOption = GravityOption.RIGHT_TOP
-        heightOption = HeightFlag.AUTO_SCROLL
-        setLimitWidth(700)
         cancellable = true
-        scrollable = true
-
+        draggable = true
     }
+
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         dialogHostManager["fuga"] = this::onFugaDialogCompleted
         dialogHostManager["piyo"] = this::onPiyoDialogCompleted
@@ -27,7 +27,7 @@ class HogeDialog : UtDialog(), View.OnClickListener,
             findViewById<Button>(R.id.second_button).setOnClickListener(this@HogeDialog)
             findViewById<Button>(R.id.third_button).setOnClickListener { leftButton.isEnabled = !leftButton.isEnabled }
             findViewById<Button>(R.id.forth_button).setOnClickListener { rightButton.isEnabled = !rightButton.isEnabled }
-            findViewById<Button>(R.id.fifth_button).setOnClickListener { progressRingOnTitleBar.visibility = if(progressRingOnTitleBar.visibility==View.VISIBLE) View.INVISIBLE else View.VISIBLE }
+            findViewById<Button>(R.id.fifth_button).setOnClickListener { progressRingOnTitleBar.visibility = if(progressRingOnTitleBar.isVisible) View.INVISIBLE else View.VISIBLE }
         }
     }
 

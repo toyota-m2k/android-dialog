@@ -534,9 +534,9 @@ abstract class UtDialog: UtDialogBase() {
     // endregion
 
     // region フォーカス移動
-    class FocusManager(withHeaderButton: Boolean) {
+    class FocusManager(withDialogButtons: Boolean) {
         private val rootFocusManager: UtFocusManager = UtFocusManager()
-        private val bodyFocusManager: UtFocusManager? = if(withHeaderButton) {
+        private val bodyFocusManager: UtFocusManager? = if(withDialogButtons) {
             rootFocusManager.register(R.id.left_button, R.id.right_button)
             UtFocusManager().apply { rootFocusManager.appendChild(this) }
         } else {
@@ -548,11 +548,9 @@ abstract class UtDialog: UtDialogBase() {
 
         fun attach(rootView:View, bodyView: View) {
             if(bodyFocusManager!=null) {
-                rootFocusManager.attach(rootView)
                 bodyFocusManager.attach(bodyView)
-            } else {
-                rootFocusManager.attach(bodyView)
             }
+            rootFocusManager.attach(bodyView)
         }
 
         private var initialFocus:Boolean = false
@@ -573,8 +571,8 @@ abstract class UtDialog: UtDialogBase() {
 
     private var focusManager: FocusManager? = null
 
-    fun enableFocusManagement(withHeaderButton:Boolean=true):UtFocusManager {
-        val fm = focusManager ?: FocusManager(withHeaderButton).apply { focusManager=this }
+    fun enableFocusManagement(withDialogButtons:Boolean=true):UtFocusManager {
+        val fm = focusManager ?: FocusManager(withDialogButtons).apply { focusManager=this }
         return fm.body
     }
 

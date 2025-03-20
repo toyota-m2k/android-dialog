@@ -58,12 +58,12 @@ true にすると、ダイアログのタイトルバーをドラッグして、
 ### var clipVerticalOnDrag:Boolean
 デフォルト: false<br>
 
-true にすると、ダイアログをドラッグするとき、縦方向への移動を禁止し、横方向にのみ平行移動するようになります。
+true にすると、ダイアログをドラッグするとき、デバイス画面の上端・下端より外側に移動できないよう制限します。
 
 var clipHorizontalOnDrag:Boolean
 デフォルト: false<br>
 
-true にすると、ダイアログをドラッグするとき、横方向への移動を禁止し、縦方向にのみ平行移動するようになります。
+true にすると、ダイアログをドラッグするとき、デバイス画面の左端・右端より外側に移動できないよう制限します。
 
 ### var animationEffect:Boolean
 デフォルト: true<br>
@@ -344,15 +344,18 @@ heightOption に、CUSTOM を指定した場合は、必ず、このメソッド
 
 ## グローバルオプション（UtDialogConfig）
 
-### var showInDialogModeAsDefault = false
+### var showInDialogModeAsDefault
+ = false
 
 `UtDialog#isDialog` のデフォルト値を設定します。
 
-### var edgeToEdgeEnabled = true
+### var edgeToEdgeEnabled
+ = true
 
 `UtDialog#edgeToEdgeEnabled` のデフォルト値を設定します。
 
 ### var showDialogImmediately:ShowDialogMode
+ = ShowDialogMode.Immediately
 
 フラグメントモード(isDialog=false) でダイアログを表示する方法を指定します。
 - ShowDialogMode.Immediately（デフォルト）<br>
@@ -360,7 +363,8 @@ FragmentTransaction#commit()を呼んだあとすぐに、FragmentManager#execut
 - ShowDialogMode.Commit<br>FragmentTransaction#commit()を呼びます。
 - ShowDialogMode.CommitNow<br>FragmentTransaction#commitNow()を呼びます。
 
-###    var solidBackgroundOnPhone:Boolean = false
+###    var solidBackgroundOnPhone:Boolean
+ = false
 
 isPhone==true の場合に、背景を灰色(SOLID_GRAY)で塗りつぶす場合は true を指定します。
 
@@ -368,42 +372,51 @@ isPhone==true の場合に、背景を灰色(SOLID_GRAY)で塗りつぶす場合
 ることがありました。さらに、ダイアログからサブダイアログに遷移するときに、一瞬、本体の画面が透けて見えるのが気持ち悪い、という意見もあって用意したのが、この「Phoneの場合は背景を見せない」という設定です。
 
 
-### var defaultGuardColor:UtDialog.GuardColor = UtDialog.GuardColor.THEME_DIM
+### var defaultGuardColor:UtDialog.GuardColor
+ = UtDialog.GuardColor.THEME_DIM
 
 cancellable == false の場合の、`UtDialog#guardColor` のデフォルト値です。
 
-### var defaultGuardColorOfCancellableDialog:Int = UtDialog.GuardColor.TRANSPARENT
+### var defaultGuardColorOfCancellableDialog:Int
+ = UtDialog.GuardColor.TRANSPARENT
 
 cancellable == true の場合の、`UtDialog#guardColor` のデフォルト値です。
 
-### var defaultBodyGuardColor:Int = UtDialog.GuardColor.THEME_SEE_THROUGH
+### var defaultBodyGuardColor:Int
+ = UtDialog.GuardColor.THEME_SEE_THROUGH
 
 `UtDialog#bodyGuardColor` のデフォルト値です。
 
-### var dialogTheme: Int = R.style UtDialogTheme
+### var dialogTheme: Int
+ = R.style UtDialogTheme
 
 ダイアログのスタイルを指定します。
-デフォルト（R.style.UtDialogTheme）は、Material3 のテーマカラーを使った配色になっています。
+デフォルト（`R.style.UtDialogTheme`）は、Material3 の colorPrimary 系をベースにした配色になっています。このほか、colorSecondary 系をベースとした `R.style.UtDialogThemeSecondary`、colorTertiary 系をベースとした、`R.style.UtDialogThemeTertiary` も選べます。
 
-### var dialogFrameId: Int = R.layout.dialog_frame
+### var dialogFrameId: Int
+ = R.layout.dialog_frame
 
 ダイアログフレーム（UtDialogの土台となるビュー）のレイアウトをリソースIDで指定します。
 デフォルト (R.layout.dialog_frame) は、Material3 ベースのデザインです。Material2 (Theme.MaterialComponents) を使用する場合は、`useLegacyTheme()` メソッドを呼ぶことで、`R.layout.dialog_frame_legacy` が設定されます。
 
-### var fadeInDuration:Long = 300L
+### var fadeInDuration:Long
+ = 300L
 
 フェードインアニメーションの遷移時間をミリ秒単位で指定します。
 
-### var fadeOutDuraton:Long = 400L
+### var fadeOutDuraton:Long
+ = 400L
 
 フェードアウトアニメーションの遷移時間をミリ秒単位で指定します。
 
-### var dialogMarginOnPortrait: Rect? = Rect(20, 40, 20, 40)
+### var dialogMarginOnPortrait: Rect
+ = Rect(20, 40, 20, 40)
 
 デバイス横置きにしたときの、rootView に対する dialogView のマージンを指定します。
 Width/HeightOption FULL/LIMIT/AUTO_SCROLL/CUSTOM を指定したときの最大サイズ決定に使用されます。null を設定するとマージンはゼロになります。UtDialog#noDialogMargin = true にすることによって、ダイアログ毎にマージンをゼロにすることもできます。
 
-### var dialogMarginOnLandscape: Rect? = Rect(40, 20, 40, 20)
+### var dialogMarginOnLandscape: Rect?
+ = Rect(40, 20, 40, 20)
 
 デバイス横置きにしたときの、rootView に対する dialogView のマージンを指定します。
 仕様は dialogMarginOnPortrait に準じます。

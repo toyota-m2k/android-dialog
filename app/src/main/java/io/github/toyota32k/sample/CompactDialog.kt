@@ -7,12 +7,12 @@ import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 
 class CompactDialog : UtDialog() {
-    init {
+    override fun preCreateBodyView() {
         title="Compact Dialog"
-        heightOption=HeightFlag.COMPACT
-        widthOption=WidthFlag.COMPACT
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        heightOption= HeightOption.COMPACT
+        widthOption= WidthOption.COMPACT
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
     }
 
     // 呼び出し元から、結果（このダイアログだと入力された名前）を取り出せるようにするためのプロパティ

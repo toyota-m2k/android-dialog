@@ -91,6 +91,12 @@
                 android:layout_height="wrap_content"
                 style="?attr/materialButtonOutlinedStyle"
                 />
+            <Button
+                android:id="@+id/navigate_option_activity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/option_activity_title"
+                />
         </LinearLayout>
     </ScrollView>
 
@@ -102,16 +108,7 @@
         android:paddingHorizontal="10dp"
         android:paddingVertical="2dp"
         android:textColor="@color/secondaryColor"
-        app:layout_constraintBottom_toTopOf="@+id/navigate_option_activity"
+        app:layout_constraintBottom_toBottomOf="parent"
         tools:text="output\nxxxx sss  ssssddddsssssssssssssssssssssssssssssssssssZX\nyyy" />
 
-    <Button
-        android:id="@+id/navigate_option_activity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:text="@string/option_activity_title"
-        />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -12,12 +12,11 @@ import io.github.toyota32k.binder.listViewBinding
 import io.github.toyota32k.dialog.UtDialog
 
 class FillDialog : UtDialog() {
-    init {
+    override fun preCreateBodyView() {
         title="Fill Height"
-        heightOption=HeightFlag.FULL
-//        guardColor = Color.argb(0xD0, 0xFF, 0xFF, 0xFF)
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        heightOption= HeightOption.FULL
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
     }
 
 //    private class ListAdapter(val context: Context): ListViewAdapter<String>() {

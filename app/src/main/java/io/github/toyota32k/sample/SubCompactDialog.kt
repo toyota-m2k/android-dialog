@@ -5,19 +5,17 @@ import android.view.View
 import io.github.toyota32k.R
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtImmortalTask
 
 class SubCompactDialog: UtDialog() {
-    init {
+    override fun preCreateBodyView() {
         title="サブダイアログ"
-        setLimitWidth(400)
+        heightOption = HeightOption.COMPACT
+        widthOption = WidthOption.LIMIT(400)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
         draggable = true
-        heightOption=HeightFlag.COMPACT
-//        guardColor = GuardColor.DIM.color
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
         parentVisibilityOption = ParentVisibilityOption.NONE
-        gravityOption = GravityOption.CENTER
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
@@ -26,7 +24,7 @@ class SubCompactDialog: UtDialog() {
 
     companion object {
         fun open(isDialog:Boolean) {
-            UtImmortalSimpleTask.run(SubCompactDialog::class.java.name) {
+            UtImmortalTask.launchTask(SubCompactDialog::class.java.name) {
                 showDialog<IUtDialog>(taskName) {
                     SubCompactDialog().also { dlg-> dlg.isDialog = isDialog }
                 }.status.ok

@@ -7,28 +7,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import io.github.toyota32k.R;
+import io.github.toyota32k.dialog.IUtDialog;
 import io.github.toyota32k.dialog.IUtDialogHost;
 import io.github.toyota32k.dialog.IUtDialogResultReceptor;
 import io.github.toyota32k.dialog.UtDialog;
 import io.github.toyota32k.dialog.UtDialogHostManager;
 import io.github.toyota32k.utils.UtLog;
+import kotlin.Unit;
 
 public class PiyoDialog extends UtDialog implements View.OnClickListener, IUtDialogHost {
     private final UtLog logger = new UtLog("Piyo");
     private final UtDialogHostManager dialogHostManager = new UtDialogHostManager();
-    private final UtDialogHostManager.NamedReceptor receptor = dialogHostManager.register("piyo.fuga", (s)->{
+    private final UtDialogHostManager.NamedReceptor<@NotNull IUtDialog> receptor = dialogHostManager.register("piyo.fuga", (s)->{
         logger.info("completed Fuga");
-        return null;
+        return Unit.INSTANCE;
     });
 
     @Override
     public void preCreateBodyView() {
         setTitle("Piyoダイアログ");
-        setLeftButton(BuiltInButtonType.CANCEL);
-        setRightButton(BuiltInButtonType.DONE);
+        setLeftButtonType(ButtonType.Companion.getCANCEL());
+        setRightButtonType(ButtonType.Companion.getDONE());
         setGravityOption(GravityOption.LEFT_TOP);
-        setHeightOption(HeightFlag.FULL);
-        setWidthOption(WidthFlag.COMPACT);
+        setHeightOption(HeightOption.Companion.getFULL());
+        setWidthOption(WidthOption.Companion.getCOMPACT());
         setCancellable(false);
         setDraggable(true);
     }

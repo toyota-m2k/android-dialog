@@ -11,11 +11,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.IIDValueResolver
+import io.github.toyota32k.binder.command.LiteUnitCommand
+import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialog.WidthFlag
 import io.github.toyota32k.dialog.UtDialog.WidthOption
 import io.github.toyota32k.dialog.UtDialogConfig
+import io.github.toyota32k.dialog.sample.databinding.ActivityOptionBinding
+import io.github.toyota32k.dialog.sample.dialog.CompactDialog
+import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager.application
+import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.utils.ApplicationViewModelStoreOwner
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -116,20 +122,32 @@ class OptionActivity : AppCompatActivity() {
             }
             return this
         }
+
+        val commandShowDialog = LiteUnitCommand {
+            UtImmortalTask.launchTask {
+                createViewModel<CompactDialog.CompactDialogViewModel>()
+                showDialog(CompactDialog())
+            }
+        }
     }
 
     private val binder = Binder()
     // theme を切り替えるたびに startActivityするので、Activityのライフサイクルではなくアプリのライフサイクルでビューモデルを構築しておく。
     private val viewModel:OptionActivityViewModel = ViewModelProvider(ApplicationViewModelStoreOwner.viewModelStore, ViewModelProvider.NewInstanceFactory())[OptionActivityViewModel::class.java]
-
+    private lateinit var controls: ActivityOptionBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_option)
+        controls = ActivityOptionBinding.inflate(layoutInflater)
+        setContentView(controls.root)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        binder.owner(this)
+            .bindCommand(viewModel.commandShowDialog, controls.showDialogButton)
     }
 }

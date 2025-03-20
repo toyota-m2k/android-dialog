@@ -10,7 +10,7 @@ import io.github.toyota32k.dialog.IUtDialog
  * IUtImmortalTaskMutableContextSource を実装し、
  * UtImmortalTask / UtDialog と協調的に動作する ViewModel の基底クラス
  */
-open class  UtDialogViewModel : ViewModel(), IUtImmortalTaskMutableContextSource {
+abstract class  UtDialogViewModel : ViewModel(), IUtImmortalTaskMutableContextSource {
     override lateinit var immortalTaskContext: IUtImmortalTaskContext
     companion object {
         /**

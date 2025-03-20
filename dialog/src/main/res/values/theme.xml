@@ -1,5 +1,6 @@
 <!--<?xml version="1.0" encoding="utf-8"?>-->
 <resources>
+    <!-- 標準的なテーマ：colorPrimary ベースの配色 -->
     <style name="UtDialogTheme">
         <!-- Colors for Dialog Body -->
         <item name="color_dlg_bg">?attr/colorSurface</item>
@@ -15,6 +16,36 @@
         <item name="color_footer_button_text">?attr/colorOnPrimaryContainer</item>
         <item name="color_footer_button_text_pressed">?attr/colorPrimary</item>
         <item name="color_footer_button_text_disabled">@color/gray40</item>
+    </style>
+
+    <!-- colorSecondary ベースの配色 -->
+    <style name="UtDialogThemeSecondary" parent="UtDialogTheme">
+        <!-- Colors for Dialog Body -->
+        <item name="color_dlg_border">?attr/colorSecondary</item>
+
+        <!-- Colors for Dialog Title bar -->
+        <item name="color_dlg_title_bg">?attr/colorSecondary</item>
+        <item name="color_dlg_title_text">?attr/colorOnSecondary</item>
+
+        <!-- Colors for Dialog Footer -->
+        <item name="color_dlg_footer_bg">?attr/colorSecondaryContainer</item>
+        <item name="color_footer_button_text">?attr/colorOnSecondaryContainer</item>
+        <item name="color_footer_button_text_pressed">?attr/colorSecondary</item>
+    </style>
+
+    <!-- colorTertiary ベースの配色 -->
+    <style name="UtDialogThemeTertiary" parent="UtDialogTheme">
+        <!-- Colors for Dialog Body -->
+        <item name="color_dlg_border">?attr/colorTertiary</item>
+
+        <!-- Colors for Dialog Title bar -->
+        <item name="color_dlg_title_bg">?attr/colorTertiary</item>
+        <item name="color_dlg_title_text">?attr/colorOnTertiary</item>
+
+        <!-- Colors for Dialog Footer -->
+        <item name="color_dlg_footer_bg">?attr/colorTertiaryContainer</item>
+        <item name="color_footer_button_text">?attr/colorOnTertiaryContainer</item>
+        <item name="color_footer_button_text_pressed">?attr/colorTertiary</item>
     </style>
 
     <!-- Legacy Dialog Theme -->

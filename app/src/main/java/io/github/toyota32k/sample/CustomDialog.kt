@@ -13,11 +13,12 @@ import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.setLayoutHeight
 
 class CustomDialog : UtDialog() {
-    init {
+    override fun preCreateBodyView() {
         title="Custom Dialog"
-        heightOption=HeightFlag.CUSTOM
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        heightOption= HeightOption.CUSTOM
+        widthOption = WidthOption.COMPACT
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
     }
 
 //    private class ListAdapter(val context: Context): ListViewAdapter<String>() {

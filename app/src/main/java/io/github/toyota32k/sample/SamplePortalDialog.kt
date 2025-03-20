@@ -10,8 +10,7 @@ import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogHostManager
 import io.github.toyota32k.utils.UtLog
 
-class SamplePortalDialog : UtDialog(),
-    IUtDialogHost {
+class SamplePortalDialog : UtDialog(), IUtDialogHost {
     companion object {
         val logger = UtLog("SAMPLE")
     }
@@ -39,9 +38,9 @@ class SamplePortalDialog : UtDialog(),
         return dialogHostManager.queryDialogResultReceptor(tag)
     }
 
-    init {
+    override fun preCreateBodyView() {
         title = "Dialog Catalogue"
-        setLeftButton(BuiltInButtonType.CLOSE_LEFT)
+        rightButtonType = ButtonType.CLOSE
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {

@@ -6,15 +6,14 @@ import io.github.toyota32k.R
 import io.github.toyota32k.dialog.UtDialog
 
 class FugaDialog : UtDialog() {
-    init {
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+    override fun preCreateBodyView() {
         title="ふがダイアログ"
+        heightOption = HeightOption.COMPACT
+        widthOption = WidthOption.COMPACT
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
         gravityOption = GravityOption.RIGHT_TOP
-        heightOption = HeightFlag.COMPACT
-        widthOption = WidthFlag.COMPACT
         cancellable = false
-        scrollable = false
         draggable = true
     }
     override fun createBodyView(

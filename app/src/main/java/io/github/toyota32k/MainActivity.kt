@@ -23,12 +23,11 @@ import io.github.toyota32k.binder.materialRadioButtonGroupBinding
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.databinding.ActivityMainBinding
 import io.github.toyota32k.dialog.UtDialog
-import io.github.toyota32k.dialog.UtDialog.WidthFlag
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtRadioSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.dialog.mortal.UtMortalActivity
+import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.sample.AutoScrollDialog
 import io.github.toyota32k.sample.CompactDialog
@@ -143,19 +142,19 @@ class MainActivity : UtMortalActivity() {
             when(dialogPosition.value) {
                 DialogPosition.Full -> {
                     gravityOption = UtDialog.GravityOption.CENTER
-                    widthOption = WidthFlag.FULL
+                    widthOption = UtDialog.WidthOption.FULL
                 }
                 DialogPosition.Left -> {
 //                    widthOption = WidthOption.COMPACT
-                    setLimitWidth(400)
+                    widthOption = UtDialog.WidthOption.LIMIT(400)
                     gravityOption = UtDialog.GravityOption.LEFT_TOP
                 }
                 DialogPosition.Center -> {
-                    setLimitWidth(400)
+                    widthOption = UtDialog.WidthOption.LIMIT(400)
                     gravityOption = UtDialog.GravityOption.CENTER
                 }
                 DialogPosition.Right -> {
-                    setFixedWidth(400)
+                    widthOption = UtDialog.WidthOption.LIMIT(400)
                     gravityOption = UtDialog.GravityOption.RIGHT_TOP
                 }
             }
@@ -163,7 +162,7 @@ class MainActivity : UtMortalActivity() {
         }
 
         private fun showCompactDialog() {
-            UtImmortalSimpleTask.run("CompactDialog") {
+            UtImmortalTask.launchTask("CompactDialog") {
                 logger.debug("Showing: CompactDialog...")
                 showDialog(CompactDialog::class.java.name) { CompactDialog().applyDialogParams() }
                 logger.debug("Closed: CompactDialog")
@@ -172,7 +171,7 @@ class MainActivity : UtMortalActivity() {
         }
 
         private fun showAutoScrollDialog() {
-            UtImmortalSimpleTask.run("AutoScrollDialog") {
+            UtImmortalTask.launchTask("AutoScrollDialog") {
                 logger.debug("Showing: AutoScrollDialog...")
                 showDialog(AutoScrollDialog::class.java.name) { AutoScrollDialog().applyDialogParams() }
                 logger.debug("Closed: AutoScrollDialog")
@@ -180,7 +179,7 @@ class MainActivity : UtMortalActivity() {
             }
         }
         private fun showFillHeightDialog() {
-            UtImmortalSimpleTask.run("ShowFillHeightDialog") {
+            UtImmortalTask.launchTask("ShowFillHeightDialog") {
                 logger.debug("Showing: FillDialog...")
                 showDialog(FillDialog::class.java.name) { FillDialog().applyDialogParams() }
                 logger.debug("Closed: FillDialog")
@@ -188,7 +187,7 @@ class MainActivity : UtMortalActivity() {
             }
         }
         private fun showCustomDialog() {
-            UtImmortalSimpleTask.run("ShowCustomDialog"){
+            UtImmortalTask.launchTask("ShowCustomDialog"){
                 logger.debug("Showing: CustomDialog...")
                 showDialog(CustomDialog::class.java.name) { CustomDialog().applyDialogParams() }
                 logger.debug("Closed: CustomDialog")
@@ -196,7 +195,7 @@ class MainActivity : UtMortalActivity() {
             }
         }
         private fun showMessageBox() {
-            UtImmortalSimpleTask.run("MessageBox"){
+            UtImmortalTask.launchTask("MessageBox"){
                 logger.debug("Message Box...")
                 showYesNoMessageBox("Message Box", "Final Answer?")
                 logger.debug("Closed: MessageBox")
@@ -204,7 +203,7 @@ class MainActivity : UtMortalActivity() {
             }
         }
         private fun showRadioSelectionBox() {
-            UtImmortalSimpleTask.run("RadioSelectionBox") {
+            UtImmortalTask.launchTask("RadioSelectionBox") {
                 logger.debug("Radio Selection Box...")
                 val sel = showDialog(taskName) {
                     UtRadioSelectionBox.create(
