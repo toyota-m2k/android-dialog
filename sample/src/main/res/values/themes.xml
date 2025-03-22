@@ -21,7 +21,7 @@
     </style>
 
     <!-- Base application theme. -->
-    <style name="Theme.DialogSample.Legacy.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.DialogSample.Material2.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryVariant">@color/primaryDarkColor</item>
         <item name="colorPrimaryDark">@color/primaryDarkColor</item>
@@ -36,7 +36,7 @@
         <!-- Customize your theme here. -->
     </style>
 
-    <style name="Theme.DialogSample.Legacy" parent="Theme.MaterialComponents.DayNight">
+    <style name="Theme.DialogSample.Material2" parent="Theme.MaterialComponents.DayNight">
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryVariant">@color/primaryDarkColor</item>
         <item name="colorPrimaryDark">@color/primaryDarkColor</item>

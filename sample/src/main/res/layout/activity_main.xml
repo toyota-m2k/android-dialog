@@ -110,5 +110,4 @@
         android:textColor="@color/secondaryColor"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:text="output\nxxxx sss  ssssddddsssssssssssssssssssssssssssssssssssZX\nyyy" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

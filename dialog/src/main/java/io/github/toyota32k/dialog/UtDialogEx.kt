@@ -117,16 +117,24 @@ abstract class UtDialogEx : UtDialog() {
     // region GuardView / Progress Rings
 
     /**
-     * ガードビューの表示/非表示をモデルとバインドする。
+     * ボディガードビューの表示/非表示をモデルとバインドする。
      * @param showProgressRing  ガードビューにプログレスリングを表示するかどうか
      */
-    fun Binder.dialogGuardViewVisibility(data:LiveData<Boolean>, showProgressRing:Boolean=false, boolConvert: BoolConvert=BoolConvert.Straight):Binder {
+    fun Binder.dialogBodyGuardViewVisibility(data:LiveData<Boolean>, showProgressRing:Boolean=false, boolConvert: BoolConvert=BoolConvert.Straight):Binder {
         centerProgressRing.visibility = if(showProgressRing) View.VISIBLE else View.GONE
         return visibilityBinding(bodyGuardView, data, boolConvert, VisibilityBinding.HiddenMode.HideByGone)
     }
-    fun Binder.dialogGuardViewVisibility(data:Flow<Boolean>, showProgressRing:Boolean=false, boolConvert: BoolConvert=BoolConvert.Straight):Binder {
+    fun Binder.dialogBodyGuardViewVisibility(data:Flow<Boolean>, showProgressRing:Boolean=false, boolConvert: BoolConvert=BoolConvert.Straight):Binder {
         centerProgressRing.visibility = if(showProgressRing) View.VISIBLE else View.GONE
         return visibilityBinding(bodyGuardView, data, boolConvert, VisibilityBinding.HiddenMode.HideByGone)
+    }
+    fun Binder.dialogBodyGuardViewVisibility(data:Flow<Boolean>, showProgressRing:Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight, progressRingBoolConvert: BoolConvert=BoolConvert.Straight):Binder {
+            return visibilityBinding(centerProgressRing, showProgressRing, progressRingBoolConvert, VisibilityBinding.HiddenMode.HideByGone)
+                  .visibilityBinding(bodyGuardView, data, boolConvert, VisibilityBinding.HiddenMode.HideByGone)
+    }
+    fun Binder.dialogBodyGuardViewVisibility(data:LiveData<Boolean>, showProgressRing:LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight, progressRingBoolConvert: BoolConvert=BoolConvert.Straight):Binder {
+        return visibilityBinding(centerProgressRing, showProgressRing, progressRingBoolConvert, VisibilityBinding.HiddenMode.HideByGone)
+            .visibilityBinding(bodyGuardView, data, boolConvert, VisibilityBinding.HiddenMode.HideByGone)
     }
 
     /**

@@ -1,132 +1,214 @@
 package io.github.toyota32k.dialog.sample
 
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.Rect
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.IdRes
 import androidx.annotation.StyleRes
-import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.binder.Binder
-import io.github.toyota32k.binder.IIDValueResolver
+import io.github.toyota32k.binder.BoolConvert
+import io.github.toyota32k.binder.activityActionBarBinding
+import io.github.toyota32k.binder.activityStatusBarBinding
+import io.github.toyota32k.binder.checkBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
+import io.github.toyota32k.binder.editTextBinding
+import io.github.toyota32k.binder.enableBinding
+import io.github.toyota32k.binder.observe
+import io.github.toyota32k.binder.spinnerBinding
 import io.github.toyota32k.dialog.UtDialog
-import io.github.toyota32k.dialog.UtDialog.WidthFlag
+import io.github.toyota32k.dialog.UtDialog.GravityOption
+import io.github.toyota32k.dialog.UtDialog.HeightOption
 import io.github.toyota32k.dialog.UtDialog.WidthOption
+import io.github.toyota32k.dialog.UtDialogBase
 import io.github.toyota32k.dialog.UtDialogConfig
+import io.github.toyota32k.dialog.mortal.UtMortalActivity
+import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.DarkLightInfo
+import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.DialogMarginInfo
+import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.GravityOptionInfo
+import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.GuardColorInfo
+import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.HeightOptionInfo
+import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.ThemeInfo
+import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.WidthOptionInfo
 import io.github.toyota32k.dialog.sample.databinding.ActivityOptionBinding
-import io.github.toyota32k.dialog.sample.dialog.CompactDialog
-import io.github.toyota32k.dialog.task.UtImmortalTask
-import io.github.toyota32k.dialog.task.UtImmortalTaskManager.application
+import io.github.toyota32k.dialog.sample.dialog.OptionSampleDialog
+import io.github.toyota32k.dialog.sample.dialog.ThemeColorDialog
+import io.github.toyota32k.dialog.task.UtImmortalTask.Companion.launchTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.utils.ApplicationViewModelStoreOwner
+import io.github.toyota32k.utils.hideActionBar
+import io.github.toyota32k.utils.hideStatusBar
+import io.github.toyota32k.utils.isActionBarVisible
+import io.github.toyota32k.utils.isStatusBarVisible
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 
-class OptionActivity : AppCompatActivity() {
+class OptionActivity : UtMortalActivity() {
     class OptionActivityViewModel : ViewModel() {
-        val isDialogMode = MutableStateFlow(true)
-        val noActionBarTheme = MutableStateFlow(false)
+        // Activity Settings
+        val themeInfo = MutableStateFlow(ThemeInfo.DYNAMIC)
+        val darkLightInfo = MutableStateFlow(DarkLightInfo.SYSTEM)
+        val showStatusBar = MutableStateFlow(true)
+        val showActionBar = MutableStateFlow(true)
         val edgeToEdgeEnabled = MutableStateFlow(true)
-        val hideStatusBarOnDialog = MutableStateFlow(true)
+
+        // Global Options
+        val isDialogMode = MutableStateFlow(false)
+        val portraitMarginInfo = MutableStateFlow(DialogMarginInfo.DEFAULT_PORTRAIT)
+        val landscapeMarginInfo = MutableStateFlow(DialogMarginInfo.DEFAULT_LANDSCAPE)
+        val systemBarOptionOnFragmentMode = MutableStateFlow(UtDialogConfig.systemBarOptionOnFragmentMode)
+
+        // Dialog Options
+        val dialogTitle = MutableStateFlow("Sample Dialog")
+        val widthOptionInfo = MutableStateFlow(WidthOptionInfo.COMPACT)
+        val heightOptionInfo = MutableStateFlow(HeightOptionInfo.COMPACT)
+        val gravityOptionInfo = MutableStateFlow(GravityOptionInfo.CENTER)
+        val guardColorInfo = MutableStateFlow(GuardColorInfo.DEFAULT)
+        val bodyGuardColorInfo = MutableStateFlow(GuardColorInfo.DEFAULT)
+        val progressRingOnBodyGuardView = MutableStateFlow(false)
+        val scrollable = MutableStateFlow(false)
         val cancellable = MutableStateFlow(true)
-        val draggable = MutableStateFlow(true)
-        val showStatusBar = MutableStateFlow(false)
-        val showActionBar = MutableStateFlow(false)
-        val dialogPosition = MutableStateFlow(DialogPosition.Center)
-        val materialTheme = MutableStateFlow(MaterialTheme.Legacy)
-        val guardColor = MutableStateFlow(GuardColorEx.None)
-        var currentTheme = R.style.Theme_DialogSample_Legacy
-        val selectedTheme:Int get() = if(noActionBarTheme.value) materialTheme.value.noActionBarThemeId else materialTheme.value.themeId
-        var currentEdgeToEdgeEnabled = true
+        val draggable = MutableStateFlow(false)
+        val noHeader = MutableStateFlow(false)
+        val noFooter = MutableStateFlow(false)
+        val hideStatusBarOnDialog = MutableStateFlow(UtDialogConfig.hideStatusBarOnDialogMode)
 
-        enum class DialogPosition(@IdRes val id:Int) {
-            Full(R.id.radio_fit_screen_width),
-            Left(R.id.radio_left),
-            Center(R.id.radio_center),
-            Right(R.id.radio_right),
-            ;
-            object IdValueResolver : IIDValueResolver<DialogPosition> {
-                override fun id2value(id: Int): DialogPosition {
-                    return enumValues<DialogPosition>().find { it.id == id } ?: Right
-                }
-                override fun value2id(v: DialogPosition): Int {
-                    return v.id
-                }
+        val hasActionBar = themeInfo.map { it.hasActionBar }
+        val isMaterial3 = themeInfo.map { it.material3 }
+
+        data class ThemeInfo(val label: String, @StyleRes val themeId: Int, val hasActionBar: Boolean, val material3:Boolean=true) {
+            override fun toString():String {
+                return label
+            }
+            companion object {
+                val MATERIAL2 = ThemeInfo("Material 2", R.style.Theme_DialogSample_Material2, true, false)
+                val MATERIAL3 = ThemeInfo("Material 3", R.style.Theme_DialogSample_Material3, true)
+                val DYNAMIC = ThemeInfo("Dynamic", R.style.Theme_DialogSample_DynamicColor, true)
+                val MATERIAL2_NO_ACTION_BAR = ThemeInfo("Material 2-NoActionBar", R.style.Theme_DialogSample_Material2_NoActionBar, false)
+                val MATERIAL3_NO_ACTION_BAR = ThemeInfo("Material 3-NoActionBar", R.style.Theme_DialogSample_Material3_NoActionBar, false)
+                val DYNAMIC_NOACTION_BAR = ThemeInfo("Dynamic-NoActionBar", R.style.Theme_DialogSample_DynamicColor_NoActionBar, false)
+
+                val values = listOf(MATERIAL2, MATERIAL3, DYNAMIC, MATERIAL2_NO_ACTION_BAR, MATERIAL3_NO_ACTION_BAR, DYNAMIC_NOACTION_BAR)
             }
         }
-        enum class MaterialTheme(@IdRes val id:Int, @StyleRes val themeId:Int, @StyleRes val noActionBarThemeId:Int) {
-            Legacy(R.id.radio_material2, R.style.Theme_DialogSample_Legacy, R.style.Theme_DialogSample_Legacy_NoActionBar),
-            Material3(R.id.radio_material3, R.style.Theme_DialogSample_Material3, R.style.Theme_DialogSample_Material3_NoActionBar),
-            DynamicColor(R.id.radio_dynamic_color, R.style.Theme_DialogSample_DynamicColor, R.style.Theme_DialogSample_DynamicColor_NoActionBar),
-            ;
-            object IdValueResolver : IIDValueResolver<MaterialTheme> {
-                override fun id2value(id: Int): MaterialTheme {
-                    return enumValues<MaterialTheme>().find { it.id == id } ?: Legacy
-                }
-                override fun value2id(v: MaterialTheme): Int {
-                    return v.id
-                }
+
+        data class DarkLightInfo(val label: String, val mode: Int) {
+            override fun toString():String {
+                return label
+            }
+            companion object {
+                val SYSTEM = DarkLightInfo("System", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                val LIGHT = DarkLightInfo("Light", AppCompatDelegate.MODE_NIGHT_NO)
+                val DARK = DarkLightInfo("Dark", AppCompatDelegate.MODE_NIGHT_YES)
+
+                val values = listOf(SYSTEM, LIGHT, DARK)
             }
         }
-        enum class GuardColorEx(@IdRes val id:Int, val color:UtDialog.GuardColor) {
-            None(R.id.radio_guard_color_none, UtDialog.GuardColor.INVALID),
-            Dim(R.id.radio_guard_color_dim, UtDialog.GuardColor.DIM),
-            SeeThrough(R.id.radio_guard_color_see_through, UtDialog.GuardColor.SEE_THROUGH),
-            AutoDim(R.id.radio_guard_color_auto, UtDialog.GuardColor.THEME_DIM),
-            AutoST(R.id.radio_guard_color_auto_s, UtDialog.GuardColor.THEME_SEE_THROUGH)
-            ;
-            object IdValueResolver : IIDValueResolver<GuardColorEx> {
-                override fun id2value(id: Int): GuardColorEx {
-                    return enumValues<GuardColorEx>().find { it.id == id } ?: None
-                }
-                override fun value2id(v: GuardColorEx): Int {
-                    return v.id
-                }
-            }
 
+        data class DialogMarginInfo(val label: String, val margin: Rect?) {
+            override fun toString():String {
+                return label
+            }
+            companion object {
+                val DEFAULT_PORTRAIT = DialogMarginInfo("Default", UtDialogConfig.dialogMarginOnPortrait?:Rect(20, 40, 20, 40))
+                val DEFAULT_LANDSCAPE = DialogMarginInfo("Default", UtDialogConfig.dialogMarginOnLandscape?:Rect(40, 20, 40, 20))
+                val ZERO = DialogMarginInfo("Zero", null)
+                val CUSTOM = DialogMarginInfo("Custom (150dp)", Rect(150, 150, 150, 150))
+                val landscapeValues = listOf(DEFAULT_LANDSCAPE, ZERO, CUSTOM)
+                val portraitValues = listOf(DEFAULT_PORTRAIT, ZERO, CUSTOM)
+            }
         }
 
-        private fun <T:UtDialog> T.applyDialogParams():T {
-            if(materialTheme.value == MaterialTheme.Legacy) {
-                UtDialogConfig.dialogFrameId = io.github.toyota32k.dialog.R.layout.dialog_frame_legacy
-            } else {
-                UtDialogConfig.dialogFrameId = io.github.toyota32k.dialog.R.layout.dialog_frame
+        data class WidthOptionInfo(val label: String, val option: WidthOption) {
+            override fun toString():String {
+                return label
             }
-//            setLimitWidth(400)
-            isDialog = this@OptionActivityViewModel.isDialogMode.value
-            edgeToEdgeEnabled = this@OptionActivityViewModel.edgeToEdgeEnabled.value
-            this.hideStatusBarOnDialogMode = this@OptionActivityViewModel.hideStatusBarOnDialog.value
-            cancellable = this@OptionActivityViewModel.cancellable.value
-            draggable = this@OptionActivityViewModel.draggable.value
-            guardColor = this@OptionActivityViewModel.guardColor.value.color
-            when(dialogPosition.value) {
-                DialogPosition.Full -> {
-                    gravityOption = UtDialog.GravityOption.CENTER
-                    widthOption = WidthOption.FULL
-                }
-                DialogPosition.Left -> {
-                    widthOption = UtDialog.WidthOption.LIMIT(400)
-                    gravityOption = UtDialog.GravityOption.LEFT_TOP
-                }
-                DialogPosition.Center -> {
-                    widthOption = UtDialog.WidthOption.LIMIT(400)
-                    gravityOption = UtDialog.GravityOption.CENTER
-                }
-                DialogPosition.Right -> {
-                    widthOption = UtDialog.WidthOption.LIMIT(400)
-                    gravityOption = UtDialog.GravityOption.RIGHT_TOP
-                }
+            companion object {
+                val COMPACT = WidthOptionInfo("COMPACT", WidthOption.COMPACT)
+                val FULL = WidthOptionInfo("FULL", WidthOption.FULL)
+                val FIXED_300 = WidthOptionInfo("FIXED (300dp)", WidthOption.FULL)
+                val LIMIT_400 = WidthOptionInfo("LIMIT (400dp)", WidthOption.LIMIT(400))
+
+                val values = listOf(COMPACT, FULL, FIXED_300, LIMIT_400)
             }
-            return this
+        }
+
+        data class HeightOptionInfo(val label: String, val option: HeightOption) {
+            override fun toString():String {
+                return label
+            }
+
+            companion object {
+                val COMPACT = HeightOptionInfo("COMPACT", HeightOption.COMPACT)
+                val FULL = HeightOptionInfo("FULL", HeightOption.FULL)
+                val AUTO_SCROLL = HeightOptionInfo("AUTO_SCROLL", HeightOption.AUTO_SCROLL)
+                val FIXED_300 = HeightOptionInfo("FIXED (300dp)", HeightOption.FULL)
+                val LIMIT_400 = HeightOptionInfo("LIMIT (400dp)", HeightOption.LIMIT(400))
+
+                val values = listOf(COMPACT, FULL, AUTO_SCROLL, FIXED_300, LIMIT_400)
+            }
+        }
+
+        data class GravityOptionInfo(val label: String, val option: GravityOption) {
+            override fun toString():String {
+                return label
+            }
+            companion object {
+                val CENTER = GravityOptionInfo("CENTER", GravityOption.CENTER)
+                val LEFT_TOP = GravityOptionInfo("LEFT_TOP", GravityOption.LEFT_TOP)
+                val RIGHT_TOP = GravityOptionInfo("RIGHT_TOP", GravityOption.RIGHT_TOP)
+                val CUSTOM = GravityOptionInfo("CUSTOM", GravityOption.CUSTOM)
+                val values = listOf(CENTER, LEFT_TOP, RIGHT_TOP)
+            }
+        }
+
+        data class GuardColorInfo(val label: String, val color: UtDialog.GuardColor) {
+            override fun toString():String {
+                return label
+            }
+
+            companion object {
+                val DEFAULT = GuardColorInfo("Default", UtDialog.GuardColor.INVALID)
+                val DIM = GuardColorInfo("DIM", UtDialog.GuardColor.DIM)
+                val SEE_THROUGH = GuardColorInfo("SEE_THROUGH", UtDialog.GuardColor.SEE_THROUGH)
+                val SOLID_GRAY = GuardColorInfo("SOLID_GRAY", UtDialog.GuardColor.SOLID_GRAY)
+                val AUTO_DIM = GuardColorInfo("AUTO_DIM", UtDialog.GuardColor.THEME_DIM)
+                val AUTO_SEE_THROUGH = GuardColorInfo("THEME_SEE_THROUGH", UtDialog.GuardColor.THEME_SEE_THROUGH)
+                val CUSTOM = GuardColorInfo("CUSTOM (yellow)", UtDialog.GuardColor.CUSTOM(Color.argb(0x80, 0xff, 0xff, 0x00)))
+                val values = listOf(DEFAULT, DIM, SEE_THROUGH, SOLID_GRAY, AUTO_DIM, AUTO_SEE_THROUGH, CUSTOM)
+            }
         }
 
         val commandShowDialog = LiteUnitCommand {
-            UtImmortalTask.launchTask {
-                createViewModel<CompactDialog.CompactDialogViewModel>()
-                showDialog(CompactDialog())
+            launchTask {
+                // Global Options
+                UtDialogConfig.dialogMarginOnLandscape = landscapeMarginInfo.value.margin
+                UtDialogConfig.dialogMarginOnPortrait = portraitMarginInfo.value.margin
+
+                createViewModel<OptionSampleDialog.OptionSampleDialogViewModel> { setup(this@OptionActivityViewModel) }
+                showDialog("sample-dialog") {
+                    OptionSampleDialog().apply {
+                        isDialog = isDialogMode.value
+                        systemBarOptionOnFragmentMode = this@OptionActivityViewModel.systemBarOptionOnFragmentMode.value
+                        hideStatusBarOnDialogMode = hideStatusBarOnDialog.value
+                    }
+                }
+
+                // Restore Global Options
+                UtDialogConfig.dialogMarginOnLandscape = DialogMarginInfo.DEFAULT_LANDSCAPE.margin
+                UtDialogConfig.dialogMarginOnPortrait = DialogMarginInfo.DEFAULT_PORTRAIT.margin
+
+            }
+        }
+        val commandThemeColors = LiteUnitCommand {
+            launchTask {
+                showDialog(ThemeColorDialog())
             }
         }
     }
@@ -135,19 +217,87 @@ class OptionActivity : AppCompatActivity() {
     // theme を切り替えるたびに startActivityするので、Activityのライフサイクルではなくアプリのライフサイクルでビューモデルを構築しておく。
     private val viewModel:OptionActivityViewModel = ViewModelProvider(ApplicationViewModelStoreOwner.viewModelStore, ViewModelProvider.NewInstanceFactory())[OptionActivityViewModel::class.java]
     private lateinit var controls: ActivityOptionBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        val edgeToEdgeEnabled = viewModel.edgeToEdgeEnabled.value
+        if(edgeToEdgeEnabled) {
+            enableEdgeToEdge()
+        }
+
+        val currentTheme = viewModel.themeInfo.value.themeId
+        setTheme(currentTheme)
         controls = ActivityOptionBinding.inflate(layoutInflater)
         setContentView(controls.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        if(edgeToEdgeEnabled) {
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                    insets
+            }
         }
+
+        if(!viewModel.showStatusBar.value && isActionBarVisible()) {
+            hideActionBar()
+        }
+        if(!viewModel.showActionBar.value && isStatusBarVisible()) {
+            hideStatusBar()
+        }
+
 
         binder.owner(this)
             .bindCommand(viewModel.commandShowDialog, controls.showDialogButton)
+            .bindCommand(viewModel.commandThemeColors, controls.themeButton)
+            .activityStatusBarBinding(viewModel.showStatusBar)
+            .activityActionBarBinding(viewModel.showActionBar)
+            .checkBinding(controls.checkDialogMode, viewModel.isDialogMode)
+            .checkBinding(controls.checkEdgeToEdge, viewModel.edgeToEdgeEnabled)
+            .checkBinding(controls.checkHideStatusBarOnDialog, viewModel.hideStatusBarOnDialog)
+            .checkBinding(controls.checkCancellable, viewModel.cancellable)
+            .checkBinding(controls.checkDraggable, viewModel.draggable)
+            .checkBinding(controls.checkScrollable, viewModel.scrollable)
+            .checkBinding(controls.checkStatusBar, viewModel.showStatusBar)
+            .checkBinding(controls.checkActionBar, viewModel.showActionBar)
+            .checkBinding(controls.checkProgressRingOnBodyGuardView, viewModel.progressRingOnBodyGuardView)
+            .checkBinding(controls.noHeader, viewModel.noHeader)
+            .checkBinding(controls.noFooter, viewModel.noFooter)
+
+            .editTextBinding(controls.dialogTitleEdit, viewModel.dialogTitle)
+            .spinnerBinding(controls.gravityOptionSpinner, viewModel.gravityOptionInfo, GravityOptionInfo.values)
+            .spinnerBinding(controls.systemBarModeOnFragment, viewModel.systemBarOptionOnFragmentMode, UtDialogBase.SystemBarOptionOnFragmentMode.entries.toList(), null)
+            .spinnerBinding(controls.widthOptionSpinner, viewModel.widthOptionInfo, WidthOptionInfo.values)
+            .spinnerBinding(controls.heightOptionSpinner, viewModel.heightOptionInfo, HeightOptionInfo.values)
+            .spinnerBinding(controls.guardColorSpinner, viewModel.guardColorInfo, GuardColorInfo.values)
+            .spinnerBinding(controls.bodyGuardColorSpinner, viewModel.bodyGuardColorInfo, GuardColorInfo.values)
+            .spinnerBinding(controls.themeSpinner, viewModel.themeInfo, ThemeInfo.values)
+            .spinnerBinding(controls.darkLightSpinner, viewModel.darkLightInfo, DarkLightInfo.values)
+            .spinnerBinding(controls.portraitMarginSpinner, viewModel.portraitMarginInfo, DialogMarginInfo.portraitValues)
+            .spinnerBinding(controls.landscapeMarginSpinner, viewModel.landscapeMarginInfo, DialogMarginInfo.landscapeValues)
+            .enableBinding(controls.checkHideStatusBarOnDialog, viewModel.isDialogMode)
+            .enableBinding(controls.systemBarModeOnFragment, viewModel.isDialogMode, boolConvert = BoolConvert.Inverse)
+            .enableBinding(controls.checkActionBar, viewModel.hasActionBar)
+
+            .observe(viewModel.themeInfo) {
+                if(currentTheme!=it.themeId) {
+                    restartActivity()
+                }
+            }
+            .observe(viewModel.edgeToEdgeEnabled) {
+                if(edgeToEdgeEnabled!=it) {
+                    restartActivity()
+                }
+            }
+            .observe(viewModel.darkLightInfo) {
+                if(AppCompatDelegate.getDefaultNightMode()!=it.mode) {
+                    AppCompatDelegate.setDefaultNightMode(it.mode)
+                }
+            }
+    }
+
+    private fun restartActivity() {
+        startActivity(Intent(this, this@OptionActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        })
     }
 }

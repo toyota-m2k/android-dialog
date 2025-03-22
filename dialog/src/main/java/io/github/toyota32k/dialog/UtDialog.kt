@@ -179,7 +179,7 @@ abstract class UtDialog: UtDialogBase() {
      * Activity の window と同じ状態を Dialogのwindow に再現しようと、いろいろ試みたが、どうもうまくいかないので、プロパティで渡すことにした。
      * 将来よい方法が見つかれば。。。
      */
-    var hideStatusBarOnDialogMode:Boolean by bundle.booleanFalse
+    var hideStatusBarOnDialogMode:Boolean by bundle.booleanWithDefault(UtDialogConfig.hideStatusBarOnDialogMode)
 
     // endregion
 
@@ -430,7 +430,7 @@ abstract class UtDialog: UtDialogBase() {
             val SEE_THROUGH = GuardColor(Color.argb(0xB0,0xFF, 0xFF, 0xFF))
             val SOLID_GRAY = GuardColor(Color.rgb(0xc1,0xc1,0xc1))
             val THEME_DIM = GuardColor(Color.argb(0xB0, 0,0,0), R.attr.color_dlg_text)
-            val THEME_SEE_THROUGH = GuardColor(Color.argb(0xB0, 0,0,0), R.attr.color_dlg_bg)
+            val THEME_SEE_THROUGH = GuardColor(Color.argb(0xB0, 0xFF, 0xFF, 0xFF), com.google.android.material.R.attr.colorSurface, 0xB0)
             fun CUSTOM(@ColorInt color:Int) = GuardColor(color)
         }
     }
@@ -468,11 +468,11 @@ abstract class UtDialog: UtDialogBase() {
     private var bodyGuardColorDynamic:Int? by bundle.intNullable
     private var bodyGuardColorDynamicAlpha:Int by bundle.intNonnull(0xB0)
     var bodyGuardColor:GuardColor
-        get() = if(guardColorValue!=GuardColor.INVALID_COLOR) GuardColor(guardColorValue, guardColorDynamic, guardColorDynamicAlpha) else UtDialogConfig.defaultBodyGuardColor
+        get() = if(bodyGuardColorValue!=GuardColor.INVALID_COLOR) GuardColor(bodyGuardColorValue, bodyGuardColorDynamic, bodyGuardColorDynamicAlpha) else UtDialogConfig.defaultBodyGuardColor
         set(v) {
-            guardColorValue = v.rawColor
-            guardColorDynamic = v.dynamic
-            guardColorDynamicAlpha = v.dynamicAlpha
+            bodyGuardColorValue = v.rawColor
+            bodyGuardColorDynamic = v.dynamic
+            bodyGuardColorDynamicAlpha = v.dynamicAlpha
         }
 
 //    @ColorInt

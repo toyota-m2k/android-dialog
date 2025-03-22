@@ -21,13 +21,37 @@ false（デフォルト）の場合は、フラグメントモードとして動
 
 true にすると、ダイアログモードで動作し、DialogFragment#show() によって表示されます。この場合は、（ActivityのWindowではなく）新しいWindowが作成され、その上にダイアログが表示されます。Activityの上に、独立したwindow を重ねる構成となるため、動作が安定していましたが、edge-to-edge が標準になると、Activityの状態（NoActionBar + statusBar非表示の場合など）と整合をとるのが難しくなってきたので、v4以降、デフォルトは false にしています。
 
+このフラグをダイアログ毎に変更する場合は、preCreateBodyView ではなく、コンストラクタで設定してください。
+
 ### var edgeToEdgeEnabled : Boolean
 
 デフォルト: true<br>
-UtDialogConfig.edgeToEdgeEnabled を設定することにより、デフォルト値は変更できます。
+UtDialogConfig.edgeToEdgeEnabledAsDefault を設定することにより、デフォルト値は変更できます。
 
 Activityで、edge-to-edge を有効にしない場合は、false にします。true にすると、
 isDialog=false (フラグメントモード) の場合に、setOnApplyWindowInsetsListenerを呼び出して、insets の調整を行います。
+
+このフラグをダイアログ毎に変更する場合は、preCreateBodyView ではなく、コンストラクタで設定してください。
+
+## var hideStatusBarOnDialogMode:Boolean
+デフォルト: true<br>
+UtDialogConfig.hideStatusBarOnDialogMode を設定することにより、デフォルト値を変更できます。
+
+ダイアログを表示するとき、StatusBar を非表示するかどうかを指定します。
+このプロパティは、ダイアログモード（isDialog = true）の場合、且つ、UtDialog派生クラスにのみ有効です。UtMessageBox, UtSelectionBox には無効です。
+
+Activity に NoActionBar系のスタイルを適用し、（プログラム的に）StatusBarを非表示にしたとき、
+ダイアログモードの場合、Activityとは独立した window が作成されて、StatusBar は表示された状態となり、Landscaptの場合は、切り欠き部分を避けた領域に rootViewが配置されてしまいます。Portraitの場合や、背景が透明（GuardColor.TRANSPARENT）なダイアログではあまり気になりませんが、背景を隠すダイアログでは、StatusBar だけが露出したような表示になってしまします。hideStatusBarOnDialogMode = true とすることで、この現象を回避できます。
+
+尚、現時点で確認した範囲では、「NoActionBar 系のスタイルを適用し、且つ、プログラム的に StatusBarを非表示にする」ケース以外では、「切り欠き部分が露出する」現象は起きないようです。
+
+このフラグをダイアログ毎に変更する場合は、preCreateBodyView ではなく、コンストラクタで設定してください。
+
+## var systemBarOptionOnFragmentMode
+デフォルト: SystemBarOptionOnFragmentMode.NONE<br>
+
+フラグメントモード(isDialog == false) の場合に、system bar （特に ActionBar）をどのように扱うかを指定します。
+
 
 ### var cancellable:Boolean
 
@@ -95,18 +119,6 @@ bodyContainer の上下左右のマージンをDP単位で指定します。-1 �
 
 デバイス画面に対するダイアログのマージンは、UtDialogConfig.dialogMarginOnPortrait（横置きの場合）および、UtDialogConfig.dialogMarginOnLandscape（縦置きの場合）で設定します。noDialogMargin = true にすると、このマージン設定を無効化して、デバイス画面全体にダイアログを表示します。
 
-## var hideStatusBarOnDialogMode:Boolean
-デフォルト: false<br>
-
-ダイアログを表示するとき、StatusBar を非表示するかどうかを指定します。
-このプロパティは、ダイアログモード（isDialog = true）の場合にのみ有効です。hideStatusBarOnDialogMode = true にすると、以下の設定が行われます。
-- StatusBar を非表示
-- FLAG_LAYOUT_NO_LIMITS を設定して、rootView を全画面に表示
-- LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES をセット
-
-NoActionBar系のスタイルを適用し、（プログラム的に）StatusBarを非表示にしたとき、
-ダイアログモードの場合、Activityとは独立した window が作成されて、StatusBar は表示された状態となり、切り欠き部分を避けた領域に rootViewが配置されてしまいます。背景が透明（GuardColor.TRANSPARENT）なダイアログではあまり気になりませんが、背景を隠すダイアログでは、StatusBar だけが露出したような表示になってしまします。hideStatusBarOnDialogMode = true は、この現象を回避するために使用します。
-
 ### var widthOption: WidthOption
 デフォルト: WidthOption.COMPACT<br>
 
@@ -159,7 +171,7 @@ GravityOption.CUSTOM と組み合わせて使用します。
 デフォルト: UtDialogOption.defaultBodyGuardColor (UtDialog.GuardColor.THEME_SEE_THROUGH)
 
 bodyGuardView の背景色を指定します。bodyGuardViewは、
-ビジーの場合などに、ダイアログに対するタッチ操作をブロックするためのビューです。
+ビジーの場合などに、ダイアログ(bodyView)に対するタッチ操作をブロックするためのビューです。ダイアログボタン (leftButton, rightButton) はブロックされません。必要に応じて、これらのボタンを無効化、非表示化してください。
 設定可能な値は、`guardColor` の説明を参照願います。
 
 ### var title:String?
@@ -275,15 +287,15 @@ UtDialogのサブクラスでオーバーライドされる createBodyView() に
 ### val bodyGuardView:FrameLayout
 
 bodyGuardViewは、ダイアログに対するタッチ操作をブロックするためのビューです。
-デフォルトでは非表示(GONE)ですが、例えば、OKボタンを押したあと、処理が完了するまで待機するような場合に、VISIBLE にします。bodyGuardViewの背景色は `bodyGuardColor` によってカスタマイズできます。
+デフォルトでは非表示(GONE)ですが、例えば、OKボタンを押したあと、処理が完了するまで待機するような場合に、VISIBLE にします。ただし、ダイアログボタン (leftButton, rightButton) は bodyView に含まれないのでブロックされません。必要に応じて、これらのボタンを無効化、非表示化してください。bodyGuardViewの背景色は `bodyGuardColor` によってカスタマイズできます。
 
-UtDialogEx を利用する場合は、`Binder.dialogGuardViewVisibility()` 拡張関数で、bodyGuardView の表示・非表示をビューモデルにバインドできます。
+UtDialogEx を利用する場合は、`Binder.dialogBodyGuardViewVisibility()` 拡張関数で、bodyGuardView の表示・非表示をビューモデルにバインドできます。
 
 ### val centerProgressRing:ProgressBar     
 
 bodyGuardView の中央に表示するプログレスリング、デフォルトでは非表示です。bodyGuardView とともに VISIBLE にすることで表示されます。
 
-UtDialogEx を利用する場合は、`Binder.dialogGuardViewVisibility()` 拡張関数で、bodyGuardView を表示したときに、centerProgressRingも表示するかどうかも指定できます。
+UtDialogEx を利用する場合は、`Binder.dialogBodyGuardViewVisibility()` 拡張関数で、bodyGuardView を表示したときに、centerProgressRingも表示するかどうかも指定できます。
 
 ## UtDialogサブクラスから利用可能なメソッド
 
@@ -314,6 +326,12 @@ UtDialogEx を利用する場合は、`Binder.dialogGuardViewVisibility()` 拡�
 ### fun preCreateBodyView()
 
 UtDialogは、一部のプロパティ(title, cancellable)を除いて、大部分のプロパティは、createBodyView() が呼ばれる前に設定しておく必要があります。preCreateBodyView()は、これらのプロパティを設定する最適なタイミングです。
+
+ただし、
+- isDialog
+- edgeToEdgeEnabled
+- hideStatusBarOnDialogMode
+をダイアログ毎変更する場合は、preCreateView() ではなく、コンストラクタで設定してください。おそらく、これらをダイアログ毎にダイアログ毎に設定する必然性はないので、UtDialogConfig でデフォルト値を設定することを検討してください。
 
 ### fun createBodyView(savedInstanceState:Bundle?, inflater: IViewInflater): View
 
@@ -349,7 +367,12 @@ heightOption に、CUSTOM を指定した場合は、必ず、このメソッド
 
 `UtDialog#isDialog` のデフォルト値を設定します。
 
-### var edgeToEdgeEnabled
+### var hideStatusBarOnDialogMode
+ = false
+
+UtDialog#hideStatusBarOnDialogMode のデフォルト値を設定します。
+
+### var edgeToEdgeEnabledAsDefault
  = true
 
 `UtDialog#edgeToEdgeEnabled` のデフォルト値を設定します。

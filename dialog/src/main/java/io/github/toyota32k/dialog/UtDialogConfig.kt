@@ -4,9 +4,9 @@ package io.github.toyota32k.dialog
 
 import android.content.Context
 import android.graphics.Rect
-import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
 import androidx.annotation.StyleRes
+import io.github.toyota32k.dialog.UtDialogBase.SystemBarOptionOnFragmentMode
 
 /**
  * アプリ内で共通のダイアログ動作に関する設定をここにまとめます。
@@ -20,17 +20,29 @@ object UtDialogConfig {
     }
 
     /**
-     * デフォルトで isDialogをtrueにするかどうか？
+     * UtDialog#isDialog のデフォルト値
      * true: ダイアログモード (新しいwindowを生成して配置）
      * false: フラグメントモード (ActivityのWindow上に配置）
      */
     var showInDialogModeAsDefault = false
 
     /**
-     * Edge-to-Edge を有効にするか？
-     * API35 ではデフォルトになるらしい。
+     * UtDialog#hideStatusBarOnDialogMode のデフォルト値
+     * ダイアログモード（isDialog == true）の場合に、StatusBar を非表示にして、全画面にダイアログを表示するか？
+     * フラグメントモード(isDialog==false)の場合には無視される。
      */
-    var edgeToEdgeEnabled = true
+    var hideStatusBarOnDialogMode = true
+
+    /**
+     * UtDialogBase#systemBarOptionOnFragmentModeのデフォルト値
+     * フラグメントモード(isDialog == false) の場合に、system bar （特に ActionBar）をどのように扱うか？
+     * - NONE 何も対策しない ... NoActionBar系のThemeを使う前提（デフォルト）
+     * - DODGE SystemBar をよける
+     * - HIDE SystemBar を一時的に非表示にする
+     * ダイアログモード（isDialog == true）の場合には無視される
+     */
+    var systemBarOptionOnFragmentMode = SystemBarOptionOnFragmentMode.NONE
+//    var edgeToEdgeEnabledAsDefault = true
 
     /**
      * UtDialog.show()の動作指定フラグ
