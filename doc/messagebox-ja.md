@@ -1,4 +1,7 @@
 # メッセージボックスを表示する
+<div align="right">
+<a href="./messagebox.md">EN</a> | JA
+</div>
 
 メッセージボックスは、
 タイトル（文字列）、メッセージ（文字列）と、OKボタン、Cancelボタン （または Yes/Noボタン）を表示してユーザーの判断を促す簡単なダイアログです。内部的には、AlertDialog を利用し、UtDialog の作法に従って、どこからでも簡単に利用できます。

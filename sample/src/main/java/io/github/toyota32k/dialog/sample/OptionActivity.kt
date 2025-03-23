@@ -52,17 +52,16 @@ import kotlinx.coroutines.flow.map
 class OptionActivity : UtMortalActivity() {
     class OptionActivityViewModel : ViewModel() {
         // Activity Settings
-        val themeInfo = MutableStateFlow(ThemeInfo.DYNAMIC)
+        val themeInfo = MutableStateFlow(ThemeInfo.DYNAMIC_NOACTION_BAR)
         val darkLightInfo = MutableStateFlow(DarkLightInfo.SYSTEM)
         val showStatusBar = MutableStateFlow(true)
         val showActionBar = MutableStateFlow(true)
         val edgeToEdgeEnabled = MutableStateFlow(true)
 
         // Global Options
-        val isDialogMode = MutableStateFlow(false)
+        val isDialogMode = MutableStateFlow(UtDialogConfig.showInDialogModeAsDefault)
         val portraitMarginInfo = MutableStateFlow(DialogMarginInfo.DEFAULT_PORTRAIT)
         val landscapeMarginInfo = MutableStateFlow(DialogMarginInfo.DEFAULT_LANDSCAPE)
-        val systemBarOptionOnFragmentMode = MutableStateFlow(UtDialogConfig.systemBarOptionOnFragmentMode)
 
         // Dialog Options
         val dialogTitle = MutableStateFlow("Sample Dialog")
@@ -78,6 +77,7 @@ class OptionActivity : UtMortalActivity() {
         val noHeader = MutableStateFlow(false)
         val noFooter = MutableStateFlow(false)
         val hideStatusBarOnDialog = MutableStateFlow(UtDialogConfig.hideStatusBarOnDialogMode)
+        val systemBarOptionOnFragmentMode = MutableStateFlow(UtDialogConfig.systemBarOptionOnFragmentMode)
 
         val hasActionBar = themeInfo.map { it.hasActionBar }
         val isMaterial3 = themeInfo.map { it.material3 }

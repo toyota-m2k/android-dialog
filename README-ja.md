@@ -1,4 +1,9 @@
 # Android用 ダイアログライブラリ
+<div align="right">
+<a href="./README.md">EN</a> | JA
+</div>
+
+## Introduction
 
 ## はじめに
 

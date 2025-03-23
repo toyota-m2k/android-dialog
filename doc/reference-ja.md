@@ -1,4 +1,8 @@
 # UtDialog Reference Manual
+<div align="right">
+<a href="./reference.md">EN</a> | JA
+</div>
+
 
 ### ダイアログの動作を指定するプロパティ
 
@@ -14,22 +18,12 @@
 
 ### var isDialog : Boolean
 
-デフォルト：false<br>
-UtDialogConfig.showInDialogModeAsDefault を設定することにより、デフォルト値は変更できます。
+デフォルト：true<br>
+`UtDialogConfig.showInDialogModeAsDefault` を設定することにより、デフォルト値は変更できます。
 
-false（デフォルト）の場合は、フラグメントモードとして動作し、FragmentManager のトランザクションにより、ActivityのWindow上にダイアログが表示されます。
+false の場合は、フラグメントモードとして動作し、FragmentManager のトランザクションにより、ActivityのWindow上にダイアログが表示されます。
 
-true にすると、ダイアログモードで動作し、DialogFragment#show() によって表示されます。この場合は、（ActivityのWindowではなく）新しいWindowが作成され、その上にダイアログが表示されます。Activityの上に、独立したwindow を重ねる構成となるため、動作が安定していましたが、edge-to-edge が標準になると、Activityの状態（NoActionBar + statusBar非表示の場合など）と整合をとるのが難しくなってきたので、v4以降、デフォルトは false にしています。
-
-このフラグをダイアログ毎に変更する場合は、preCreateBodyView ではなく、コンストラクタで設定してください。
-
-### var edgeToEdgeEnabled : Boolean
-
-デフォルト: true<br>
-UtDialogConfig.edgeToEdgeEnabledAsDefault を設定することにより、デフォルト値は変更できます。
-
-Activityで、edge-to-edge を有効にしない場合は、false にします。true にすると、
-isDialog=false (フラグメントモード) の場合に、setOnApplyWindowInsetsListenerを呼び出して、insets の調整を行います。
+true （デフォルト）にすると、ダイアログモードで動作し、DialogFragment#show() によって表示されます。この場合は、（ActivityのWindowではなく）新しいWindowが作成され、その上にダイアログが表示されます。
 
 このフラグをダイアログ毎に変更する場合は、preCreateBodyView ではなく、コンストラクタで設定してください。
 
@@ -52,6 +46,15 @@ Activity に NoActionBar系のスタイルを適用し、（プログラム的�
 
 フラグメントモード(isDialog == false) の場合に、system bar （特に ActionBar）をどのように扱うかを指定します。
 
+- NONE<br>
+    何もしません。NoActionBar の Themeを適用する場合に最適な設定です。
+    ActionBarが表示されている場合は、ダイアログの一部が、ActionBarの(Z-Order的に)下に隠れるので、他のオプションを指定してください。
+- HIDE<br>
+    ダイアログを表示するときにStatusBar/ActionBarを非表示にします。ダイアログを閉じるときに元に戻します。
+- STRICT<br>
+    ダイアログ（rootView）を、Activity の ContentView 内でのみ表示するように制限します。つまり、StatusBarを避けてダイアログを表示します。Android の System Bar の扱いとしては、もっとも正しい動作と言えますが、モーダルダイアログ表示中に ActionBar が操作できてしまうので、実装によっては好ましくないかもしれません。
+
+このフラグをダイアログ毎に変更する場合は、preCreateBodyView ではなく、コンストラクタで設定してください。
 
 ### var cancellable:Boolean
 
@@ -329,8 +332,9 @@ UtDialogは、一部のプロパティ(title, cancellable)を除いて、大部�
 
 ただし、
 - isDialog
-- edgeToEdgeEnabled
 - hideStatusBarOnDialogMode
+- systemBarOptionOnFragmentMode
+
 をダイアログ毎変更する場合は、preCreateView() ではなく、コンストラクタで設定してください。おそらく、これらをダイアログ毎にダイアログ毎に設定する必然性はないので、UtDialogConfig でデフォルト値を設定することを検討してください。
 
 ### fun createBodyView(savedInstanceState:Bundle?, inflater: IViewInflater): View

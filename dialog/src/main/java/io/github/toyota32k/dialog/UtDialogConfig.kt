@@ -24,7 +24,7 @@ object UtDialogConfig {
      * true: ダイアログモード (新しいwindowを生成して配置）
      * false: フラグメントモード (ActivityのWindow上に配置）
      */
-    var showInDialogModeAsDefault = false
+    var showInDialogModeAsDefault = true
 
     /**
      * UtDialog#hideStatusBarOnDialogMode のデフォルト値

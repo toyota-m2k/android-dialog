@@ -1,4 +1,8 @@
 # WidthOption/HeightOption の使い方
+<div align="right">
+<a href="./sizing-option.md">EN</a> | JA
+</div>
+
 
 [README](../README-ja.md)では、テキスト入力欄が１つだけのシンプルなダイアログを作成しました。ダイアログのコンテンツが増えて複雑になっても、基本は同じです。しかし、ダイアログの内容が増えて画面内に収まらなくなるケースの考慮は必要です。UtDialog では、ダイアログのサイズを決定するいくつかのオプションを用意しています。
 

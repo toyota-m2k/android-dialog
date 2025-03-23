@@ -1,4 +1,8 @@
 # Activity Broker
+<div align="right">
+<a href="./activity-broker.md">EN</a> | JA
+</div>
+
 
 ## Activity呼び出しの問題点と UtDialogライブラリによる解決
 

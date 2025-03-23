@@ -1,4 +1,8 @@
 # フォーカス管理クラス (UtFocusManager)
+<div align="right">
+<a href="./focus-manager.md">EN</a> | JA
+</div>
+
 
 普段あまり意識しないのですが、外付けキーボードをつないでみたり、Chromebookで実行したりすると、いろいろ問題が発生します。
 
