@@ -134,7 +134,7 @@ class MainActivity : UtMortalActivity() {
             }
 //            setLimitWidth(400)
             isDialog = this@MainViewModel.isDialogMode.value
-            edgeToEdgeEnabled = this@MainViewModel.edgeToEdgeEnabled.value
+//            edgeToEdgeEnabled = this@MainViewModel.edgeToEdgeEnabled.value
             this.hideStatusBarOnDialogMode = this@MainViewModel.hideStatusBarOnDialog.value
             cancellable = this@MainViewModel.cancellable.value
             draggable = this@MainViewModel.draggable.value

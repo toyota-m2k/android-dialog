@@ -6,7 +6,7 @@ import kotlinx.coroutines.Job
 /**
  * UtImmortalTaskBaseを継承しないで、ラムダだけ与えてちょいちょいと使う用の単純実装
  */
-@Suppress("unused")
+@Suppress("unused", "DEPRECATION")
 @Deprecated("use UtImmortalTask")
 class UtImmortalSimpleTask(
     taskName:String,
