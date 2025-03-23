@@ -17,5 +17,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "utdialog"
 include(":dialog")
-include(":app")
 include(":sample")

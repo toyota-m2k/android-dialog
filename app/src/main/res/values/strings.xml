@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">DialogSample</string>
-    <string name="toggle_cancel">Toggle Cancel</string>
-    <string name="toggle_done">Toggle Done</string>
-    <string name="toggle_busy">Toggle Busy</string>
-</resources>
