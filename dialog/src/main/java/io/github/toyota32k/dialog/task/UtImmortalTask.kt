@@ -48,7 +48,7 @@ class UtImmortalTask<T>(
          * タスクの終了を待つ (launchしたJobをJoin()するだけ）
          * OKメッセージボックスを表示して閉じるまで待つ、とか。
          */
-        suspend fun <T> awaitTask(taskName: String = DEF_TASK_NAME, coroutineScope: CoroutineScope?=null, allowSequential:Boolean = false, callback:suspend UtImmortalTaskBase.()->Unit) : Unit {
+        suspend fun awaitTask(taskName: String = DEF_TASK_NAME, coroutineScope: CoroutineScope?=null, allowSequential:Boolean = false, callback:suspend UtImmortalTaskBase.()->Unit) {
             return launchTask(taskName, coroutineScope, allowSequential, callback).join()
         }
 
