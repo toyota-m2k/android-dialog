@@ -5,9 +5,6 @@ package io.github.toyota32k.dialog.task
 import android.app.Application
 import androidx.annotation.StringRes
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtMessageBox
@@ -16,7 +13,6 @@ import io.github.toyota32k.dialog.UtRadioSelectionBox
 import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.utils.getStringOrNull
-import java.lang.IllegalStateException
 
 private fun UtImmortalTaskBase.id2str(@StringRes id:Int):String? {
     if(id==0) return null
@@ -100,14 +96,11 @@ val IUtImmortalTask.application : Application get() {
  * ImmortalTask内からはいつでも リソース文字列 が取得できる
  */
 fun IUtImmortalTask.getStringOrNull(@StringRes id:Int):String? {
-    return try {
-        if(id==0) return null       // ゼロは無効値として扱う
-        application.getString(id)
-    } catch (e: Throwable) {
-        null
-    }
+    return application.getStringOrNull(id)
 }
-
+fun IUtImmortalTask.getStringOrDefault(@StringRes id:Int, default:String):String {
+    return application.getStringOrNull(id) ?: default
+}
 
 /**
  * ちょっと悪ノリ気味。。。ViewModelからも application を取得できてしまう。

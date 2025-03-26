@@ -84,17 +84,36 @@ class UtImmortalTask<T>(
 
 }
 
+fun UtImmortalTaskBase.launchSubTask(fn:suspend UtImmortalTaskBase.()->Unit):Job {
+    return this.immortalCoroutineScope.launch {
+        fn()
+    }
+}
+
+suspend fun UtImmortalTaskBase.awaitSubTask(fn:suspend UtImmortalTaskBase.()->Unit) {
+    launchSubTask(fn).join()
+}
+
+suspend fun <T> UtImmortalTaskBase.awaitSubTaskResult(fn:suspend UtImmortalTaskBase.()->T):T {
+    return withContext(this.immortalCoroutineScope.coroutineContext) {
+        fn()
+    }
+}
+
+fun IUtImmortalTaskContext.toRunningTask():UtImmortalTaskBase? {
+    val taskInfo = UtImmortalTaskManager.taskOf(this.taskName)
+    return if (taskInfo?.state == UtImmortalTaskState.RUNNING) {
+        taskInfo.task as? UtImmortalTaskBase
+    } else null
+}
+
 /**
  * 実行中のUtImmortalTaskBase上で、サブタスクを開始する
  * （やりっぱなし）
  */
 fun IUtImmortalTaskContext.launchSubTask(fn:suspend UtImmortalTaskBase.()->Unit):Job {
-    val taskInfo = UtImmortalTaskManager.taskOf(this.taskName)
-    if(taskInfo?.state != UtImmortalTaskState.RUNNING) throw IllegalStateException("task is not running")
-    val task = taskInfo.task as? UtImmortalTaskBase ?: throw IllegalStateException("cannot launch on ${taskInfo.task?.javaClass?.name ?:"null"}")
-    return this.coroutineScope.launch {
-        task.fn()
-    }
+    val task = toRunningTask() ?: throw IllegalStateException("cannot launch sub-task on ${this.taskName}")
+    return task.launchSubTask(fn)
 }
 
 /**
@@ -109,11 +128,9 @@ suspend fun IUtImmortalTaskContext.awaitSubTask(fn:suspend UtImmortalTaskBase.()
  * 実行中のUtImmortalTaskBase上で、サブタスクを開始する
  * （サブタスクの結果を待つ）
  */
-suspend fun <T> IUtImmortalTaskContext.awaitSubTaskResult(fn:suspend UtImmortalTaskBase.()->T) {
-    val taskInfo = UtImmortalTaskManager.taskOf(this.taskName)
-    if(taskInfo?.state != UtImmortalTaskState.RUNNING) throw IllegalStateException("task is not running")
-    val task = taskInfo.task as? UtImmortalTaskBase ?: throw IllegalStateException("cannot launch on ${taskInfo.task?.javaClass?.name ?:"null"}")
-    return withContext(this.coroutineScope.coroutineContext) {
-        task.fn()
-    }
+suspend fun <T> IUtImmortalTaskContext.awaitSubTaskResult(fn:suspend UtImmortalTaskBase.()->T):T {
+    val task = toRunningTask() ?: throw IllegalStateException("cannot launch sub-task on ${this.taskName}")
+    return task.awaitSubTaskResult(fn)
 }
+
+
