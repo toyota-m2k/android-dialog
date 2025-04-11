@@ -4,14 +4,12 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.binder.Binder
@@ -26,6 +24,7 @@ import io.github.toyota32k.binder.enableBinding
 import io.github.toyota32k.binder.observe
 import io.github.toyota32k.binder.spinnerBinding
 import io.github.toyota32k.dialog.UtDialog
+import io.github.toyota32k.dialog.UtDialog.ButtonType
 import io.github.toyota32k.dialog.UtDialog.GravityOption
 import io.github.toyota32k.dialog.UtDialog.HeightOption
 import io.github.toyota32k.dialog.UtDialog.WidthOption
@@ -40,7 +39,6 @@ import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.
 import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.ThemeInfo
 import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.WidthOptionInfo
 import io.github.toyota32k.dialog.sample.databinding.ActivityOptionBinding
-import io.github.toyota32k.dialog.sample.dialog.FullHeightDialog
 import io.github.toyota32k.dialog.sample.dialog.OptionSampleDialog
 import io.github.toyota32k.dialog.sample.dialog.ThemeColorDialog
 import io.github.toyota32k.dialog.task.UtImmortalTask.Companion.launchTask
@@ -61,6 +59,7 @@ class OptionActivity : UtMortalActivity() {
         val showStatusBar = MutableStateFlow(true)
         val showActionBar = MutableStateFlow(true)
         val edgeToEdgeEnabled = MutableStateFlow(true)
+        val fitSystemWindows = MutableStateFlow(false)
 
         // Global Options
         val isDialogMode = MutableStateFlow(UtDialogConfig.showInDialogModeAsDefault)
@@ -82,6 +81,8 @@ class OptionActivity : UtMortalActivity() {
         val noFooter = MutableStateFlow(false)
         val hideStatusBarOnDialog = MutableStateFlow(UtDialogConfig.hideStatusBarOnDialogMode)
         val systemBarOptionOnFragmentMode = MutableStateFlow(UtDialogConfig.systemBarOptionOnFragmentMode)
+        val adjustContentForKeyboard = MutableStateFlow(UtDialogConfig.adjustContentForKeyboard)
+        val adjustContentsStrategy = MutableStateFlow(UtDialogConfig.adjustContentsStrategy)
 
         val hasActionBar = themeInfo.map { it.hasActionBar }
         val isMaterial3 = themeInfo.map { it.material3 }
@@ -189,6 +190,30 @@ class OptionActivity : UtMortalActivity() {
             }
         }
 
+        fun <T: UtDialog> T.applySettings():T {
+            val vm = this@OptionActivityViewModel
+            isDialog = vm.isDialogMode.value
+            systemBarOptionOnFragmentMode = vm.systemBarOptionOnFragmentMode.value
+            hideStatusBarOnDialogMode = vm.hideStatusBarOnDialog.value
+            adjustContentForKeyboard = vm.adjustContentForKeyboard.value
+            adjustContentsStrategy = vm.adjustContentsStrategy.value
+
+            title = vm.dialogTitle.value
+            widthOption = vm.widthOptionInfo.value.option
+            heightOption = vm.heightOptionInfo.value.option
+            gravityOption = vm.gravityOptionInfo.value.option
+            guardColor = vm.guardColorInfo.value.color
+            bodyGuardColor = vm.bodyGuardColorInfo.value.color
+            scrollable = vm.scrollable.value
+            cancellable = vm.cancellable.value
+            draggable = vm.draggable.value
+            noHeader = vm.noHeader.value
+            noFooter = vm.noFooter.value
+            leftButtonType = ButtonType.CANCEL
+            rightButtonType = ButtonType.OK
+            return this
+        }
+
         val commandShowDialog = LiteUnitCommand {
             launchTask {
 //                createViewModel<FullHeightDialog.FullHeightDialogViewModel>()
@@ -200,11 +225,7 @@ class OptionActivity : UtMortalActivity() {
 
                 createViewModel<OptionSampleDialog.OptionSampleDialogViewModel> { setup(this@OptionActivityViewModel) }
                 showDialog("sample-dialog") {
-                    OptionSampleDialog().apply {
-                        isDialog = isDialogMode.value
-                        systemBarOptionOnFragmentMode = this@OptionActivityViewModel.systemBarOptionOnFragmentMode.value
-                        hideStatusBarOnDialogMode = hideStatusBarOnDialog.value
-                    }
+                    OptionSampleDialog().applySettings()
                 }
 
                 // Restore Global Options
@@ -254,6 +275,8 @@ class OptionActivity : UtMortalActivity() {
         if(!viewModel.showActionBar.value && isStatusBarVisible()) {
             hideStatusBar()
         }
+        var fitSystemWindows = viewModel.fitSystemWindows.value
+        WindowCompat.setDecorFitsSystemWindows(window, fitSystemWindows)
 
         binder.owner(this)
             .bindCommand(viewModel.commandShowDialog, controls.showDialogButton)
@@ -271,10 +294,13 @@ class OptionActivity : UtMortalActivity() {
             .checkBinding(controls.checkProgressRingOnBodyGuardView, viewModel.progressRingOnBodyGuardView)
             .checkBinding(controls.noHeader, viewModel.noHeader)
             .checkBinding(controls.noFooter, viewModel.noFooter)
+            .checkBinding(controls.fitSystemWindow, viewModel.fitSystemWindows)
 
             .editTextBinding(controls.dialogTitleEdit, viewModel.dialogTitle)
             .spinnerBinding(controls.gravityOptionSpinner, viewModel.gravityOptionInfo, GravityOptionInfo.values)
             .spinnerBinding(controls.systemBarModeOnFragment, viewModel.systemBarOptionOnFragmentMode, UtDialogBase.SystemBarOptionOnFragmentMode.entries.toList(), null)
+            .spinnerBinding(controls.adjustContentsForKeyboard, viewModel.adjustContentForKeyboard, UtDialog.KeyboardAdjustMode.entries.toList(), null)
+            .spinnerBinding(controls.adjustContentsStrategy, viewModel.adjustContentsStrategy, UtDialog.KeyboardAdjustStrategy.entries.toList(), null)
             .spinnerBinding(controls.widthOptionSpinner, viewModel.widthOptionInfo, WidthOptionInfo.values)
             .spinnerBinding(controls.heightOptionSpinner, viewModel.heightOptionInfo, HeightOptionInfo.values)
             .spinnerBinding(controls.guardColorSpinner, viewModel.guardColorInfo, GuardColorInfo.values)
@@ -286,6 +312,7 @@ class OptionActivity : UtMortalActivity() {
             .enableBinding(controls.checkHideStatusBarOnDialog, viewModel.isDialogMode)
             .enableBinding(controls.systemBarModeOnFragment, viewModel.isDialogMode, boolConvert = BoolConvert.Inverse)
             .enableBinding(controls.checkActionBar, viewModel.hasActionBar)
+            .enableBinding(controls.adjustContentsStrategy, viewModel.adjustContentForKeyboard.map { it != UtDialog.KeyboardAdjustMode.NONE })
 
             .observe(viewModel.themeInfo) {
                 if(currentTheme!=it.themeId) {
@@ -300,6 +327,12 @@ class OptionActivity : UtMortalActivity() {
             .observe(viewModel.darkLightInfo) {
                 if(AppCompatDelegate.getDefaultNightMode()!=it.mode) {
                     AppCompatDelegate.setDefaultNightMode(it.mode)
+                }
+            }
+            .observe(viewModel.fitSystemWindows) {
+                if(fitSystemWindows!=it) {
+                    fitSystemWindows = it
+                    WindowCompat.setDecorFitsSystemWindows(window, it)
                 }
             }
     }

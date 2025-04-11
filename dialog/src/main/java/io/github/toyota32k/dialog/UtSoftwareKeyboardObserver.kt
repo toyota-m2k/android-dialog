@@ -11,21 +11,22 @@ import androidx.lifecycle.LifecycleOwner
 import io.github.toyota32k.utils.GenericDisposable
 import io.github.toyota32k.utils.IDisposable
 import io.github.toyota32k.utils.LifecycleDisposer
+import io.github.toyota32k.utils.activity
 
 /**
  * ソフトウェアキーボードの開閉を監視する
  */
 interface ISoftwareKeyboardObserver : IDisposable {
-    fun observe(listener:(keyboardHeight:Int)->Unit):ISoftwareKeyboardObserver
+    fun observe(listener:(keyboardHeight:Int,screenHeight:Int)->Unit):ISoftwareKeyboardObserver
 }
 
 /**
  * ISoftwareKeyboardObserverの実装クラスの共通実装
  */
-internal abstract class BaseSoftwareKeyboardObserver(owner: LifecycleOwner) : ISoftwareKeyboardObserver {
+internal abstract class BaseSoftwareKeyboardObserver(owner: LifecycleOwner, protected val decorView:View) : ISoftwareKeyboardObserver {
     protected val disposer = LifecycleDisposer(owner)
-    protected lateinit var callback:(keyboardHeight:Int)->Unit
-    override fun observe(listener: (Int) -> Unit):ISoftwareKeyboardObserver {
+    protected lateinit var callback:(keyboardHeight:Int, screenHeight:Int)->Unit
+    override fun observe(listener: (keyboardHeight:Int,screenHeight:Int) -> Unit):ISoftwareKeyboardObserver {
         callback = listener
         return this
     }
@@ -37,8 +38,7 @@ internal abstract class BaseSoftwareKeyboardObserver(owner: LifecycleOwner) : IS
 /**
  *
  */
-internal class GlobalLayoutSoftwareKeyboardObserver(owner:LifecycleOwner, activity: FragmentActivity) : BaseSoftwareKeyboardObserver(owner) {
-    private val decorView:View = activity.window?.decorView ?: throw Exception("decorView not found")
+internal class GlobalLayoutSoftwareKeyboardObserver(owner:LifecycleOwner, activity: FragmentActivity) : BaseSoftwareKeyboardObserver(owner, activity.window.decorView) {
     var handler:OnGlobalLayoutListener = object:OnGlobalLayoutListener {
         private val rect = Rect()
         private var prevShowing = false
@@ -48,7 +48,7 @@ internal class GlobalLayoutSoftwareKeyboardObserver(owner:LifecycleOwner, activi
             val showing = keyboardHeight > decorView.height * THRESHOLD
             if( showing != prevShowing) {
                 prevShowing = showing
-                callback(keyboardHeight)
+                callback(if(showing) keyboardHeight else 0, decorView.height)
             }
         }
     }
@@ -59,16 +59,15 @@ internal class GlobalLayoutSoftwareKeyboardObserver(owner:LifecycleOwner, activi
     }
 
     companion object {
-        const val THRESHOLD = 0.1f
+        const val THRESHOLD = 0.15f
     }
 }
 
-internal class WindowInsetsSoftwareKeyboardObserver(owner: LifecycleOwner, val rootView:View) : BaseSoftwareKeyboardObserver(owner) {
+internal class WindowInsetsSoftwareKeyboardObserver(owner: LifecycleOwner, val rootView:View) : BaseSoftwareKeyboardObserver(owner, rootView.activity()?.window?.decorView ?: rootView) {
     init {
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
-//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-            callback(ime.bottom)
+            callback(ime.bottom, decorView.height)
             insets
         }
         disposer.register(GenericDisposable { ViewCompat.setOnApplyWindowInsetsListener(rootView, null) } )

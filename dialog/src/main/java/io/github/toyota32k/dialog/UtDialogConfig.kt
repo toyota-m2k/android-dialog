@@ -6,6 +6,8 @@ import android.content.Context
 import android.graphics.Rect
 import androidx.annotation.LayoutRes
 import androidx.annotation.StyleRes
+import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustMode
+import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustStrategy
 import io.github.toyota32k.dialog.UtDialogBase.SystemBarOptionOnFragmentMode
 
 /**
@@ -50,7 +52,12 @@ object UtDialogConfig {
      * true: 自動調整する（デフォルト）
      * false: 自動調整しない
      */
-    var adjustContentForKeyboard = true
+    var adjustContentForKeyboard:KeyboardAdjustMode = KeyboardAdjustMode.NONE
+
+    /**
+     * KeyboardAdjustMode.NONE以外の場合に、どうやってコンテンツを自動調整するか。
+     */
+    var adjustContentsStrategy: KeyboardAdjustStrategy = KeyboardAdjustStrategy.PAN
 
     /**
      * UtDialog.show()の動作指定フラグ

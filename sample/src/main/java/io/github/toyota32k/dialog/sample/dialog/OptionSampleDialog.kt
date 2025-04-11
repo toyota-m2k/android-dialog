@@ -41,20 +41,6 @@ class OptionSampleDialog : UtDialogEx() {
     private lateinit var controls: DialogOptionSampleBinding
 
     override fun preCreateBodyView() {
-        val settings = viewModel.settings
-        title = settings.dialogTitle.value
-        widthOption = settings.widthOptionInfo.value.option
-        heightOption = settings.heightOptionInfo.value.option
-        gravityOption = settings.gravityOptionInfo.value.option
-        guardColor = settings.guardColorInfo.value.color
-        bodyGuardColor = settings.bodyGuardColorInfo.value.color
-        scrollable = settings.scrollable.value
-        cancellable = settings.cancellable.value
-        draggable = settings.draggable.value
-        noHeader = settings.noHeader.value
-        noFooter = settings.noFooter.value
-        leftButtonType = ButtonType.CANCEL
-        rightButtonType = ButtonType.OK
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {

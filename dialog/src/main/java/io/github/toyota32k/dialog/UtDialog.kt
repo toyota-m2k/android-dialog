@@ -556,9 +556,7 @@ abstract class UtDialog: UtDialogBase() {
         val body: UtFocusManager get() = bodyFocusManager ?: rootFocusManager
 
         fun attach(rootView: View, bodyView: View) {
-            if (bodyFocusManager != null) {
-                bodyFocusManager.attach(bodyView)
-            }
+            bodyFocusManager?.attach(bodyView)
             rootFocusManager.attach(bodyView)
         }
 
@@ -586,12 +584,26 @@ abstract class UtDialog: UtDialogBase() {
     }
 
     /**
-     * ソフトウェアキーボードが表示された時に、フォーカスのあるEditTextが見えるよう
+     * ソフトウェアキーボードが表示された時に、フォーカスのあるEditTextが隠れないように
      * コンテンツを自動調整するかどうかを指定するフラグ
-     * true: 自動調整する（デフォルト）
-     * false: 自動調整しない
      */
-    var adjustContentForKeyboard: Boolean by bundle.booleanWithDefault(UtDialogConfig.adjustContentForKeyboard)
+    enum class KeyboardAdjustMode {
+        NONE,                   // 何もしない
+        AUTO,                   // isDialog==true なら BY_WINDOW_INSETS, isDialog == falseならBY_WINDOW_INSETS
+        BY_WINDOW_INSETS,       // WindowInsets のリスナーを利用して IMEのサイズを取得（正しい方法）
+        BY_GLOBAL_LAYOUT,       // GlobalLayout のリスナーを利用して、IMEらしきビューの出現を監視（WindowInsets のリスナーが呼ばれないケースのための対策：抜本的な回避策が見つかっていない。。。）
+    }
+    var adjustContentForKeyboard: KeyboardAdjustMode by bundle.enum(UtDialogConfig.adjustContentForKeyboard)
+
+    /**
+     * KeyboardAdjustMode.NONE以外の場合に、どうやってコンテンツを自動調整するか。
+     */
+    enum class KeyboardAdjustStrategy {
+        PAN,                    // translateY を調整してスライドさせる（デフォルト）
+        RESIZE,                 // paddingBottom でダイアログの高さを変える（HeightOption.FULL/AUTO_SCROLLなどで高さを調整可能なViewを含む場合に最適）
+    }
+    var adjustContentsStrategy: KeyboardAdjustStrategy by bundle.enum(UtDialogConfig.adjustContentsStrategy)
+
 
     // endregion
 
@@ -1269,8 +1281,7 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
-    private lateinit var keyboardObserver: ISoftwareKeyboardObserver
-
+    private var keyboardObserver: ISoftwareKeyboardObserver? = null
 
     /**
      * isDialog == true の場合に呼ばれる。
@@ -1294,10 +1305,6 @@ abstract class UtDialog: UtDialogBase() {
                     }
                 }
 
-                // キーボードが表示されたら検出するリスナーを設定
-                if(adjustContentForKeyboard) {
-                    keyboardObserver = UtSoftwareKeyboardObserver.byGlobalLayout(this@UtDialog, requireActivity()).observe(::onSoftwareKeyboardChanged)
-                }
             }
         }
     }
@@ -1387,9 +1394,7 @@ abstract class UtDialog: UtDialogBase() {
                 }
             }
 
-            if (!isDialog && adjustContentForKeyboard) {
-                keyboardObserver = UtSoftwareKeyboardObserver.byWindowInsets(this, rootView).observe(::onSoftwareKeyboardChanged)
-            }
+            prepareSoftwareKeyboardObserver()
             return rootView
         } catch (e: Throwable) {
             // View作り中に例外が出る原因は、主に２つ
@@ -1458,6 +1463,18 @@ abstract class UtDialog: UtDialogBase() {
         immService?.hideSoftInputFromWindow(rootView.windowToken, 0)
     }
 
+    private fun prepareSoftwareKeyboardObserver() {
+        val mode = if (adjustContentForKeyboard == KeyboardAdjustMode.AUTO) {
+            if(isDialog) KeyboardAdjustMode.BY_GLOBAL_LAYOUT else KeyboardAdjustMode.BY_WINDOW_INSETS
+        } else adjustContentForKeyboard
+        keyboardObserver?.dispose()
+        keyboardObserver = when(mode) {
+            KeyboardAdjustMode.BY_WINDOW_INSETS -> UtSoftwareKeyboardObserver.byWindowInsets(this, rootView).observe(::onSoftwareKeyboardChanged)
+            KeyboardAdjustMode.BY_GLOBAL_LAYOUT -> UtSoftwareKeyboardObserver.byGlobalLayout(this@UtDialog, requireActivity()).observe(::onSoftwareKeyboardChanged)
+            else -> null
+        }
+    }
+
     private fun getMaxScrollAmount(scrollableView: ViewGroup): Int {
         return when (scrollableView) {
             is ScrollView -> {
@@ -1488,32 +1505,50 @@ abstract class UtDialog: UtDialogBase() {
      * ソフトウェアキーボードが開く/閉じるの場合の処理
      * デフォルトでは、rootView のパディングを調整する。
      */
-    open fun onSoftwareKeyboardChanged(keyboardHeight: Int) {
-//        if(open) {
-//            rootView.setPadding(0, 0, 0, keyboardHeight)
-//        } else {
-//            rootView.setPadding(0, 0, 0, 0)
-//        }
+    open fun onSoftwareKeyboardChanged(keyboardHeight: Int, screenHeight: Int) {
         if (keyboardHeight>0) {
             val focusedView = rootView.findFocus() ?: return
+            val rect = Rect()
+            focusedView.getGlobalVisibleRect(rect)
+            //val screenHeight = rootView.height
+            val bottomOffset = (rect.bottom + 20) - (screenHeight - keyboardHeight)
+
+            adjustContents(bottomOffset, focusedView)
+        } else {
+            adjustContents(0,null)
+        }
+    }
+    private fun adjustContents(bottomOffset: Int, focusedView:View?) {
+        when(adjustContentsStrategy) {
+            KeyboardAdjustStrategy.PAN -> adjustByPan(bottomOffset, focusedView)
+            KeyboardAdjustStrategy.RESIZE -> adjustByResize(bottomOffset)
+        }
+    }
+
+    private fun adjustByResize(bottomOffset: Int) {
+        if (bottomOffset>0) {
+            rootView.setPadding(0,0,0,bottomOffset)
+        } else {
+            rootView.setPadding(0,0,0,0)
+        }
+    }
+
+    private fun adjustByPan(bottomOffset: Int, focusedView:View?) {
+        if (bottomOffset>0) {
+            var remainingOffset = bottomOffset
 
             // スクロール可能なコンテナを探す
             var scrollableParent: ViewGroup? = null
-            var parent = focusedView.parent
-
-            while (parent is ViewGroup) {
-                if (parent is ScrollView || parent is RecyclerView || parent is ListView) {
-                    scrollableParent = parent
-                    break
+            if(focusedView!=null) {
+                var parent = focusedView.parent
+                while (parent is ViewGroup) {
+                    if (parent is ScrollView || parent is RecyclerView || parent is ListView) {
+                        scrollableParent = parent
+                        break
+                    }
+                    parent = parent.parent
                 }
-                parent = parent.parent
             }
-
-            val rect = Rect()
-            focusedView.getGlobalVisibleRect(rect)
-            val screenHeight = rootView.height
-            val bottomOffset = (rect.bottom + 20) - (screenHeight - keyboardHeight)
-            var remainingOffset = bottomOffset
 
             if (bottomOffset > 0) {
                 if (scrollableParent != null) {
@@ -1536,13 +1571,12 @@ abstract class UtDialog: UtDialogBase() {
                         .start()
                 }
             }
-        } else {
-            if(rootView.translationY != 0f) {
-                rootView.animate()
-                    .translationY(0f)
-                    .setDuration(200)
-                    .start()
-            }
+        }
+        else if(rootView.translationY != 0f) {
+            rootView.animate()
+                .translationY(0f)
+                .setDuration(200)
+                .start()
         }
     }
 

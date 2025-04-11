@@ -73,6 +73,11 @@
                 style="@style/option_activity_item_check"
                 android:text="Edge to Edge"
                 />
+            <CheckBox
+                android:id="@+id/fit_system_window"
+                style="@style/option_activity_item_check"
+                android:text="Fit System Window"
+                />
 
 
             <!-- Global Options -->
@@ -196,6 +201,22 @@
                 android:id="@+id/check_hide_status_bar_on_dialog"
                 style="@style/option_activity_item_check"
                 android:text="Hide StatusBar on opening dialog (only for Dialog Mode)"
+                />
+            <TextView
+                style="@style/option_activity_item_label"
+                android:text="Adjust Contents for Keyboard"
+                />
+            <Spinner
+                style="@style/option_activity_item"
+                android:id="@+id/adjust_contents_for_keyboard"
+                />
+            <TextView
+                style="@style/option_activity_item_label"
+                android:text="Adjust Strategy"
+                />
+            <Spinner
+                style="@style/option_activity_item"
+                android:id="@+id/adjust_contents_strategy"
                 />
             <TextView
                 style="@style/option_activity_item_label"
