@@ -1566,26 +1566,24 @@ abstract class UtDialog: UtDialogBase() {
                 }
             }
 
-            if (bottomOffset > 0) {
-                if (scrollableParent != null) {
-                    // スクロール可能ならスクロールで対応
-                    val scrollAmount = min(bottomOffset, getMaxScrollAmount(scrollableParent))
-                    if (scrollAmount>0) {
-                        when (scrollableParent) {
-                            is ScrollView -> scrollableParent.smoothScrollBy(0, scrollAmount)
-                            is RecyclerView -> scrollableParent.smoothScrollBy(0, scrollAmount)
-                            is ListView -> scrollableParent.smoothScrollByOffset(scrollAmount)
-                        }
-                        remainingOffset -= scrollAmount
+            if (scrollableParent != null) {
+                // スクロール可能ならスクロールで対応
+                val scrollAmount = min(bottomOffset, getMaxScrollAmount(scrollableParent))
+                if (scrollAmount>0) {
+                    when (scrollableParent) {
+                        is ScrollView -> scrollableParent.smoothScrollBy(0, scrollAmount)
+                        is RecyclerView -> scrollableParent.smoothScrollBy(0, scrollAmount)
+                        is ListView -> scrollableParent.smoothScrollByOffset(scrollAmount)
                     }
+                    remainingOffset -= scrollAmount
                 }
-                if (remainingOffset>0) {
-                    // スクロール不可能ならrootViewを移動
-                    rootView.animate()
-                        .translationY(-remainingOffset.toFloat())
-                        .setDuration(200)
-                        .start()
-                }
+            }
+            if (remainingOffset>0) {
+                // スクロール不可能ならrootViewを移動
+                rootView.animate()
+                    .translationY(-remainingOffset.toFloat())
+                    .setDuration(200)
+                    .start()
             }
         }
         else if(rootView.translationY != 0f) {
