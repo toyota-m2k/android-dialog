@@ -8,6 +8,7 @@
     <!-- Colors for Dialog Title bar -->
     <attr name="color_dlg_title_bg" format="color"/>
     <attr name="color_dlg_title_text" format="color"/>
+    <attr name="color_dlg_title_progress" format="color"/>
 
     <!-- Colors for Dialog Footer -->
     <attr name="color_dlg_footer_bg" format="color"/>

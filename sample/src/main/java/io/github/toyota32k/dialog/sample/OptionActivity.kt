@@ -69,11 +69,12 @@ class OptionActivity : UtMortalActivity() {
         // Dialog Options
         val dialogTitle = MutableStateFlow("Sample Dialog")
         val widthOptionInfo = MutableStateFlow(WidthOptionInfo.COMPACT)
-        val heightOptionInfo = MutableStateFlow(HeightOptionInfo.COMPACT)
+        val heightOptionInfo = MutableStateFlow(HeightOptionInfo.FULL)  // デフォルトと異なるが、COMPACTだと layout.xmlが、wrap_contentの中に、match_parentのビューが含まれる構成になって変なレイアウトになってしまう。
         val gravityOptionInfo = MutableStateFlow(GravityOptionInfo.CENTER)
         val guardColorInfo = MutableStateFlow(GuardColorInfo.DEFAULT)
         val bodyGuardColorInfo = MutableStateFlow(GuardColorInfo.DEFAULT)
         val progressRingOnBodyGuardView = MutableStateFlow(false)
+        val progressRingOnHeader = MutableStateFlow(false)
         val scrollable = MutableStateFlow(false)
         val cancellable = MutableStateFlow(true)
         val draggable = MutableStateFlow(false)
@@ -292,6 +293,7 @@ class OptionActivity : UtMortalActivity() {
             .checkBinding(controls.checkStatusBar, viewModel.showStatusBar)
             .checkBinding(controls.checkActionBar, viewModel.showActionBar)
             .checkBinding(controls.checkProgressRingOnBodyGuardView, viewModel.progressRingOnBodyGuardView)
+            .checkBinding(controls.checkProgressRingOnHeader, viewModel.progressRingOnHeader)
             .checkBinding(controls.noHeader, viewModel.noHeader)
             .checkBinding(controls.noFooter, viewModel.noFooter)
             .checkBinding(controls.fitSystemWindow, viewModel.fitSystemWindows)

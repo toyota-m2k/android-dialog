@@ -10,6 +10,7 @@
         <!-- Colors for Dialog Title bar -->
         <item name="color_dlg_title_bg">?attr/colorPrimary</item>
         <item name="color_dlg_title_text">?attr/colorOnPrimary</item>
+        <item name="color_dlg_title_progress">?attr/colorTertiaryContainer</item>
 
         <!-- Colors for Dialog Footer -->
         <item name="color_dlg_footer_bg">?attr/colorPrimaryContainer</item>
@@ -26,6 +27,7 @@
         <!-- Colors for Dialog Title bar -->
         <item name="color_dlg_title_bg">?attr/colorSecondary</item>
         <item name="color_dlg_title_text">?attr/colorOnSecondary</item>
+        <item name="color_dlg_title_progress">?attr/colorSecondaryContainer</item>
 
         <!-- Colors for Dialog Footer -->
         <item name="color_dlg_footer_bg">?attr/colorSecondaryContainer</item>
@@ -41,6 +43,7 @@
         <!-- Colors for Dialog Title bar -->
         <item name="color_dlg_title_bg">?attr/colorTertiary</item>
         <item name="color_dlg_title_text">?attr/colorOnTertiary</item>
+        <item name="color_dlg_title_progress">?attr/colorPrimaryContainer</item>
 
         <!-- Colors for Dialog Footer -->
         <item name="color_dlg_footer_bg">?attr/colorTertiaryContainer</item>

@@ -170,6 +170,11 @@
                 style="@style/option_activity_item_check"
                 android:text="Show Progress Ring on bodyGuardView"
                 />
+            <CheckBox
+                android:id="@+id/check_progress_ring_on_header"
+                style="@style/option_activity_item_check"
+                android:text="Show Progress Ring on Header"
+                />
 
             <CheckBox
                 android:id="@+id/check_scrollable"
