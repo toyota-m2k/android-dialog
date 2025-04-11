@@ -25,6 +25,7 @@ class FullHeightDialog : UtDialogEx() {
         widthOption = WidthOption.LIMIT(400)
         leftButtonType = ButtonType.CANCEL
         rightButtonType = ButtonType.DONE
+        draggable = true
     }
 
     lateinit var controls: DialogFullHeightBinding

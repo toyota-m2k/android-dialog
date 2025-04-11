@@ -4,7 +4,7 @@ kotlin = "2.1.10"
 agp = "8.9.1"
 
 #libraries
-coreKtx = "1.15.0"
+coreKtx = "1.16.0"
 appcompat = "1.7.0"
 kotlinReflect = "2.1.10"
 lifecycleRuntimeKtx = "2.8.7"
@@ -20,9 +20,9 @@ rxkotlin = "3.0.1"
 junit = "4.13.2"
 androidxJunit = "1.2.1"
 espressoCore = "3.6.1"
-androidUtilities = "2.7.5"
-androidBinding = "1.5.0"
-androidViewex = "1.1.8"
+androidUtilities = "2.7.6"
+androidBinding = "1.5.1"
+androidViewex = "1.1.9"
 activityVersion = "1.10.1"
 
 [libraries]

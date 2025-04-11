@@ -4,12 +4,6 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.UtImmortalTask
-import io.github.toyota32k.dialog.task.showConfirmMessageBox
-import io.github.toyota32k.dialog.task.showOkCancelMessageBox
-import io.github.toyota32k.dialog.task.showThreeChoicesMessageBox
-import io.github.toyota32k.dialog.task.showYesNoMessageBox
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {

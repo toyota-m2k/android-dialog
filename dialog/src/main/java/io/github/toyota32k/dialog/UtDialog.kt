@@ -7,6 +7,7 @@ import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -26,7 +27,9 @@ import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ListView
 import android.widget.ProgressBar
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
@@ -42,6 +45,7 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginEnd
 import androidx.core.view.marginStart
 import androidx.core.view.marginTop
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.getAttrColor
@@ -61,17 +65,17 @@ abstract class UtDialog: UtDialogBase() {
      * trueにセットする場合は、sizingOptionを　COMPACT 以外にセットする。AUTO_SCROLLを推奨
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    var scrollable:Boolean by bundle.booleanFalse
+    var scrollable: Boolean by bundle.booleanFalse
 
     /**
      * 画面外をタップしてダイアログを閉じるとき、Positive()扱いにするか？
      * true: positive扱い
      * false: negative扱い（デフォルト）
      */
-    protected var positiveCancellable:Boolean by bundle.booleanFalse
+    protected var positiveCancellable: Boolean by bundle.booleanFalse
 
-    override fun onCancellableChanged(value:Boolean) {
-        if(this::rootView.isInitialized) {
+    override fun onCancellableChanged(value: Boolean) {
+        if (this::rootView.isInitialized) {
             applyGuardColor()
         }
     }
@@ -95,7 +99,7 @@ abstract class UtDialog: UtDialogBase() {
      * false:許可しない（デフォルト）
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    var draggable:Boolean by bundle.booleanFalse
+    var draggable: Boolean by bundle.booleanFalse
 
     /**
      * ドラッグ中に上下方向の位置を画面内にクリップするか？
@@ -103,7 +107,7 @@ abstract class UtDialog: UtDialogBase() {
      * false:クリップしない
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    var clipVerticalOnDrag:Boolean by bundle.booleanTrue
+    var clipVerticalOnDrag: Boolean by bundle.booleanTrue
 
     /**
      * ドラッグ中に左右方向の位置を画面内にクリップするか？
@@ -111,27 +115,28 @@ abstract class UtDialog: UtDialogBase() {
      * false:クリップしない（とはいえ、操作できる程度にはクリップするよ。）
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    var clipHorizontalOnDrag:Boolean by bundle.booleanTrue
+    var clipHorizontalOnDrag: Boolean by bundle.booleanTrue
 
     /**
      * ダイアログを開く/閉じるの動作にアニメション効果をつけるか？
      * true: つける
      * false:つけない
      */
-    var animationEffect:Boolean by bundle.booleanTrue
+    var animationEffect: Boolean by bundle.booleanTrue
 
     /**
      * ヘッダ（ok/cancelボタンやタイトル）無しにするか？
      * true: ヘッダなし
      * false: ヘッダあり（デフォルト）
      */
-    var noHeader:Boolean by bundle.booleanFalse
+    var noHeader: Boolean by bundle.booleanFalse
+
     /**
      * フッタ（新UIのok/cancelボタンやタイトル）無しにするか？
      * true: フッタなし
      * false: フッタあり（デフォルト）
      */
-    var noFooter:Boolean by bundle.booleanFalse
+    var noFooter: Boolean by bundle.booleanFalse
 
 
     /**
@@ -140,7 +145,7 @@ abstract class UtDialog: UtDialogBase() {
      * true: ボタンの領域をなくす（Gone) ... ボタンの片方だけ表示すると、タイトルが左右に偏って表示されるので注意。
      * false: ボタンは見えなくても、そこにある感じにレンダリング(Invisible) : default
      */
-    var invisibleBuiltInButton:Boolean by bundle.booleanTrue
+    var invisibleBuiltInButton: Boolean by bundle.booleanTrue
 
     @Deprecated("use noInvisibleBuiltInButton instead")
     var noInvisibleHeaderButton: Boolean
@@ -154,12 +159,13 @@ abstract class UtDialog: UtDialogBase() {
      * -1: デフォルト（8dp)
      * >=0: カスタムマージン(dp)
      */
-    var bodyContainerMargin:Int by bundle.intMinusOne
+    var bodyContainerMargin: Int by bundle.intMinusOne
 
     /**
      * UtDialogConfig.dialogMarginOnPortrait / dialogMarginOnLandscape によるマージン設定を無効化する場合は true をセットする。
      */
-    var noDialogMargin:Boolean by bundle.booleanFalse
+    var noDialogMargin: Boolean by bundle.booleanFalse
+
     /**
      * isDialog == true の場合に、StatusBar を非表示にして、全画面にダイアログを表示するか？
      * フラグメントモード(isDialog==false)の場合には無視される。
@@ -179,7 +185,7 @@ abstract class UtDialog: UtDialogBase() {
      * Activity の window と同じ状態を Dialogのwindow に再現しようと、いろいろ試みたが、どうもうまくいかないので、プロパティで渡すことにした。
      * 将来よい方法が見つかれば。。。
      */
-    var hideStatusBarOnDialogMode:Boolean by bundle.booleanWithDefault(UtDialogConfig.hideStatusBarOnDialogMode)
+    var hideStatusBarOnDialogMode: Boolean by bundle.booleanWithDefault(UtDialogConfig.hideStatusBarOnDialogMode)
 
     // endregion
 
@@ -215,50 +221,51 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * 幅指定フラグ
      */
-    enum class WidthFlag(val param:Int, val isDynamicSizing:Boolean) {
-        COMPACT(WRAP_CONTENT,false),        // WRAP_CONTENT
-        FULL(MATCH_PARENT,false),           // フルスクリーンに対して、MATCH_PARENT
-        FIXED(WRAP_CONTENT,false),          // bodyの幅を、widthHint で与えられる値に固定
-        LIMIT(WRAP_CONTENT,true),          // FULLと同じだが、widthHintで与えられるサイズでクリップされる。
+    enum class WidthFlag(val param: Int, val isDynamicSizing: Boolean) {
+        COMPACT(WRAP_CONTENT, false),        // WRAP_CONTENT
+        FULL(MATCH_PARENT, false),           // フルスクリーンに対して、MATCH_PARENT
+        FIXED(WRAP_CONTENT, false),          // bodyの幅を、widthHint で与えられる値に固定
+        LIMIT(WRAP_CONTENT, true),          // FULLと同じだが、widthHintで与えられるサイズでクリップされる。
     }
 
-    data class WidthOption(val flag:WidthFlag, val hint:Int) {
+    data class WidthOption(val flag: WidthFlag, val hint: Int) {
         companion object {
-            val COMPACT = WidthOption(WidthFlag.COMPACT,0)        // WRAP_CONTENT
-            val FULL = WidthOption(WidthFlag.FULL,0)              // フルスクリーンに対して、MATCH_PARENT
-            fun FIXED(width:Int) = WidthOption(WidthFlag.FIXED,width)
-            fun LIMIT(width:Int) = WidthOption(WidthFlag.LIMIT,width)
+            val COMPACT = WidthOption(WidthFlag.COMPACT, 0)        // WRAP_CONTENT
+            val FULL = WidthOption(WidthFlag.FULL, 0)              // フルスクリーンに対して、MATCH_PARENT
+            fun FIXED(width: Int) = WidthOption(WidthFlag.FIXED, width)
+            fun LIMIT(width: Int) = WidthOption(WidthFlag.LIMIT, width)
         }
     }
 
     /**
      * 高さ指定フラグ
      */
-    enum class HeightFlag(val param:Int, val isDynamicSizing:Boolean) {
-        COMPACT(WRAP_CONTENT,false),        // WRAP_CONTENT
-        FULL(MATCH_PARENT,false),           // フルスクリーンに対して、MATCH_PARENT
-        FIXED(WRAP_CONTENT,false),          // bodyの高さを、heightHint で与えられる値に固定
-        LIMIT(WRAP_CONTENT,true),           // FULLと同じだが、heightHintで与えられるサイズでクリップされる。
-        AUTO_SCROLL(WRAP_CONTENT,true),    // MATCH_PARENTを最大値として、コンテントが収まる高さに自動調整。収まらない場合はスクロールする。（bodyには MATCH_PARENTを指定)
-        CUSTOM(WRAP_CONTENT,true),         // AUTO_SCROLL 的な配置をサブクラスで実装する。その場合、calcCustomContainerHeight() をオーバーライドすること。
+    enum class HeightFlag(val param: Int, val isDynamicSizing: Boolean) {
+        COMPACT(WRAP_CONTENT, false),        // WRAP_CONTENT
+        FULL(MATCH_PARENT, false),           // フルスクリーンに対して、MATCH_PARENT
+        FIXED(WRAP_CONTENT, false),          // bodyの高さを、heightHint で与えられる値に固定
+        LIMIT(WRAP_CONTENT, true),           // FULLと同じだが、heightHintで与えられるサイズでクリップされる。
+        AUTO_SCROLL(WRAP_CONTENT, true),    // MATCH_PARENTを最大値として、コンテントが収まる高さに自動調整。収まらない場合はスクロールする。（bodyには MATCH_PARENTを指定)
+        CUSTOM(WRAP_CONTENT, true),         // AUTO_SCROLL 的な配置をサブクラスで実装する。その場合、calcCustomContainerHeight() をオーバーライドすること。
     }
 
-    data class HeightOption(val flag:HeightFlag, val hint:Int) {
+    data class HeightOption(val flag: HeightFlag, val hint: Int) {
         companion object {
-            val COMPACT = HeightOption(HeightFlag.COMPACT,0)        // WRAP_CONTENT
-            val FULL = HeightOption(HeightFlag.FULL,0)              // フルスクリーンに対して、MATCH_PARENT
-            val AUTO_SCROLL = HeightOption(HeightFlag.AUTO_SCROLL,0)
-            val CUSTOM = HeightOption(HeightFlag.CUSTOM,0)
-            fun FIXED(height:Int) = HeightOption(HeightFlag.FIXED,height)
-            fun LIMIT(height:Int) = HeightOption(HeightFlag.LIMIT,height)
+            val COMPACT = HeightOption(HeightFlag.COMPACT, 0)        // WRAP_CONTENT
+            val FULL = HeightOption(HeightFlag.FULL, 0)              // フルスクリーンに対して、MATCH_PARENT
+            val AUTO_SCROLL = HeightOption(HeightFlag.AUTO_SCROLL, 0)
+            val CUSTOM = HeightOption(HeightFlag.CUSTOM, 0)
+            fun FIXED(height: Int) = HeightOption(HeightFlag.FIXED, height)
+            fun LIMIT(height: Int) = HeightOption(HeightFlag.LIMIT, height)
         }
     }
 
     private var widthFlag: WidthFlag by bundle.enum(WidthFlag.COMPACT)
+
     /**
      * widthOption = FIXED or LIMIT を指定したときに、ダイアログ幅(dp)を指定
      */
-    private var widthHint:Int by bundle.intZero
+    private var widthHint: Int by bundle.intZero
 
     /**
      * 幅の決定方法を指定
@@ -273,10 +280,11 @@ abstract class UtDialog: UtDialogBase() {
 
 
     private var heightFlag: HeightFlag by bundle.enum(HeightFlag.COMPACT)
+
     /**
      * heightOption = FIXED の場合の、ダイアログ高さ(dp)を指定
      */
-    private var heightHint:Int by bundle.intZero
+    private var heightHint: Int by bundle.intZero
 
     /**
      * 高さの決定方法を指定
@@ -294,8 +302,8 @@ abstract class UtDialog: UtDialogBase() {
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
     @Deprecated("use HeightOption.FIXED() instead")
-    fun setFixedHeight(height:Int) {
-        if(isViewInitialized) {
+    fun setFixedHeight(height: Int) {
+        if (isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
         heightFlag = HeightFlag.FIXED
@@ -307,8 +315,8 @@ abstract class UtDialog: UtDialogBase() {
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
     @Deprecated("use HeightOption.LIMIT() instead")
-    fun setLimitHeight(height:Int) {
-        if(isViewInitialized) {
+    fun setLimitHeight(height: Int) {
+        if (isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
         heightFlag = HeightFlag.LIMIT
@@ -320,8 +328,8 @@ abstract class UtDialog: UtDialogBase() {
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
     @Deprecated("use WidthOption.FIXED() instead")
-    fun setFixedWidth(width:Int) {
-        if(isViewInitialized) {
+    fun setFixedWidth(width: Int) {
+        if (isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
         widthFlag = WidthFlag.FIXED
@@ -333,8 +341,8 @@ abstract class UtDialog: UtDialogBase() {
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
     @Deprecated("use WidthOption.LIMIT() instead")
-    fun setLimitWidth(width:Int) {
-        if(isViewInitialized) {
+    fun setLimitWidth(width: Int) {
+        if (isViewInitialized) {
             throw IllegalStateException("dialog rendering information must be set before preCreateBodyView")
         }
         widthFlag = WidthFlag.LIMIT
@@ -348,7 +356,7 @@ abstract class UtDialog: UtDialogBase() {
      * @param maxContainerHeight        コンテナの高さの最大値（このサイズを超えないよう、Bodyの高さを更新すること）
      * @return コンテナの高さ（bodyではなく、containerの高さを返すこと）
      */
-    protected open fun calcCustomContainerHeight(currentBodyHeight:Int, currentContainerHeight:Int, maxContainerHeight:Int):Int {
+    protected open fun calcCustomContainerHeight(currentBodyHeight: Int, currentContainerHeight: Int, maxContainerHeight: Int): Int {
         error("calcCustomContainerHeight() must be overridden in subclass on setting 'heightOption==CUSTOM'")
     }
 
@@ -367,7 +375,7 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * ダイアログ位置の指定フラグ
      */
-    enum class GravityOption(val gravity:Int) {
+    enum class GravityOption(val gravity: Int) {
         RIGHT_TOP(Gravity.END or Gravity.TOP),          // 右上（デフォルト）
         CENTER(Gravity.CENTER),                         // 画面中央（メッセージボックス的）
         LEFT_TOP(Gravity.START or Gravity.TOP),         // 左上...ほかの組み合わせも作ろうと思えば作れるが、俺は使わん。
@@ -408,30 +416,31 @@ abstract class UtDialog: UtDialogBase() {
 //        THEME_DIM(Color.argb(0, 2,2,2)),                    // colorSurface の反対色で目立つように覆う（colorSurfaceが白なら黒っぽい/黒なら白っぽい色で覆う）
 //        THEME_SEE_THROUGH(Color.argb(0, 3,3,3)),            // colorSurface と同じ色で、コントラストを落とすような感じ。
 //    }
-    data class GuardColor(@ColorInt val rawColor:Int, @AttrRes val dynamic:Int?, val dynamicAlpha:Int=0xB0) {
-        constructor(@ColorInt color:Int) : this(color, null)
+    data class GuardColor(@ColorInt val rawColor: Int, @AttrRes val dynamic: Int?, val dynamicAlpha: Int = 0xB0) {
+        constructor(@ColorInt color: Int) : this(color, null)
 
         @ColorInt
-        fun color(context:Context):Int {
-            return if(dynamic!=null) {
+        fun color(context: Context): Int {
+            return if (dynamic != null) {
                 context.theme.getAttrColor(dynamic, rawColor).withAlpha(dynamicAlpha)
             } else {
                 rawColor
             }
         }
-        val isValid:Boolean get() = rawColor != 0
-        val isDynamic:Boolean get() = dynamic != null
+
+        val isValid: Boolean get() = rawColor != 0
+        val isDynamic: Boolean get() = dynamic != null
 
         companion object {
             const val INVALID_COLOR = 0
             val INVALID = GuardColor(INVALID_COLOR)
-            val TRANSPARENT = GuardColor(Color.argb(0,0xFF,0xFF,0xFF))
-            val DIM = GuardColor(Color.argb(0xB0,0,0,0))
-            val SEE_THROUGH = GuardColor(Color.argb(0xB0,0xFF, 0xFF, 0xFF))
-            val SOLID_GRAY = GuardColor(Color.rgb(0xc1,0xc1,0xc1))
-            val THEME_DIM = GuardColor(Color.argb(0xB0, 0,0,0), R.attr.color_dlg_text)
+            val TRANSPARENT = GuardColor(Color.argb(0, 0xFF, 0xFF, 0xFF))
+            val DIM = GuardColor(Color.argb(0xB0, 0, 0, 0))
+            val SEE_THROUGH = GuardColor(Color.argb(0xB0, 0xFF, 0xFF, 0xFF))
+            val SOLID_GRAY = GuardColor(Color.rgb(0xc1, 0xc1, 0xc1))
+            val THEME_DIM = GuardColor(Color.argb(0xB0, 0, 0, 0), R.attr.color_dlg_text)
             val THEME_SEE_THROUGH = GuardColor(Color.argb(0xB0, 0xFF, 0xFF, 0xFF), com.google.android.material.R.attr.colorSurface, 0xB0)
-            fun CUSTOM(@ColorInt color:Int) = GuardColor(color)
+            fun CUSTOM(@ColorInt color: Int) = GuardColor(color)
         }
     }
 
@@ -440,11 +449,11 @@ abstract class UtDialog: UtDialogBase() {
      * ガードビューの色
      */
     // @ColorInt
-    private var guardColorValue:Int by bundle.intNonnull(GuardColor.INVALID_COLOR)
-    private var guardColorDynamic:Int? by bundle.intNullable
-    private var guardColorDynamicAlpha:Int by bundle.intNonnull(0xB0)
-    var guardColor:GuardColor
-        get() = if(guardColorValue!=GuardColor.INVALID_COLOR) GuardColor(guardColorValue, guardColorDynamic, guardColorDynamicAlpha) else GuardColor.INVALID
+    private var guardColorValue: Int by bundle.intNonnull(GuardColor.INVALID_COLOR)
+    private var guardColorDynamic: Int? by bundle.intNullable
+    private var guardColorDynamicAlpha: Int by bundle.intNonnull(0xB0)
+    var guardColor: GuardColor
+        get() = if (guardColorValue != GuardColor.INVALID_COLOR) GuardColor(guardColorValue, guardColorDynamic, guardColorDynamicAlpha) else GuardColor.INVALID
         set(v) {
             guardColorValue = v.rawColor
             guardColorDynamic = v.dynamic
@@ -454,7 +463,7 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * ガードビューに色は設定されているか？
      */
-    private val hasGuardColor:Boolean
+    private val hasGuardColor: Boolean
         get() = guardColorValue != GuardColor.INVALID_COLOR
 
     /**
@@ -464,11 +473,11 @@ abstract class UtDialog: UtDialogBase() {
      * ガードビュー: ダイアログの外側の操作を禁止するために、Window全体を覆うビュー（== rootView)
      */
     // @ColorInt
-    private var bodyGuardColorValue:Int by bundle.intNonnull(GuardColor.INVALID_COLOR)
-    private var bodyGuardColorDynamic:Int? by bundle.intNullable
-    private var bodyGuardColorDynamicAlpha:Int by bundle.intNonnull(0xB0)
-    var bodyGuardColor:GuardColor
-        get() = if(bodyGuardColorValue!=GuardColor.INVALID_COLOR) GuardColor(bodyGuardColorValue, bodyGuardColorDynamic, bodyGuardColorDynamicAlpha) else UtDialogConfig.defaultBodyGuardColor
+    private var bodyGuardColorValue: Int by bundle.intNonnull(GuardColor.INVALID_COLOR)
+    private var bodyGuardColorDynamic: Int? by bundle.intNullable
+    private var bodyGuardColorDynamicAlpha: Int by bundle.intNonnull(0xB0)
+    var bodyGuardColor: GuardColor
+        get() = if (bodyGuardColorValue != GuardColor.INVALID_COLOR) GuardColor(bodyGuardColorValue, bodyGuardColorDynamic, bodyGuardColorDynamicAlpha) else UtDialogConfig.defaultBodyGuardColor
         set(v) {
             bodyGuardColorValue = v.rawColor
             bodyGuardColorDynamic = v.dynamic
@@ -514,12 +523,12 @@ abstract class UtDialog: UtDialogBase() {
      * ３．画面外タップで閉じる(cancellable)なら、無色透明
      */
     @ColorInt
-    private fun managedGuardColor():Int {
+    private fun managedGuardColor(): Int {
         return when {
             UtDialogConfig.solidBackgroundOnPhone && isPhone -> GuardColor.SOLID_GRAY.rawColor
             hasGuardColor -> guardColor.color(context)
-            cancellable-> UtDialogConfig.defaultGuardColorOfCancellableDialog.color(context)
-            else-> UtDialogConfig.defaultGuardColor.color(context)
+            cancellable -> UtDialogConfig.defaultGuardColorOfCancellableDialog.color(context)
+            else -> UtDialogConfig.defaultGuardColor.color(context)
         }
     }
 
@@ -536,32 +545,32 @@ abstract class UtDialog: UtDialogBase() {
     // region フォーカス移動
     class FocusManager(withDialogButtons: Boolean) {
         private val rootFocusManager: UtFocusManager = UtFocusManager()
-        private val bodyFocusManager: UtFocusManager? = if(withDialogButtons) {
+        private val bodyFocusManager: UtFocusManager? = if (withDialogButtons) {
             rootFocusManager.register(R.id.left_button, R.id.right_button)
             UtFocusManager().apply { rootFocusManager.appendChild(this) }
         } else {
             null
         }
 
-        val root:UtFocusManager get() = rootFocusManager
-        val body:UtFocusManager get() = bodyFocusManager ?: rootFocusManager
+        val root: UtFocusManager get() = rootFocusManager
+        val body: UtFocusManager get() = bodyFocusManager ?: rootFocusManager
 
-        fun attach(rootView:View, bodyView: View) {
-            if(bodyFocusManager!=null) {
+        fun attach(rootView: View, bodyView: View) {
+            if (bodyFocusManager != null) {
                 bodyFocusManager.attach(bodyView)
             }
             rootFocusManager.attach(bodyView)
         }
 
-        private var initialFocus:Boolean = false
+        private var initialFocus: Boolean = false
         fun reserveInitialFocus() {
             initialFocus = true
         }
 
-        fun applyInitialFocus(fallbackView:()->View) {
-            if(initialFocus) {
+        fun applyInitialFocus(fallbackView: () -> View) {
+            if (initialFocus) {
                 initialFocus = false
-                if(!root.applyInitialFocus()) {
+                if (!root.applyInitialFocus()) {
                     root.setInitialFocus(fallbackView().id)
                     root.applyInitialFocus()
                 }
@@ -571,11 +580,18 @@ abstract class UtDialog: UtDialogBase() {
 
     private var focusManager: FocusManager? = null
 
-    fun enableFocusManagement(withDialogButtons:Boolean=true):UtFocusManager {
-        val fm = focusManager ?: FocusManager(withDialogButtons).apply { focusManager=this }
+    fun enableFocusManagement(withDialogButtons: Boolean = true): UtFocusManager {
+        val fm = focusManager ?: FocusManager(withDialogButtons).apply { focusManager = this }
         return fm.body
     }
 
+    /**
+     * ソフトウェアキーボードが表示された時に、フォーカスのあるEditTextが見えるよう
+     * コンテンツを自動調整するかどうかを指定するフラグ
+     * true: 自動調整する（デフォルト）
+     * false: 自動調整しない
+     */
+    var adjustContentForKeyboard: Boolean by bundle.booleanWithDefault(UtDialogConfig.adjustContentForKeyboard)
 
     // endregion
 
@@ -591,6 +607,7 @@ abstract class UtDialog: UtDialogBase() {
         HIDE_AND_SHOW_ON_POSITIVE,  // onPositiveで閉じるときには、親を表示する。Negativeのときは非表示のまま
         HIDE_AND_LEAVE_IT,          // このダイアログを開くときに非表示にして、あとは知らん
     }
+
     /**
      * 子ダイアログを開くときに親ダイアログの隠し方
      */
@@ -599,17 +616,17 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * ダイアログの表示/非表示
      */
-    var visible:Boolean
+    var visible: Boolean
         get() = rootView.isVisible
         set(v) { rootView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
 
-    private val fadeInAnimation get() = UtFadeAnimation(true,UtDialogConfig.fadeInDuration)
+    private val fadeInAnimation get() = UtFadeAnimation(true, UtDialogConfig.fadeInDuration)
     private val fadeOutAnimation get() = UtFadeAnimation(false, UtDialogConfig.fadeOutDuraton)
 
-    fun fadeIn(completed:(()->Unit)?=null) {
-        if(!this::rootView.isInitialized) {
+    fun fadeIn(completed: (() -> Unit)? = null) {
+        if (!this::rootView.isInitialized) {
             completed?.invoke()         // onCreateViewでnullを返す（開かないでcancelされる）ダイアログの場合、ここに入ってくる
-        } else if(animationEffect) {
+        } else if (animationEffect) {
             fadeInAnimation.start(rootView) {
                 completed?.invoke()
             }
@@ -619,10 +636,10 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
-    fun fadeOut(completed:(()->Unit)?=null) {
-        if(!this::rootView.isInitialized||!visible) {
+    fun fadeOut(completed: (() -> Unit)? = null) {
+        if (!this::rootView.isInitialized || !visible) {
             completed?.invoke()
-        } else if(animationEffect) {
+        } else if (animationEffect) {
             fadeOutAnimation.start(rootView) {
                 visible = false
                 completed?.invoke()
@@ -636,14 +653,14 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * ルートダイアログ（ダイアログチェーンの先頭）を取得
      */
-    val rootDialog : UtDialog?
+    val rootDialog: UtDialog?
         get() = UtDialogHelper.rootDialog(requireActivity())
 
     /**
      * 親ダイアログを取得
      * 自身がルートならnullを返す。
      */
-    val parentDialog : UtDialog?
+    val parentDialog: UtDialog?
         get() = UtDialogHelper.parentDialog(this)
 
     // endregion
@@ -653,17 +670,17 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * タイトル
      */
-    private var privateTitle:String? by bundle.stringNullable
-    var title:String?
+    private var privateTitle: String? by bundle.stringNullable
+    var title: String?
         get() = privateTitle
         set(v) = replaceTitle(v)
 
     /**
      * ダイアログ構築後に（動的に）ダイアログタイトルを変更する。
      */
-    open fun replaceTitle(title:String?) {
+    open fun replaceTitle(title: String?) {
         this.privateTitle = title
-        if(this::titleView.isInitialized) {
+        if (this::titleView.isInitialized) {
             titleView.text = title
         }
     }
@@ -687,8 +704,8 @@ abstract class UtDialog: UtDialogBase() {
 //        NONE(UtStandardString.NONE, false, false),          // ボタンなし
 //    }
 
-    data class ButtonType(val string:String?, val positive:Boolean) {
-        constructor(@StringRes stringId:Int, positive:Boolean) : this(UtStandardString.getText(stringId), positive)
+    data class ButtonType(val string: String?, val positive: Boolean) {
+        constructor(@StringRes stringId: Int, positive: Boolean) : this(UtStandardString.getText(stringId), positive)
 
         companion object {
             val OK get() = ButtonType(UtStandardString.OK.id, true)
@@ -700,8 +717,8 @@ abstract class UtDialog: UtDialogBase() {
             val POSITIVE_BACK get() = ButtonType(UtStandardString.BACK.id, true)
             val NONE = ButtonType(null, false)
 
-            fun CUSTOM(string:String, positive:Boolean) = ButtonType(string, positive)
-            fun CUSTOM(@StringRes stringId:Int, positive:Boolean) = ButtonType(stringId, positive)
+            fun CUSTOM(string: String, positive: Boolean) = ButtonType(string, positive)
+            fun CUSTOM(@StringRes stringId: Int, positive: Boolean) = ButtonType(stringId, positive)
         }
     }
 
@@ -713,18 +730,20 @@ abstract class UtDialog: UtDialogBase() {
         set(v) = setRightButton(v.string, v.positive)
 
     // 左ボタンのプロパティ (setLeftButton()で設定）
-    private var leftButtonText:String? by bundle.stringNullable
-    private var leftButtonPositive:Boolean by bundle.booleanFalse
+    private var leftButtonText: String? by bundle.stringNullable
+    private var leftButtonPositive: Boolean by bundle.booleanFalse
+
     @Suppress("unused")
-    val hasLeftButton:Boolean
+    val hasLeftButton: Boolean
         get() = leftButtonText != null
 
     // 右ボタンのプロパティ（setRightButton()で設定）
-    private var rightButtonText:String? by bundle.stringNullable
-    private var rightButtonPositive:Boolean by bundle.booleanFalse
-    private var rightButtonBlue:Boolean by bundle.booleanFalse
+    private var rightButtonText: String? by bundle.stringNullable
+    private var rightButtonPositive: Boolean by bundle.booleanFalse
+    private var rightButtonBlue: Boolean by bundle.booleanFalse
+
     @Suppress("unused")
-    val hasRightButton:Boolean
+    val hasRightButton: Boolean
         get() = rightButtonText != null
 
     /**
@@ -733,10 +752,10 @@ abstract class UtDialog: UtDialogBase() {
      * @param positive  true:Positiveボタン(タップしてonPositiveを発行）
      *                  false:Negativeボタン（タップしてonNegativeを発行）
      */
-    private fun setLeftButton(string:String?, positive: Boolean=false) {
+    private fun setLeftButton(string: String?, positive: Boolean = false) {
         leftButtonText = string
         leftButtonPositive = positive
-        if(isViewInitialized) {
+        if (isViewInitialized) {
             updateLeftButton()
         }
     }
@@ -748,10 +767,10 @@ abstract class UtDialog: UtDialogBase() {
      * @param positive  true:Positiveボタン(タップしてonPositiveを発行）
      *                  false:Negativeボタン（タップしてonNegativeを発行）
      */
-    fun setRightButton(string:String?, positive: Boolean=false) {
+    fun setRightButton(string: String?, positive: Boolean = false) {
         rightButtonText = string
         rightButtonPositive = positive
-        if(isViewInitialized) {
+        if (isViewInitialized) {
             updateRightButton()
         }
     }
@@ -763,7 +782,7 @@ abstract class UtDialog: UtDialogBase() {
 //        setRightButton(type.string.id, type.positive)
 //    }
 
-    private val themedContext:Context by lazy { ContextThemeWrapper(super.getContext(), UtDialogConfig.dialogTheme) }
+    private val themedContext: Context by lazy { ContextThemeWrapper(super.getContext(), UtDialogConfig.dialogTheme) }
     override fun getContext(): Context {
         return themedContext
     }
@@ -771,10 +790,10 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * ボタンプロパティを、ビュー(Button)に反映する
      */
-    private fun updateButton(button:Button, label:String, positive:Boolean) {
+    private fun updateButton(button: Button, label: String, positive: Boolean) {
         activity?.apply {
             button.text = label
-            if(button !is MaterialButton) {
+            if (button !is MaterialButton) {
                 // legacy design
                 if (positive) {
                     button.background = ContextCompat.getDrawable(context, R.drawable.legacy_dlg_button_bg_blue)
@@ -792,21 +811,22 @@ abstract class UtDialog: UtDialogBase() {
      */
     private fun updateLeftButton() {
         val label = leftButtonText
-        if(label!=null) {
+        if (label != null) {
             updateButton(leftButton, label, leftButtonPositive)
         } else {
-            leftButton.visibility = if(invisibleBuiltInButton) View.INVISIBLE else View.GONE
+            leftButton.visibility = if (invisibleBuiltInButton) View.INVISIBLE else View.GONE
         }
     }
+
     /**
      * 右ボタンのプロパティをビュー(Button)に反映
      */
     private fun updateRightButton() {
         val label = rightButtonText
-        if(label!=null) {
+        if (label != null) {
             updateButton(rightButton, label, rightButtonBlue)
         } else {
-            rightButton.visibility = if(invisibleBuiltInButton) View.INVISIBLE else View.GONE
+            rightButton.visibility = if (invisibleBuiltInButton) View.INVISIBLE else View.GONE
         }
     }
 
@@ -817,31 +837,31 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * デバイスの向き
      */
-    val orientation:Int
+    val orientation: Int
         get() = resources.configuration.orientation
 
     /**
      * デバイスは横置き（ランドスケープか）？
      */
-    val isLandscape:Boolean
+    val isLandscape: Boolean
         get() = orientation == Configuration.ORIENTATION_LANDSCAPE
 
     /**
      * デバイスは縦置き（ポートレート）か？
      */
-    val isPortrait:Boolean
+    val isPortrait: Boolean
         get() = orientation == Configuration.ORIENTATION_PORTRAIT
 
     /**
      * デバイスはPhoneか？（600dp以下をPhoneと判定）
      */
-    val isPhone:Boolean
+    val isPhone: Boolean
         get() = resources.getBoolean(R.bool.under600dp)
 
     /**
      * デバイスはタブレットか？
      */
-    val isTablet:Boolean
+    val isTablet: Boolean
         get() = !isPhone
 
     // endregion
@@ -852,16 +872,16 @@ abstract class UtDialog: UtDialogBase() {
      * 軸方向毎のドラッグ情報を保持するクラス
      */
     private class DragParam {
-        private var dialogSize:Float = 0f
-        private var screenSize:Float = 0f
-        private var clip:Boolean = false
-        private var minPos:Float = 0f
-        private var maxPos:Float = 0f
+        private var dialogSize: Float = 0f
+        private var screenSize: Float = 0f
+        private var clip: Boolean = false
+        private var minPos: Float = 0f
+        private var maxPos: Float = 0f
 
-        private var orgDialogPos:Float = 0f
-        private var dragStartPos:Float = 0f
+        private var orgDialogPos: Float = 0f
+        private var dragStartPos: Float = 0f
 
-        fun setup(dialogSize:Float, screenSize:Float, clip:Boolean, minPos:Float, maxPos:Float) {
+        fun setup(dialogSize: Float, screenSize: Float, clip: Boolean, minPos: Float, maxPos: Float) {
             this.dialogSize = dialogSize
             this.screenSize = screenSize
             this.clip = clip
@@ -869,7 +889,7 @@ abstract class UtDialog: UtDialogBase() {
             this.maxPos = maxPos
         }
 
-        fun start(dialogPos:Float, dragPos:Float) {
+        fun start(dialogPos: Float, dragPos: Float) {
             dragStartPos = dragPos
             orgDialogPos = dialogPos
         }
@@ -877,15 +897,15 @@ abstract class UtDialog: UtDialogBase() {
         /**
          * ドラッグ後の位置を取得
          */
-        fun getPosition(dragPos:Float):Float {
-            val newPos = orgDialogPos + (dragPos-dragStartPos)
+        fun getPosition(dragPos: Float): Float {
+            val newPos = orgDialogPos + (dragPos - dragStartPos)
             return clipPosition(newPos)
         }
 
         /**
          * ダイアログの位置を画面内にクリップする
          */
-        fun clipPosition(pos:Float):Float {
+        fun clipPosition(pos: Float): Float {
             return if (clip) {
                 max(0f, min(pos, screenSize - dialogSize))
             } else {
@@ -898,7 +918,7 @@ abstract class UtDialog: UtDialogBase() {
      * ドラッグ情報クラス
      */
     inner class DragInfo {
-        private var dragging:Boolean = false
+        private var dragging: Boolean = false
         private val x = DragParam()
         private val y = DragParam()
 
@@ -907,7 +927,7 @@ abstract class UtDialog: UtDialogBase() {
          */
         private fun setup() {
             val w = dialogView.width.toFloat()
-            x.setup(w, rootView.width.toFloat(),clipHorizontalOnDrag, -w/2f, w/2f)
+            x.setup(w, rootView.width.toFloat(), clipHorizontalOnDrag, -w / 2f, w / 2f)
             y.setup(dialogView.height.toFloat(), rootView.height.toFloat(), clipVerticalOnDrag, 0f, requireContext().dp2px(50).toFloat())
         }
 
@@ -916,10 +936,10 @@ abstract class UtDialog: UtDialogBase() {
          */
         fun adjustPosition(xp: Float?, yp: Float?) {
             setup()
-            if(xp!=null) {
+            if (xp != null) {
                 dialogView.x = x.clipPosition(xp)
             }
-            if(yp!=null) {
+            if (yp != null) {
                 dialogView.y = y.clipPosition(yp)
             }
         }
@@ -937,8 +957,8 @@ abstract class UtDialog: UtDialogBase() {
         /**
          * ドラッグによる位置移動
          */
-        fun move(ev:MotionEvent) {
-            if(!dragging) return
+        fun move(ev: MotionEvent) {
+            if (!dragging) return
             val x = x.getPosition(ev.rawX)
             dialogView.x = x
             customPositionX = x
@@ -968,15 +988,15 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * ドラッグ情報
      */
-    private val dragInfo:DragInfo by lazy { DragInfo() }
+    private val dragInfo: DragInfo by lazy { DragInfo() }
 
     /**
      * ドラッグによるダイアログ移動に必要なタッチイベントのハンドラを登録する。
      */
     @SuppressLint("ClickableViewAccessibility")
     private fun enableDrag() {
-        if(!draggable) return
-        val gestureDetector = GestureDetector(context, object:GestureDetector.SimpleOnGestureListener(){
+        if (!draggable) return
+        val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 // スペシャルサービス仕様：ダブルタップで元の位置に戻してあげよう。
                 resetDialogPosition()
@@ -984,8 +1004,8 @@ abstract class UtDialog: UtDialogBase() {
                 return true
             }
         })
-        rootView.findViewById<View>(R.id.header).setOnTouchListener { _, ev->
-            if(!gestureDetector.onTouchEvent(ev)) {
+        rootView.findViewById<View>(R.id.header).setOnTouchListener { _, ev ->
+            if (!gestureDetector.onTouchEvent(ev)) {
                 if (ev.action == MotionEvent.ACTION_DOWN) {
                     dragInfo.start(ev)
                 } else if (ev.action == MotionEvent.ACTION_MOVE) {
@@ -1000,7 +1020,7 @@ abstract class UtDialog: UtDialogBase() {
 
     // region ビルトインビュー
 
-    lateinit var titleView:TextView
+    lateinit var titleView: TextView
         private set
     lateinit var leftButton: Button
         private set
@@ -1011,30 +1031,30 @@ abstract class UtDialog: UtDialogBase() {
 
     lateinit var rootView: ViewGroup              // 全画面を覆う透過の背景となるダイアログのルート：
         protected set
-    lateinit var dialogView:ViewGroup        // ダイアログ画面としてユーザーに見えるビュー。rootView上で位置、サイズを調整する。
+    lateinit var dialogView: ViewGroup        // ダイアログ画面としてユーザーに見えるビュー。rootView上で位置、サイズを調整する。
         protected set
-    lateinit var bodyContainer:ViewGroup          // bodyViewの入れ物
+    lateinit var bodyContainer: ViewGroup          // bodyViewの入れ物
         private set
-    lateinit var bodyView:View                      /* UtDialogを継承するサブクラス毎に作成されるダイアログの中身  (createBodyView()で構築されたビュー） */ private set
-    lateinit var refContainerView:View              // コンテナ領域（ダイアログ領域ーヘッダー領域）にフィットするダミービュー
+    lateinit var bodyView: View                      /* UtDialogを継承するサブクラス毎に作成されるダイアログの中身  (createBodyView()で構築されたビュー） */ private set
+    lateinit var refContainerView: View              // コンテナ領域（ダイアログ領域ーヘッダー領域）にフィットするダミービュー
         private set
-    lateinit var bodyGuardView:FrameLayout           // dialogContentへの操作をブロックするためのガードビュー
+    lateinit var bodyGuardView: FrameLayout           // dialogContentへの操作をブロックするためのガードビュー
         private set
-    lateinit var centerProgressRing:ProgressBar     // 中央に表示するプログレスリング：デフォルトでは非表示。bodyGuardView とともに visible にすることで表示される。
+    lateinit var centerProgressRing: ProgressBar     // 中央に表示するプログレスリング：デフォルトでは非表示。bodyGuardView とともに visible にすることで表示される。
         private set
 
     // endregion
 
     // region レンダリング
 
-    private fun applyDialogMargin(lp: MarginLayoutParams) : MarginLayoutParams {
+    private fun applyDialogMargin(lp: MarginLayoutParams): MarginLayoutParams {
         if (noDialogMargin) return lp
         if (isLandscape) {
-           UtDialogConfig.dialogMarginOnLandscape?.let { m->
-               lp.setMargins(context.dp2px(m.left), context.dp2px(m.top), context.dp2px(m.right), context.dp2px(m.bottom))
-           }
+            UtDialogConfig.dialogMarginOnLandscape?.let { m ->
+                lp.setMargins(context.dp2px(m.left), context.dp2px(m.top), context.dp2px(m.right), context.dp2px(m.bottom))
+            }
         } else {
-            UtDialogConfig.dialogMarginOnPortrait?.let { m->
+            UtDialogConfig.dialogMarginOnPortrait?.let { m ->
                 lp.setMargins(context.dp2px(m.left), context.dp2px(m.top), context.dp2px(m.right), context.dp2px(m.bottom))
             }
         }
@@ -1054,10 +1074,10 @@ abstract class UtDialog: UtDialogBase() {
         } ?: FrameLayout.LayoutParams(widthFlag.param, heightFlag.param, gravityOption.gravity)
 
         dialogView.layoutParams = params
-        if(heightFlag== HeightFlag.FULL) {
+        if (heightFlag == HeightFlag.FULL) {
             bodyContainer.setLayoutHeight(0)
         }
-        if(widthFlag== WidthFlag.FULL) {
+        if (widthFlag == WidthFlag.FULL) {
             bodyContainer.setLayoutWidth(0)
         }
         setupFixedSize()
@@ -1069,15 +1089,15 @@ abstract class UtDialog: UtDialogBase() {
      * widthHint/heightHintで与えられたサイズに従ってLayoutParamsを設定する。
      */
     private fun setupFixedSize() {
-        val fw = if(widthFlag== WidthFlag.FIXED) widthHint else null
-        val fh = if(heightFlag== HeightFlag.FIXED) heightHint else null
-        if(fw==null && fh==null) return
+        val fw = if (widthFlag == WidthFlag.FIXED) widthHint else null
+        val fh = if (heightFlag == HeightFlag.FIXED) heightHint else null
+        if (fw == null && fh == null) return
 
         val lp = bodyContainer.layoutParams ?: return
-        if(fw!=null) {
+        if (fw != null) {
             lp.width = requireContext().dp2px(fw)
         }
-        if(fh!=null) {
+        if (fh != null) {
             lp.height = requireContext().dp2px(fh)
         }
         bodyContainer.layoutParams = lp
@@ -1088,7 +1108,7 @@ abstract class UtDialog: UtDialogBase() {
      * draggable==true または、gravityOption == CUSTOM の場合は、位置補正（画面内にクリップ）のために、それぞれサイズ変更イベントをフックする。
      */
     private fun setupDynamicSize() {
-        if(widthFlag.isDynamicSizing || heightFlag.isDynamicSizing || draggable || gravityOption == GravityOption.CUSTOM) {
+        if (widthFlag.isDynamicSizing || heightFlag.isDynamicSizing || draggable || gravityOption == GravityOption.CUSTOM) {
             // デバイス回転などによるスクリーンサイズ変更を検出するため、ルートビューのサイズ変更を監視する。
             rootView.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
                 if (or - ol != r - l || ob - ot != b - t) {
@@ -1103,7 +1123,7 @@ abstract class UtDialog: UtDialogBase() {
                 }
             }
         }
-        if(heightFlag== HeightFlag.AUTO_SCROLL) {
+        if (heightFlag == HeightFlag.AUTO_SCROLL) {
             // コンテンツ（bodyViewの中身）の増減によるbodyViewサイズの変更を監視する。
             bodyView.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob ->
                 if (or - ol != r - l || ob - ot != b - t) {
@@ -1117,24 +1137,24 @@ abstract class UtDialog: UtDialogBase() {
      * リサイズ時の高さ調整
      * （HeightOption.AUTO_SCROLL, HeightOption.CUSTOMのための処理）
      */
-    private fun updateDynamicHeight(lp:ConstraintLayout.LayoutParams) : Boolean {
-        if(heightFlag.isDynamicSizing) {
+    private fun updateDynamicHeight(lp: ConstraintLayout.LayoutParams): Boolean {
+        if (heightFlag.isDynamicSizing) {
             val winHeight = rootView.height
-            if(winHeight==0) return false
+            if (winHeight == 0) return false
             val containerHeight = refContainerView.height
             val dlgHeight = dialogView.height + dialogView.marginTop + dialogView.marginBottom
             val bodyHeight = bodyView.height
             val maxContainerHeight = winHeight - (dlgHeight - containerHeight)
 
-            val newContainerHeight = when(heightFlag) {
+            val newContainerHeight = when (heightFlag) {
                 HeightFlag.AUTO_SCROLL -> min(bodyHeight, maxContainerHeight)
                 HeightFlag.LIMIT -> min(maxContainerHeight, requireContext().dp2px(heightHint))
-                HeightFlag.CUSTOM-> calcCustomContainerHeight(bodyHeight,containerHeight,maxContainerHeight)
-                else-> return false
+                HeightFlag.CUSTOM -> calcCustomContainerHeight(bodyHeight, containerHeight, maxContainerHeight)
+                else -> return false
             }
 
 //            logger.info("window:${winHeight}, scroller:$scrHeight, dialogView:$dlgHeight, bodyHeight:$bodyHeight, maxScrHeight=$maxScrHeight, newScrHeight=$newScrHeight")
-            if(lp.height != newContainerHeight) {
+            if (lp.height != newContainerHeight) {
                 lp.height = newContainerHeight
                 return true
             }
@@ -1147,15 +1167,15 @@ abstract class UtDialog: UtDialogBase() {
      *　（WidthOption.LIMIT用の処理）
      * @param lp    bodyContainer の LayoutParams
      */
-    private fun updateDynamicWidth(lp:ConstraintLayout.LayoutParams) : Boolean {
-        if(widthFlag== WidthFlag.LIMIT) {
+    private fun updateDynamicWidth(lp: ConstraintLayout.LayoutParams): Boolean {
+        if (widthFlag == WidthFlag.LIMIT) {
             val winWidth = rootView.width
-            if(winWidth==0) return false
+            if (winWidth == 0) return false
             val dlgMargin = dialogView.marginStart + dialogView.marginEnd
             val bodyMargin = lp.marginStart + lp.marginEnd // bodyContainer のマージン
             val maxCntWidth = winWidth - dlgMargin - bodyMargin
             val newCntWidth = min(maxCntWidth, requireContext().dp2px(widthHint))
-            if(lp.width!=newCntWidth) {
+            if (lp.width != newCntWidth) {
                 lp.width = newCntWidth
                 return true
             }
@@ -1166,9 +1186,9 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * 画面（rootView)内に収まるよう補正して、ダイアログ位置を設定
      */
-    private fun adjustDialogPosition(x:Float?,y:Float?) {
-        if(x!=null||y!=null) {
-            dragInfo.adjustPosition(x,y)
+    private fun adjustDialogPosition(x: Float?, y: Float?) {
+        if (x != null || y != null) {
+            dragInfo.adjustPosition(x, y)
         }
     }
 
@@ -1179,14 +1199,14 @@ abstract class UtDialog: UtDialogBase() {
         val lp = bodyContainer.layoutParams as ConstraintLayout.LayoutParams
         val h = updateDynamicHeight(lp)
         val w = updateDynamicWidth(lp)
-        if(h||w) {
+        if (h || w) {
             bodyContainer.layoutParams = lp
         }
     }
 
     private fun onContainerHeightChanged() {
         val lp = bodyContainer.layoutParams as ConstraintLayout.LayoutParams
-        if(updateDynamicHeight(lp)) {
+        if (updateDynamicHeight(lp)) {
             bodyContainer.layoutParams = lp
         }
     }
@@ -1198,7 +1218,7 @@ abstract class UtDialog: UtDialogBase() {
     private fun onBodyViewSizeChanged() {
         if (heightFlag == HeightFlag.AUTO_SCROLL) {
             val lp = bodyContainer.layoutParams as ConstraintLayout.LayoutParams
-            if(updateDynamicHeight(lp)) {
+            if (updateDynamicHeight(lp)) {
                 // bodyView のOnLayoutChangeListenerの中から、コンテナのサイズを変更しても、なんか１回ずつ無視されるので、ちょっと遅延する。
                 Handler(Looper.getMainLooper()).post {
                     bodyContainer.layoutParams = lp
@@ -1211,8 +1231,8 @@ abstract class UtDialog: UtDialogBase() {
 
     // region ダイアログの構築
 
-    val isViewInitialized:Boolean
-       get() = this::rootView.isInitialized
+    val isViewInitialized: Boolean
+        get() = this::rootView.isInitialized
 
     /**
      * ダイアログ構築前の処理
@@ -1229,8 +1249,8 @@ abstract class UtDialog: UtDialogBase() {
      */
 
     interface IViewInflater {
-        fun inflate(@LayoutRes id:Int):View
-        val layoutInflater:LayoutInflater
+        fun inflate(@LayoutRes id: Int): View
+        val layoutInflater: LayoutInflater
     }
 
     /**
@@ -1238,26 +1258,29 @@ abstract class UtDialog: UtDialogBase() {
      * @param savedInstanceState    FragmentDialog.onCreateView に渡された状態復元用パラメータ
      * @param inflater              専用インフレーター
      */
-    protected abstract fun createBodyView(savedInstanceState:Bundle?, inflater: IViewInflater): View
+    protected abstract fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View
 
     /**
      * IViewInflaterの実装クラス
      */
-    private data class ViewInflater(override val layoutInflater:LayoutInflater, val bodyContainer:ViewGroup): IViewInflater {
+    private data class ViewInflater(override val layoutInflater: LayoutInflater, val bodyContainer: ViewGroup) : IViewInflater {
         override fun inflate(id: Int): View {
             return layoutInflater.inflate(id, bodyContainer, false)
         }
     }
+
+    private lateinit var keyboardObserver: ISoftwareKeyboardObserver
+
 
     /**
      * isDialog == true の場合に呼ばれる。
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return Dialog(requireContext(), R.style.dlg_style).apply {
-            window?.let { window->
+            window?.let { window ->
                 window.setBackgroundDrawable(GuardColor.TRANSPARENT.rawColor.toDrawable())
 
-                if(isDialog && hideStatusBarOnDialogMode) {
+                if (isDialog && hideStatusBarOnDialogMode) {
                     val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                     insetsController.hide(WindowInsetsCompat.Type.systemBars())
 
@@ -1270,6 +1293,11 @@ abstract class UtDialog: UtDialogBase() {
                         window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
                     }
                 }
+
+                // キーボードが表示されたら検出するリスナーを設定
+                if(adjustContentForKeyboard) {
+                    keyboardObserver = UtSoftwareKeyboardObserver.byGlobalLayout(this@UtDialog, requireActivity()).observe(::onSoftwareKeyboardChanged)
+                }
             }
         }
     }
@@ -1280,20 +1308,20 @@ abstract class UtDialog: UtDialogBase() {
     override fun onCreateView(orgInflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         try {
             val inflater = orgInflater.cloneInContext(context)
-            if(UtDialogConfig.solidBackgroundOnPhone && isPhone) {
+            if (UtDialogConfig.solidBackgroundOnPhone && isPhone) {
                 animationEffect = false
             }
             preCreateBodyView()
             rootView = inflater.inflate(UtDialogConfig.dialogFrameId, container, false) as FrameLayout
             (rootView as? UtRootFrameLayout)?.apply { ownerDialog = this@UtDialog }
 
-            if(noHeader) {
+            if (noHeader) {
                 rootView.findViewById<View>(R.id.header).visibility = View.GONE
                 rootView.findViewById<View>(R.id.separator).visibility = View.GONE
             }
-            if(noFooter) {
+            if (noFooter) {
                 val footer = rootView.findViewById<View>(R.id.footer)
-                if(footer != null) {
+                if (footer != null) {
                     footer.visibility = View.GONE
                 }
             }
@@ -1319,7 +1347,7 @@ abstract class UtDialog: UtDialogBase() {
                 rootView.findViewById(R.id.body_container)
             }
             val margin = bodyContainerMargin
-            if(margin>=0) {
+            if (margin >= 0) {
                 bodyContainer.setMargin(margin, margin, margin, margin)
             }
             bodyContainer.visibility = View.VISIBLE
@@ -1344,7 +1372,7 @@ abstract class UtDialog: UtDialogBase() {
                 enableDrag()
             }
             applyGuardColor()
-            if(savedInstanceState==null) {
+            if (savedInstanceState == null) {
                 // 新しくダイアログを開く
                 // アニメーションして開くときは、初期状態を非表示にしておく。
                 if (animationEffect) {
@@ -1357,6 +1385,10 @@ abstract class UtDialog: UtDialogBase() {
                 if (parentVisibilityOption != ParentVisibilityOption.NONE) {
                     parentDialog?.visible = false
                 }
+            }
+
+            if (!isDialog && adjustContentForKeyboard) {
+                keyboardObserver = UtSoftwareKeyboardObserver.byWindowInsets(this, rootView).observe(::onSoftwareKeyboardChanged)
             }
             return rootView
         } catch (e: Throwable) {
@@ -1373,7 +1405,7 @@ abstract class UtDialog: UtDialogBase() {
     override fun onResume() {
         super.onResume()
         focusManager?.applyInitialFocus {
-            if(rightButton.isVisible && rightButton.isEnabled) {
+            if (rightButton.isVisible && rightButton.isEnabled) {
                 rightButton
             } else {
                 leftButton
@@ -1412,8 +1444,11 @@ abstract class UtDialog: UtDialogBase() {
      */
 
     val immService: InputMethodManager?
-        get() = try { requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        } catch(_:Throwable) { null }
+        get() = try {
+            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        } catch (_: Throwable) {
+            null
+        }
 
     /**
      * ソフトウェアキーボードを非表示にする。
@@ -1421,6 +1456,94 @@ abstract class UtDialog: UtDialogBase() {
     fun hideSoftwareKeyboard() {
         activity?.window?.decorView?.requestFocus()    // IMEの未確定ウィンドウが残るのを防ぐ（ダイアログ外のビューにフォーカスをセットする） requestFocusFromTouch()だと、Activity上のビューにフォーカスがセットされて黒くなるので注意！
         immService?.hideSoftInputFromWindow(rootView.windowToken, 0)
+    }
+
+    private fun getMaxScrollAmount(scrollableView: ViewGroup): Int {
+        return when (scrollableView) {
+            is ScrollView -> {
+                val childHeight = scrollableView.getChildAt(0)?.height ?: 0
+                max(0, childHeight - scrollableView.height - scrollableView.scrollY)
+            }
+            is RecyclerView -> {
+                if (scrollableView.computeVerticalScrollRange() > 0) {
+                    scrollableView.computeVerticalScrollRange() - scrollableView.computeVerticalScrollExtent() - scrollableView.computeVerticalScrollOffset()
+                } else {
+                    0
+                }
+            }
+            is ListView -> {
+                val lastVisiblePosition = scrollableView.lastVisiblePosition
+                if (lastVisiblePosition >= 0 && lastVisiblePosition < scrollableView.count - 1) {
+                    // まだスクロールできる
+                    Int.MAX_VALUE / 2  // 正確な値は計算が難しいため、十分大きな値を返す
+                } else {
+                    0  // もうスクロールできない
+                }
+            }
+            else -> 0
+        }
+    }
+    /**
+     * ダイアログモード(isDialog==true)の場合限定
+     * ソフトウェアキーボードが開く/閉じるの場合の処理
+     * デフォルトでは、rootView のパディングを調整する。
+     */
+    open fun onSoftwareKeyboardChanged(keyboardHeight: Int) {
+//        if(open) {
+//            rootView.setPadding(0, 0, 0, keyboardHeight)
+//        } else {
+//            rootView.setPadding(0, 0, 0, 0)
+//        }
+        if (keyboardHeight>0) {
+            val focusedView = rootView.findFocus() ?: return
+
+            // スクロール可能なコンテナを探す
+            var scrollableParent: ViewGroup? = null
+            var parent = focusedView.parent
+
+            while (parent is ViewGroup) {
+                if (parent is ScrollView || parent is RecyclerView || parent is ListView) {
+                    scrollableParent = parent
+                    break
+                }
+                parent = parent.parent
+            }
+
+            val rect = Rect()
+            focusedView.getGlobalVisibleRect(rect)
+            val screenHeight = rootView.height
+            val bottomOffset = (rect.bottom + 20) - (screenHeight - keyboardHeight)
+            var remainingOffset = bottomOffset
+
+            if (bottomOffset > 0) {
+                if (scrollableParent != null) {
+                    // スクロール可能ならスクロールで対応
+                    val scrollAmount = min(bottomOffset, getMaxScrollAmount(scrollableParent))
+                    if (scrollAmount>0) {
+                        when (scrollableParent) {
+                            is ScrollView -> scrollableParent.smoothScrollBy(0, scrollAmount)
+                            is RecyclerView -> scrollableParent.smoothScrollBy(0, scrollAmount)
+                            is ListView -> scrollableParent.smoothScrollByOffset(scrollAmount)
+                        }
+                        remainingOffset -= scrollAmount
+                    }
+                }
+                if (remainingOffset>0) {
+                    // スクロール不可能ならrootViewを移動
+                    rootView.animate()
+                        .translationY(-remainingOffset.toFloat())
+                        .setDuration(200)
+                        .start()
+                }
+            }
+        } else {
+            if(rootView.translationY != 0f) {
+                rootView.animate()
+                    .translationY(0f)
+                    .setDuration(200)
+                    .start()
+            }
+        }
     }
 
     /**

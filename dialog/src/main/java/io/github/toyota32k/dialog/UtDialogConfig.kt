@@ -45,6 +45,14 @@ object UtDialogConfig {
 //    var edgeToEdgeEnabledAsDefault = true
 
     /**
+     * ソフトウェアキーボードが表示された時に、フォーカスのあるEditTextが見えるよう
+     * コンテンツを自動調整するかどうかを指定するフラグ
+     * true: 自動調整する（デフォルト）
+     * false: 自動調整しない
+     */
+    var adjustContentForKeyboard = true
+
+    /**
      * UtDialog.show()の動作指定フラグ
      * true: UtDialog#show()で、FragmentManager#executePendingTransactions()を呼ぶ
      * false: FragmentManagerのスケジューリングに任せる。

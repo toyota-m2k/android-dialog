@@ -4,11 +4,14 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.binder.Binder
@@ -37,6 +40,7 @@ import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.
 import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.ThemeInfo
 import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.WidthOptionInfo
 import io.github.toyota32k.dialog.sample.databinding.ActivityOptionBinding
+import io.github.toyota32k.dialog.sample.dialog.FullHeightDialog
 import io.github.toyota32k.dialog.sample.dialog.OptionSampleDialog
 import io.github.toyota32k.dialog.sample.dialog.ThemeColorDialog
 import io.github.toyota32k.dialog.task.UtImmortalTask.Companion.launchTask
@@ -187,6 +191,9 @@ class OptionActivity : UtMortalActivity() {
 
         val commandShowDialog = LiteUnitCommand {
             launchTask {
+//                createViewModel<FullHeightDialog.FullHeightDialogViewModel>()
+//                showDialog(FullHeightDialog())
+//
                 // Global Options
                 UtDialogConfig.dialogMarginOnLandscape = landscapeMarginInfo.value.margin
                 UtDialogConfig.dialogMarginOnPortrait = portraitMarginInfo.value.margin
@@ -231,10 +238,13 @@ class OptionActivity : UtMortalActivity() {
         setContentView(controls.root)
 
         if(edgeToEdgeEnabled) {
-            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            ViewCompat.setOnApplyWindowInsetsListener(controls.root) { v, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-                    insets
+//                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, maxOf(systemBars.bottom, ime.bottom))
+                insets
             }
         }
 
@@ -244,7 +254,6 @@ class OptionActivity : UtMortalActivity() {
         if(!viewModel.showActionBar.value && isStatusBarVisible()) {
             hideStatusBar()
         }
-
 
         binder.owner(this)
             .bindCommand(viewModel.commandShowDialog, controls.showDialogButton)

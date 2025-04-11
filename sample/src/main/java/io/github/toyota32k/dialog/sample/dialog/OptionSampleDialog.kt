@@ -65,7 +65,7 @@ class OptionSampleDialog : UtDialogEx() {
                 text = "Item - $index"
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             }
-            controls.root.addView(view)
+            controls.root.addView(view, 1)
         }
         for(i in 0 until viewModel.count) {
             addItemToView(i+1)
