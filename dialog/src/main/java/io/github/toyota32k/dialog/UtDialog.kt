@@ -2,6 +2,7 @@
 
 package io.github.toyota32k.dialog
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
@@ -24,6 +25,8 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.WindowManager
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.FrameLayout
@@ -1525,11 +1528,24 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
+    private var paddingAnimator: ValueAnimator? = null
     private fun adjustByResize(bottomOffset: Int) {
-        if (bottomOffset>0) {
-            rootView.setPadding(0,0,0,bottomOffset)
-        } else {
-            rootView.setPadding(0,0,0,0)
+        // 既存のアニメーションをキャンセル
+        paddingAnimator?.cancel()
+
+        val currentPadding = rootView.paddingBottom
+        val targetPadding = if (bottomOffset > 0) bottomOffset else 0
+
+        if (currentPadding == targetPadding) return
+
+        paddingAnimator = ValueAnimator.ofInt(currentPadding, targetPadding).apply {
+            duration = if (bottomOffset > 0) 200 else 150
+            interpolator = if (bottomOffset > 0) DecelerateInterpolator() else AccelerateInterpolator()
+            addUpdateListener { animator ->
+                val value = animator.animatedValue as Int
+                rootView.setPadding(0, 0, 0, value)
+            }
+            start()
         }
     }
 
