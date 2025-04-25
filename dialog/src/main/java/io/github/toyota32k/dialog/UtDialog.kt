@@ -1322,6 +1322,7 @@ abstract class UtDialog: UtDialogBase() {
     }
 
     private var backInvokedDispatcherHolder: LifecycleOwnerHolder? = null
+    private var backInvokerPriority = 0
 
     /**
      * コンテントビュー生成処理
@@ -1418,8 +1419,9 @@ abstract class UtDialog: UtDialogBase() {
                         onBackKeyDown()
                     }
                 }
+                backInvokerPriority = (parentDialog?.backInvokerPriority ?: UtDialogConfig.baseBackInvokedDispatcherPriority) + 1
                 activity.onBackInvokedDispatcher.registerOnBackInvokedCallback(
-                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, invoker
+                    backInvokerPriority, invoker
                 )
                 backInvokedDispatcherHolder = LifecycleOwnerHolder(this) {
                     activity.onBackInvokedDispatcher.unregisterOnBackInvokedCallback(invoker)

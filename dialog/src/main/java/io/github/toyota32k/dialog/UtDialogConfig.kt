@@ -26,7 +26,7 @@ object UtDialogConfig {
      * true: ダイアログモード (新しいwindowを生成して配置）
      * false: フラグメントモード (ActivityのWindow上に配置）
      */
-    var showInDialogModeAsDefault = true
+    var showInDialogModeAsDefault = false
 
     /**
      * UtDialog#hideStatusBarOnDialogMode のデフォルト値
@@ -129,4 +129,6 @@ object UtDialogConfig {
      */
     var dialogMarginOnPortrait: Rect? = Rect(20, 40, 20, 40)
     var dialogMarginOnLandscape: Rect? = Rect(40, 20, 40, 20)
+
+    var baseBackInvokedDispatcherPriority = 0 // Default Priofity
 }
