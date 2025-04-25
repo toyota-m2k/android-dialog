@@ -104,6 +104,7 @@ class OptionSampleDialog : UtDialogEx() {
             put("noDialogMargin", "$noDialogMargin")
             put("bodyContainerMargin", "$bodyContainerMargin")
         }
+        enableFocusManagement().autoRegister()
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {

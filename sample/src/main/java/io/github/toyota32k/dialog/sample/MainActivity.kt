@@ -3,6 +3,7 @@ package io.github.toyota32k.dialog.sample
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -156,5 +157,12 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 
     fun startOptionActivity() {
         startActivity(Intent(this, OptionActivity::class.java))
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if(keyCode == KeyEvent.KEYCODE_BACK) {
+            return false
+        }
+        return super.onKeyDown(keyCode, event)
     }
 }

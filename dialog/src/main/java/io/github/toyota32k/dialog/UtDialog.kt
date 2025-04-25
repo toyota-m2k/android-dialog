@@ -34,6 +34,8 @@ import android.widget.ListView
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
@@ -50,6 +52,7 @@ import androidx.core.view.marginStart
 import androidx.core.view.marginTop
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import io.github.toyota32k.utils.LifecycleOwnerHolder
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.getAttrColor
 import io.github.toyota32k.utils.setLayoutHeight
@@ -559,8 +562,14 @@ abstract class UtDialog: UtDialogBase() {
         val body: UtFocusManager get() = bodyFocusManager ?: rootFocusManager
 
         fun attach(rootView: View, bodyView: View) {
-            bodyFocusManager?.attach(bodyView)
-            rootFocusManager.attach(bodyView)
+            if (bodyFocusManager == null)  {
+                // without DialogButtons
+                rootFocusManager.attach(bodyView)
+            } else {
+                // with DialogButtons
+                bodyFocusManager.attach(bodyView)
+                rootFocusManager.attach(rootView)
+            }
         }
 
         private var initialFocus: Boolean = false
@@ -1312,6 +1321,8 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
+    private var backInvokedDispatcherHolder: LifecycleOwnerHolder? = null
+
     /**
      * コンテントビュー生成処理
      */
@@ -1398,6 +1409,22 @@ abstract class UtDialog: UtDialogBase() {
             }
 
             prepareSoftwareKeyboardObserver()
+
+            // Android 16対応
+            if(!isDialog && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE/*34*/) {
+                val activity = requireActivity()
+                val invoker = object: OnBackInvokedCallback {
+                    override fun onBackInvoked() {
+                        onBackKeyDown()
+                    }
+                }
+                activity.onBackInvokedDispatcher.registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, invoker
+                )
+                backInvokedDispatcherHolder = LifecycleOwnerHolder(this) {
+                    activity.onBackInvokedDispatcher.unregisterOnBackInvokedCallback(invoker)
+                }
+            }
             return rootView
         } catch (e: Throwable) {
             // View作り中に例外が出る原因は、主に２つ
@@ -1634,16 +1661,25 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
+    open fun onBackKeyDown():Boolean {
+        cancel()
+        return true
+    }
+
     /**
      * キーイベントハンドラ
-     * これは、FragmentやDialogFragmentのメソッドではなく、オリジナルのやつ。UtMortalActivity#onKeyDown()ががんばって呼び出している。
-     * デフォルトでは、BACK, CANCELでダイアログを閉じる。
+     * これは、FragmentやDialogFragmentのメソッドではなく、オリジナルのやつ。
+     * UtRootFrameLayout#dispatchKeyEvent() から呼び出す。
      * @return  true:イベントを消費した / false:消費しなかった
      */
     open fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (!isDialog && keyCode==KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE) {
-            cancel()
-            return true
+        if (!isDialog) {
+            // ダイアログモード(isDialog==true)の場合は、OSによって、BACK/ESCキーで、自動的に閉じるが、
+            // フラグメントモード（isDialog==false）の場合は、自力で閉じる必要がある。
+            if ( (keyCode==KeyEvent.KEYCODE_BACK && Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE)  || keyCode == KeyEvent.KEYCODE_ESCAPE) {
+                onBackKeyDown()
+                return true
+            }
         }
         // フォーカス管理
         if(focusManager?.root?.handleTabEvent(keyCode, event) { rootView.findFocus() } == true) {
