@@ -34,8 +34,6 @@ import android.widget.ListView
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
-import android.window.OnBackInvokedCallback
-import android.window.OnBackInvokedDispatcher
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
@@ -52,7 +50,7 @@ import androidx.core.view.marginStart
 import androidx.core.view.marginTop
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
-import io.github.toyota32k.utils.LifecycleOwnerHolder
+import io.github.toyota32k.utils.CompatBackKeyDispatcher
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.getAttrColor
 import io.github.toyota32k.utils.setLayoutHeight
@@ -1321,7 +1319,7 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
-    private var backInvokedDispatcherHolder: LifecycleOwnerHolder? = null
+    private val compatBackKeyDispatcher = CompatBackKeyDispatcher(UtDialogConfig.enableOnBackInvokerDispatcher)
     private var backInvokerPriority = 0
 
     /**
@@ -1413,19 +1411,8 @@ abstract class UtDialog: UtDialogBase() {
 
             // Android 16対応
             if(!isDialog && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE/*34*/) {
-                val activity = requireActivity()
-                val invoker = object: OnBackInvokedCallback {
-                    override fun onBackInvoked() {
-                        onBackKeyDown()
-                    }
-                }
                 backInvokerPriority = (parentDialog?.backInvokerPriority ?: UtDialogConfig.baseBackInvokedDispatcherPriority) + 1
-                activity.onBackInvokedDispatcher.registerOnBackInvokedCallback(
-                    backInvokerPriority, invoker
-                )
-                backInvokedDispatcherHolder = LifecycleOwnerHolder(this) {
-                    activity.onBackInvokedDispatcher.unregisterOnBackInvokedCallback(invoker)
-                }
+                compatBackKeyDispatcher.onBackInvokedDispatcherPriority(backInvokerPriority).register(requireActivity(), this, this::cancel)
             }
             return rootView
         } catch (e: Throwable) {
@@ -1663,11 +1650,6 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
-    open fun onBackKeyDown():Boolean {
-        cancel()
-        return true
-    }
-
     /**
      * キーイベントハンドラ
      * これは、FragmentやDialogFragmentのメソッドではなく、オリジナルのやつ。
@@ -1678,8 +1660,8 @@ abstract class UtDialog: UtDialogBase() {
         if (!isDialog) {
             // ダイアログモード(isDialog==true)の場合は、OSによって、BACK/ESCキーで、自動的に閉じるが、
             // フラグメントモード（isDialog==false）の場合は、自力で閉じる必要がある。
-            if ( (keyCode==KeyEvent.KEYCODE_BACK && Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE)  || keyCode == KeyEvent.KEYCODE_ESCAPE) {
-                onBackKeyDown()
+            if ( keyCode==KeyEvent.KEYCODE_ESCAPE ) {
+                cancel()
                 return true
             }
         }

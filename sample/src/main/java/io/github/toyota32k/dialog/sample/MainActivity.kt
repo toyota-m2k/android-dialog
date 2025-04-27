@@ -130,6 +130,8 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //        UtDialogConfig.showInDialogModeAsDefault = true
 //        UtDialogConfig.solidBackgroundOnPhone = true
         UtDialogConfig.dialogTheme = io.github.toyota32k.dialog.R.style.UtDialogThemeTertiary
+        UtDialogConfig.showInDialogModeAsDefault = false
+        UtDialogConfig.enableOnBackInvokerDispatcher = false
 
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -160,9 +162,9 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if(keyCode == KeyEvent.KEYCODE_BACK) {
-            return false
-        }
+//        if(keyCode == KeyEvent.KEYCODE_BACK) {
+//            return false
+//        }
         return super.onKeyDown(keyCode, event)
     }
 }

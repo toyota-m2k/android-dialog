@@ -4,6 +4,7 @@ package io.github.toyota32k.dialog
 
 import android.content.Context
 import android.graphics.Rect
+import android.os.Build
 import androidx.annotation.LayoutRes
 import androidx.annotation.StyleRes
 import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustMode
@@ -26,7 +27,7 @@ object UtDialogConfig {
      * true: ダイアログモード (新しいwindowを生成して配置）
      * false: フラグメントモード (ActivityのWindow上に配置）
      */
-    var showInDialogModeAsDefault = false
+    var showInDialogModeAsDefault = true
 
     /**
      * UtDialog#hideStatusBarOnDialogMode のデフォルト値
@@ -130,5 +131,13 @@ object UtDialogConfig {
     var dialogMarginOnPortrait: Rect? = Rect(20, 40, 20, 40)
     var dialogMarginOnLandscape: Rect? = Rect(40, 20, 40, 20)
 
+    /**
+     * onBackInvokerDispatcher を使うかどうか
+     */
+    var enableOnBackInvokerDispatcher:Boolean = Build.VERSION.SDK_INT >= 36 // Android 16 以降に限りデフォルトで ON
+
+    /**
+     * onBackInvokerDispatcherのプライオリティの基準値 (デフォルト値：OnBackInvokedDispatcher.PRIORITY_DEFAULT）
+     */
     var baseBackInvokedDispatcherPriority = 0 // Default Priofity
 }
