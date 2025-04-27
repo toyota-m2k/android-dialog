@@ -1410,10 +1410,8 @@ abstract class UtDialog: UtDialogBase() {
             prepareSoftwareKeyboardObserver()
 
             // Android 16対応
-            if(!isDialog && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE/*34*/) {
-                backInvokerPriority = (parentDialog?.backInvokerPriority ?: UtDialogConfig.baseBackInvokedDispatcherPriority) + 1
-                compatBackKeyDispatcher.onBackInvokedDispatcherPriority(backInvokerPriority).register(requireActivity(), this, this::cancel)
-            }
+            backInvokerPriority = (parentDialog?.backInvokerPriority ?: UtDialogConfig.baseBackInvokedDispatcherPriority) + 1
+            compatBackKeyDispatcher.setInvokedDispatcherPriority(backInvokerPriority).register(requireActivity(), this, this::cancel)
             return rootView
         } catch (e: Throwable) {
             // View作り中に例外が出る原因は、主に２つ

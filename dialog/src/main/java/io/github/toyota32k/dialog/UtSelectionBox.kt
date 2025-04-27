@@ -7,11 +7,6 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.ListAdapter
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.UtImmortalTask
-import io.github.toyota32k.dialog.task.showMultiSelectionBox
-import io.github.toyota32k.dialog.task.showRadioSelectionBox
-import io.github.toyota32k.dialog.task.showSingleSelectionBox
 
 interface IUtSingleSelectionResult {
     val selectedIndex: Int
