@@ -131,7 +131,6 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //        UtDialogConfig.solidBackgroundOnPhone = true
         UtDialogConfig.dialogTheme = io.github.toyota32k.dialog.R.style.UtDialogThemeTertiary
         UtDialogConfig.showInDialogModeAsDefault = false
-        UtDialogConfig.enableOnBackInvokerDispatcher = false
 
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
