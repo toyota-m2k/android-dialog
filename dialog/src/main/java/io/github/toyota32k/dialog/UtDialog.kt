@@ -1319,7 +1319,7 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
-    private val compatBackKeyDispatcher = CompatBackKeyDispatcher(UtDialogConfig.enableOnBackInvokerDispatcher)
+    private val compatBackKeyDispatcher = CompatBackKeyDispatcher()
     private var backInvokerPriority = 0
 
     /**

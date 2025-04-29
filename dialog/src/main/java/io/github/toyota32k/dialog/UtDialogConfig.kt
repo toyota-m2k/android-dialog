@@ -132,11 +132,6 @@ object UtDialogConfig {
     var dialogMarginOnLandscape: Rect? = Rect(40, 20, 40, 20)
 
     /**
-     * onBackInvokerDispatcher を使うかどうか
-     */
-    var enableOnBackInvokerDispatcher:Boolean = Build.VERSION.SDK_INT >= 36 // Android 16 以降に限りデフォルトで ON
-
-    /**
      * onBackInvokerDispatcherのプライオリティの基準値 (デフォルト値：OnBackInvokedDispatcher.PRIORITY_DEFAULT）
      */
     var baseBackInvokedDispatcherPriority = 0 // Default Priofity
