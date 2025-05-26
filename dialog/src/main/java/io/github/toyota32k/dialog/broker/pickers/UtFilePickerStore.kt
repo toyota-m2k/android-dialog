@@ -6,6 +6,7 @@ import io.github.toyota32k.dialog.broker.IUtActivityBroker
 
 @Deprecated("use UtActivityBrokerStoreProvider instead.")
 interface IUtFilePickerStoreProvider {
+    @Suppress("DEPRECATION")
     val filePickers: UtFilePickerStore
 }
 
