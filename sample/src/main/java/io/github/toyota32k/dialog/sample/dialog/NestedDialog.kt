@@ -10,12 +10,14 @@ import android.widget.TextView
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.list.ObservableList
-import io.github.toyota32k.binder.recyclerViewGestureBinding
+import io.github.toyota32k.binder.recyclerViewBinding
+import io.github.toyota32k.binder.recyclerViewBindingEx
 import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.broker.asActivityBrokerStore
 import io.github.toyota32k.dialog.sample.R
 import io.github.toyota32k.dialog.sample.databinding.DialogNestedBinding
+import io.github.toyota32k.dialog.sample.databinding.ItemStringListBinding
 import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.getViewModel
@@ -89,11 +91,18 @@ class NestedDialog : UtDialogEx() {
             .bindCommand(viewModel.commandAddText, controls.addTextButton)
             .bindCommand(viewModel.commandAddFile, controls.addFileButton)
             .bindCommand(viewModel.commandAddFiles, controls.multiFileButton)
-            .recyclerViewGestureBinding(controls.recyclerView, viewModel.observableList, R.layout.item_string_list, dragToMove = true, swipeToDelete=true, deletionHandler = null) {
-                listBinder, view, text->
-                val textView = view.findViewById<TextView>(R.id.text_view)
-                listBinder.textBinding(this@NestedDialog, textView, text.asConstantLiveData())
+            .recyclerViewBindingEx(controls.recyclerView) {
+                list(viewModel.observableList)
+                inflate { parent-> ItemStringListBinding.inflate(inflater.layoutInflater, parent, false) }
+                bindView { itemControls, itemBinder, _, text->
+                    itemBinder.textBinding(this@NestedDialog, itemControls.textView, text.asConstantLiveData())
+                }
             }
+//            .recyclerViewGestureBinding(controls.recyclerView, viewModel.observableList, R.layout.item_string_list, dragToMove = true, swipeToDelete=true, deletionHandler = null) {
+//                listBinder, view, text->
+//                val textView = view.findViewById<TextView>(R.id.text_view)
+//                listBinder.textBinding(this@NestedDialog, textView, text.asConstantLiveData())
+//            }
         return controls.root
     }
 

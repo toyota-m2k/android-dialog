@@ -7,18 +7,26 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.children
 import androidx.lifecycle.viewModelScope
+import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.clickBinding
+import io.github.toyota32k.binder.combinatorialVisibilityBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.list.ObservableList
+import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.recyclerViewBinding
+import io.github.toyota32k.binder.recyclerViewBindingEx
+import io.github.toyota32k.binder.textBinding
+import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.sample.OptionActivity
 import io.github.toyota32k.dialog.sample.R
 import io.github.toyota32k.dialog.sample.databinding.DialogAutoScrollBinding
 import io.github.toyota32k.dialog.sample.databinding.DialogOptionSampleBinding
+import io.github.toyota32k.dialog.sample.databinding.ItemDialogOptionBinding
 import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.getViewModel
+import io.github.toyota32k.utils.asConstantLiveData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -116,23 +124,37 @@ class OptionSampleDialog : UtDialogEx() {
                         dialogProgressRingOnTitleTitleBarVisibility(viewModel.isBusy)
                     }
                     .bindCommand(viewModel.commandBusy, busyButton)
-                    .recyclerViewBinding(recyclerView, viewModel.entries, itemViewLayoutId=R.layout.item_dialog_option, fixedSize = false) {_, view, item->
-                        if(item.label != "-") {
-                            view.findViewById<TextView>(R.id.option_label).apply {
-                                visibility = View.VISIBLE
-                                text = item.label
-                            }
-                            view.findViewById<TextView>(R.id.option_value).apply {
-                                visibility = View.VISIBLE
-                                text = item.value
-                            }
-                            view.findViewById<View>(R.id.separator).visibility = View.GONE
-                        } else {
-                            view.findViewById<TextView>(R.id.option_label).visibility = View.GONE
-                            view.findViewById<TextView>(R.id.option_value).visibility = View.GONE
-                            view.findViewById<View>(R.id.separator).visibility = View.VISIBLE
+                    .recyclerViewBindingEx<Entry, ItemDialogOptionBinding>(recyclerView) {
+                        list(viewModel.entries)
+                        fixedSize(false)
+                        inflate { parent-> ItemDialogOptionBinding.inflate(inflater.layoutInflater, parent, false) }
+                        bindView { c, itemBinder, _, item ->
+                            itemBinder
+                                .combinatorialVisibilityBinding((item.label == "-").asConstantLiveData()) {
+                                    straightGone(c.optionLabel,c.optionValue)
+                                    inverseGone(c.separator)
+                                }
+                                .textBinding(c.optionLabel, item.label.asConstantLiveData())
+                                .textBinding(c.optionValue, item.value.asConstantLiveData())
                         }
                     }
+//                    .recyclerViewBinding(recyclerView, viewModel.entries, itemViewLayoutId=R.layout.item_dialog_option, fixedSize = false) {_, view, item->
+//                        if(item.label != "-") {
+//                            view.findViewById<TextView>(R.id.option_label).apply {
+//                                visibility = View.VISIBLE
+//                                text = item.label
+//                            }
+//                            view.findViewById<TextView>(R.id.option_value).apply {
+//                                visibility = View.VISIBLE
+//                                text = item.value
+//                            }
+//                            view.findViewById<View>(R.id.separator).visibility = View.GONE
+//                        } else {
+//                            view.findViewById<TextView>(R.id.option_label).visibility = View.GONE
+//                            view.findViewById<TextView>(R.id.option_value).visibility = View.GONE
+//                            view.findViewById<View>(R.id.separator).visibility = View.VISIBLE
+//                        }
+//                    }
             }
         return controls.root
     }

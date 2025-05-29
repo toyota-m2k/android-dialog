@@ -39,6 +39,7 @@ import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
+import io.github.toyota32k.dialog.task.showSingleSelectionBox
 import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -49,6 +50,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             launchTask {
                 outputString.value = "MessageBox opening"
                 showConfirmMessageBox("MessageBox", "Hello world.")
+//                showSingleSelectionBox("SingleSelection", arrayOf("aaa", "bbb", "ccc"))
                 outputString.value = "MessageBox closed"
             }
         }

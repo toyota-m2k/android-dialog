@@ -1,7 +1,7 @@
 [versions]
 #plugins
 kotlin = "2.1.21"
-agp = "8.10.0"
+agp = "8.10.1"
 
 #libraries
 coreKtx = "1.16.0"
@@ -21,8 +21,8 @@ junit = "4.13.2"
 androidxJunit = "1.2.1"
 espressoCore = "3.6.1"
 activityVersion = "1.10.1"
-androidUtilities = "2.8.2"
-androidBinding = "1.5.5"
+androidUtilities = "2.8.3"
+androidBinding = "1.6.0"
 androidViewex = "1.1.12"
 #androidUtilities = "LOCAL"
 #androidBinding = "LOCAL"

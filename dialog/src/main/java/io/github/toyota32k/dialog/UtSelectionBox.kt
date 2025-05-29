@@ -13,9 +13,8 @@ interface IUtSingleSelectionResult {
     val selectedItem: String?
 }
 
-open class UtSingleSelectionBox : UtDialogBase(), DialogInterface.OnClickListener,
+open class UtSingleSelectionBox : UtMessageBox(), DialogInterface.OnClickListener,
     IUtSingleSelectionResult {
-    var title:String? by bundle.stringNullable
     var items:Array<String> by bundle.stringArray
 
     override var selectedIndex: Int = -1
@@ -29,9 +28,9 @@ open class UtSingleSelectionBox : UtDialogBase(), DialogInterface.OnClickListene
         return null
     }
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    override fun getAlertBuilder(): AlertDialog.Builder {
         isCancelable = cancellable
-        return AlertDialog.Builder(requireContext()).also { builder->
+        return super.getAlertBuilder().also { builder ->
             title?.let { builder.setTitle(it) }
             val adapter = listAdapter()
             if(adapter!=null) {
@@ -40,7 +39,6 @@ open class UtSingleSelectionBox : UtDialogBase(), DialogInterface.OnClickListene
                 builder.setItems(items, this)
             }
         }
-        .create()
     }
 
     override fun onClick(dialog: DialogInterface?, which: Int) {
