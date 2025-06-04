@@ -54,34 +54,59 @@ open class UtMessageBox : UtDialogBase(), DialogInterface.OnClickListener {
         /**
          * アクティビティから呼び出すOKボタンだけの確認メッセージ
          */
-        fun createForConfirm(title:String?, message:String?, okLabel:String= UtStandardString.OK.text) : UtMessageBox {
+        fun createForConfirm(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancellable:Boolean=true) : UtMessageBox {
             return UtMessageBox().apply {
                 this.title = title
                 this.message = message
                 this.okLabel = okLabel
+                this.cancellable = cancellable
             }
         }
 
-        fun createForOkCancel(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancelLabel:String= UtStandardString.CANCEL.text) : UtMessageBox {
+        fun createForOkCancel(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancelLabel:String= UtStandardString.CANCEL.text, cancellable:Boolean=true) : UtMessageBox {
             return UtMessageBox().apply {
                 this.title = title
                 this.message = message
                 this.okLabel = okLabel
                 this.cancelLabel = cancelLabel
+                this.cancellable = cancellable
             }
         }
 
-        fun createForYesNo(title:String?, message:String?, yesLabel:String= UtStandardString.YES.text, noLabel:String= UtStandardString.NO.text) : UtMessageBox {
-            return createForOkCancel(title,message,yesLabel,noLabel)
+        fun createForYesNo(title:String?, message:String?, yesLabel:String= UtStandardString.YES.text, noLabel:String= UtStandardString.NO.text, cancellable:Boolean=false) : UtMessageBox {
+            return createForOkCancel(title,message,yesLabel,noLabel,cancellable)
         }
 
-        fun createForThreeChoices(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : UtMessageBox {
+        fun createForThreeChoices(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String, cancellable:Boolean=false) : UtMessageBox {
             return UtMessageBox().apply {
                 this.title = title
                 this.message = message
                 this.okLabel = positiveLabel
                 this.cancelLabel = negativeLabel
                 this.otherLabel = neutralLabel
+                this.cancellable = cancellable
+            }
+        }
+
+        fun create(
+            title:String?=null,
+            message:String,
+            positiveLabel:String?=null,
+            neutralLabel: String?=null,
+            negativeLabel: String?=null,
+            cancellable:Boolean?=null
+            ): UtMessageBox {
+            if (cancellable==false && (positiveLabel==null && neutralLabel==null && negativeLabel==null)) {
+                // 閉じる方法がない
+                throw IllegalStateException("At least one button must be specified.")
+            }
+            return UtMessageBox().apply {
+                this.title = title
+                this.message = message
+                this.okLabel = positiveLabel
+                this.cancelLabel = negativeLabel
+                this.otherLabel = neutralLabel
+                cancellable?.let { this.cancellable = it }
             }
         }
 

@@ -49,10 +49,11 @@ open class UtSingleSelectionBox : UtMessageBox(), DialogInterface.OnClickListene
     }
 
     companion object {
-        fun create(title:String?, items:Array<String>) : UtSingleSelectionBox {
+        fun create(title:String?, items:Array<String>, cancellable:Boolean=true) : UtSingleSelectionBox {
             return UtSingleSelectionBox().apply {
                 this.items = items
                 this.title = title
+                this.cancellable = true
             }
         }
 //        suspend fun open(title:String?, items:Array<String>) : Int {
@@ -96,13 +97,14 @@ open class UtRadioSelectionBox : UtMessageBox(), DialogInterface.OnClickListener
     }
 
     companion object {
-        fun create(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text) : UtRadioSelectionBox {
+        fun create(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text, cancellable:Boolean=true) : UtRadioSelectionBox {
             return UtRadioSelectionBox().apply {
                 this.title = title
                 this.items = items
                 this.selectedIndex = initialSelection
                 this.okLabel = okLabel
                 this.cancelLabel = cancelLabel
+                this.cancellable = cancellable
             }
         }
 //        suspend fun open(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text) : Int {
@@ -133,13 +135,14 @@ class UtMultiSelectionBox
     }
 
     companion object {
-        fun create(title:String?, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=null) : UtMultiSelectionBox {
+        fun create(title:String?, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=null, cancellable:Boolean = true) : UtMultiSelectionBox {
             return UtMultiSelectionBox().apply {
                 this.title = title
                 this.items = items
                 this.selectionFlags = initialSelections ?: BooleanArray(items.size) { false }
                 this.okLabel = okLabel
                 this.cancelLabel = cancelLabel
+                this.cancellable = true
             }
         }
 

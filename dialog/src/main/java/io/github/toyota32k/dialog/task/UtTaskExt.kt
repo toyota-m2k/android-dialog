@@ -14,50 +14,54 @@ import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.utils.getStringOrNull
 
-private fun UtImmortalTaskBase.id2str(@StringRes id:Int):String? {
+private fun UtImmortalTaskBase.id2strOrNull(@StringRes id:Int):String? {
     if(id==0) return null
     return getStringOrNull(id)
+}
+private fun UtImmortalTaskBase.id2str(@StringRes id:Int):String {
+    if(id==0) return throw IllegalStateException("id==0")
+    return getStringOrNull(id) ?: throw IllegalStateException("no string: $id")
 }
 /**
  * 確認メッセージボックスを表示
  */
-suspend fun UtImmortalTaskBase.showConfirmMessageBox(title:String?, message:String?, okLabel:String= UtStandardString.OK.text) {
-    showDialog("internalConfirm") { UtMessageBox.createForConfirm(title,message,okLabel) }
+suspend fun UtImmortalTaskBase.showConfirmMessageBox(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancellable:Boolean=true) {
+    showDialog("internalConfirm") { UtMessageBox.createForConfirm(title,message,okLabel,cancellable) }
 }
-suspend fun UtImmortalTaskBase.showConfirmMessageBox(title:Int, message:Int) {
-    showConfirmMessageBox(id2str(title),id2str(message))
-}
-
-suspend fun UtImmortalTaskBase.showOkCancelMessageBox(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancelLabel:String= UtStandardString.CANCEL.text) : Boolean {
-    return showDialog("internalOkCancel") { UtMessageBox.createForOkCancel(title,message,okLabel, cancelLabel) }.status.ok
-}
-suspend fun UtImmortalTaskBase.showOkCancelMessageBox(title:Int, message:Int):Boolean {
-    return showOkCancelMessageBox(id2str(title),id2str(message))
-}
-suspend fun UtImmortalTaskBase.showYesNoMessageBox(title:String?, message:String?, yesLabel:String= UtStandardString.YES.text, noLabel:String= UtStandardString.NO.text) : Boolean {
-    return showDialog("internalYesNo") { UtMessageBox.createForYesNo(title,message,yesLabel,noLabel) }.status.yes
-}
-suspend fun UtImmortalTaskBase.showYesNoMessageBox(title:Int, message:Int):Boolean {
-    return showYesNoMessageBox(id2str(title),id2str(message))
+suspend fun UtImmortalTaskBase.showConfirmMessageBox(title:Int, message:Int, cancellable: Boolean=true) {
+    showConfirmMessageBox(id2strOrNull(title),id2strOrNull(message),cancellable=cancellable)
 }
 
-suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String) : IUtDialog.Status {
-    return showDialog("internalPositiveNeutralNegative") { UtMessageBox.createForThreeChoices(title,message,positiveLabel,neutralLabel,negativeLabel) }.status
+suspend fun UtImmortalTaskBase.showOkCancelMessageBox(title:String?, message:String?, okLabel:String= UtStandardString.OK.text, cancelLabel:String= UtStandardString.CANCEL.text, cancellable: Boolean=true) : Boolean {
+    return showDialog("internalOkCancel") { UtMessageBox.createForOkCancel(title,message,okLabel, cancelLabel, cancellable) }.status.ok
 }
-suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(title:Int, message:Int, positiveLabel:Int, neutralLabel:Int, negativeLabel:Int):IUtDialog.Status {
-    return showThreeChoicesMessageBox(id2str(title),id2str(message),id2str(positiveLabel)!!,id2str(neutralLabel)!!,id2str(negativeLabel)!!)
+suspend fun UtImmortalTaskBase.showOkCancelMessageBox(title:Int, message:Int, cancellable: Boolean=true):Boolean {
+    return showOkCancelMessageBox(id2strOrNull(title),id2strOrNull(message), cancellable=cancellable)
 }
-
-suspend fun UtImmortalTaskBase.showSingleSelectionBox(title:String?, items:Array<String>) : Int {
-    return showDialog("internalSingleSelection") { UtSingleSelectionBox.create(title, items) }.selectedIndex
+suspend fun UtImmortalTaskBase.showYesNoMessageBox(title:String?, message:String?, yesLabel:String= UtStandardString.YES.text, noLabel:String= UtStandardString.NO.text, cancellable: Boolean=false) : Boolean {
+    return showDialog("internalYesNo") { UtMessageBox.createForYesNo(title,message,yesLabel,noLabel,cancellable) }.status.yes
 }
-
-suspend fun UtImmortalTaskBase.showRadioSelectionBox(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text) : Int {
-    return showDialog("internalRadioSelection") { UtRadioSelectionBox.create(title, items, initialSelection, okLabel, cancelLabel) }.selectedIndex
+suspend fun UtImmortalTaskBase.showYesNoMessageBox(title:Int, message:Int, cancellable: Boolean=false):Boolean {
+    return showYesNoMessageBox(id2strOrNull(title),id2strOrNull(message),cancellable=cancellable)
 }
 
-suspend fun UtImmortalTaskBase.showMultiSelectionBox(title:String?, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text) : BooleanArray {
-    return showDialog("internalMultiSelection") { UtMultiSelectionBox.create(title, items, initialSelections, okLabel, cancelLabel) }.selectionFlags
+suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(title:String?, message:String?, positiveLabel:String, neutralLabel:String, negativeLabel:String, cancellable: Boolean=false) : IUtDialog.Status {
+    return showDialog("internalPositiveNeutralNegative") { UtMessageBox.createForThreeChoices(title,message,positiveLabel,neutralLabel,negativeLabel,cancellable) }.status
+}
+suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(title:Int, message:Int, positiveLabel:Int, neutralLabel:Int, negativeLabel:Int, cancellable: Boolean=true):IUtDialog.Status {
+    return showThreeChoicesMessageBox(id2strOrNull(title),id2strOrNull(message),id2str(positiveLabel),id2str(neutralLabel),id2str(negativeLabel),cancellable)
+}
+
+suspend fun UtImmortalTaskBase.showSingleSelectionBox(title:String?, items:Array<String>, cancellable:Boolean=false) : Int {
+    return showDialog("internalSingleSelection") { UtSingleSelectionBox.create(title, items, cancellable) }.selectedIndex
+}
+
+suspend fun UtImmortalTaskBase.showRadioSelectionBox(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text, cancellable:Boolean=true) : Int {
+    return showDialog("internalRadioSelection") { UtRadioSelectionBox.create(title, items, initialSelection, okLabel, cancelLabel, cancellable) }.selectedIndex
+}
+
+suspend fun UtImmortalTaskBase.showMultiSelectionBox(title:String?, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text, cancellable:Boolean=true) : BooleanArray {
+    return showDialog("internalMultiSelection") { UtMultiSelectionBox.create(title, items, initialSelections, okLabel, cancelLabel, cancellable) }.selectionFlags
 }
 
 /**

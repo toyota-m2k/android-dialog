@@ -1,10 +1,14 @@
 package io.github.toyota32k.dialog.sample
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.view.Gravity
 import android.view.KeyEvent
+import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.ScrollView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -49,7 +53,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         val commandMessageBox = LiteUnitCommand {
             launchTask {
                 outputString.value = "MessageBox opening"
-                showConfirmMessageBox("MessageBox", "Hello world.")
+                showConfirmMessageBox("MessageBox", "Hello world.\naaa\nbbb\nccc\nddd")
 //                showSingleSelectionBox("SingleSelection", arrayOf("aaa", "bbb", "ccc"))
                 outputString.value = "MessageBox closed"
             }
@@ -156,6 +160,25 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             .bindCommand(viewModel.commandNestedDialog, controls.btnNestedDialog)
             .bindCommand(LiteUnitCommand(::startOptionActivity), controls.navigateOptionActivity)
             .textBinding(controls.outputText, viewModel.outputString)
+    }
+
+    // LinearLayout に、layout_gravity=center_vertical を設定していると、portraitではいい感じだが、
+    // landscape で、上端がScrollViewの上限より上に配置されてしまって操作できなくなる。
+    // 当然、layout.xml を分けるのが王道だが、LinearLayoutのプロパティ1個を変えるだけなので、
+    // コードでやってしまうことにした。
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val childLayout = controls.buttonContainer
+        val layoutParams = childLayout.layoutParams as FrameLayout.LayoutParams
+
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            // 横向きの場合は上揃え
+            layoutParams.gravity = Gravity.CENTER_HORIZONTAL
+        } else {
+            // 縦向きの場合は中央揃え
+            layoutParams.gravity = Gravity.CENTER
+        }
+        childLayout.layoutParams = layoutParams
     }
 
     fun startOptionActivity() {
