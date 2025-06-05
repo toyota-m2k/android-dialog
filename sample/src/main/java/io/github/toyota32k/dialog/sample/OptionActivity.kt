@@ -43,11 +43,11 @@ import io.github.toyota32k.dialog.sample.dialog.OptionSampleDialog
 import io.github.toyota32k.dialog.sample.dialog.ThemeColorDialog
 import io.github.toyota32k.dialog.task.UtImmortalTask.Companion.launchTask
 import io.github.toyota32k.dialog.task.createViewModel
-import io.github.toyota32k.utils.ApplicationViewModelStoreOwner
-import io.github.toyota32k.utils.hideActionBar
-import io.github.toyota32k.utils.hideStatusBar
-import io.github.toyota32k.utils.isActionBarVisible
-import io.github.toyota32k.utils.isStatusBarVisible
+import io.github.toyota32k.utils.android.ApplicationViewModelStoreOwner
+import io.github.toyota32k.utils.android.hideActionBar
+import io.github.toyota32k.utils.android.hideStatusBar
+import io.github.toyota32k.utils.android.isActionBarVisible
+import io.github.toyota32k.utils.android.isStatusBarVisible
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 

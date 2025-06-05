@@ -5,12 +5,11 @@ import androidx.lifecycle.*
 import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.utils.IDisposable
 import io.github.toyota32k.utils.NamedMutex
-import io.github.toyota32k.utils.ObservableFlow
 import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.utils.lifecycle.ObservableFlow
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.Closeable
-import java.lang.IllegalStateException
 
 /**
  * 世界の終り（アプリ終了）まで生きることができる不死身のタスククラス

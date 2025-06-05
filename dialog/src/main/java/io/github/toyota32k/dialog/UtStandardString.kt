@@ -3,9 +3,8 @@ package io.github.toyota32k.dialog
 import android.content.Context
 import androidx.annotation.StringRes
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
-import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.utils.getStringOrDefault
-import io.github.toyota32k.utils.getStringOrNull
+import io.github.toyota32k.utils.android.getStringOrDefault
+import io.github.toyota32k.utils.android.getStringOrNull
 import java.lang.ref.WeakReference
 
 interface IUtStringTable {

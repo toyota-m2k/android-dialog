@@ -10,8 +10,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import io.github.toyota32k.utils.GenericDisposable
 import io.github.toyota32k.utils.IDisposable
-import io.github.toyota32k.utils.LifecycleDisposer
-import io.github.toyota32k.utils.activity
+import io.github.toyota32k.utils.android.activity
+import io.github.toyota32k.utils.lifecycle.LifecycleDisposer
 
 /**
  * ソフトウェアキーボードの開閉を監視する

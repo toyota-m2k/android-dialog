@@ -50,13 +50,13 @@ import androidx.core.view.marginStart
 import androidx.core.view.marginTop
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
-import io.github.toyota32k.utils.CompatBackKeyDispatcher
-import io.github.toyota32k.utils.dp2px
-import io.github.toyota32k.utils.getAttrColor
-import io.github.toyota32k.utils.setLayoutHeight
-import io.github.toyota32k.utils.setLayoutWidth
-import io.github.toyota32k.utils.setMargin
-import io.github.toyota32k.utils.withAlpha
+import io.github.toyota32k.utils.android.CompatBackKeyDispatcher
+import io.github.toyota32k.utils.android.dp2px
+import io.github.toyota32k.utils.android.getAttrColor
+import io.github.toyota32k.utils.android.setLayoutHeight
+import io.github.toyota32k.utils.android.setLayoutWidth
+import io.github.toyota32k.utils.android.setMargin
+import io.github.toyota32k.utils.android.withAlpha
 import kotlin.math.max
 import kotlin.math.min
 

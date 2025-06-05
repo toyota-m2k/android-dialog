@@ -12,7 +12,7 @@ import io.github.toyota32k.dialog.UtMultiSelectionBox
 import io.github.toyota32k.dialog.UtRadioSelectionBox
 import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.UtStandardString
-import io.github.toyota32k.utils.getStringOrNull
+import io.github.toyota32k.utils.android.getStringOrNull
 
 private fun UtImmortalTaskBase.id2strOrNull(@StringRes id:Int):String? {
     if(id==0) return null

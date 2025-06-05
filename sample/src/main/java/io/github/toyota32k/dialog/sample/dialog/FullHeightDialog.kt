@@ -12,7 +12,7 @@ import io.github.toyota32k.dialog.sample.R
 import io.github.toyota32k.dialog.sample.databinding.DialogFullHeightBinding
 import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.getViewModel
-import io.github.toyota32k.utils.asConstantLiveData
+import io.github.toyota32k.utils.lifecycle.asConstantLiveData
 
 class FullHeightDialog : UtDialogEx() {
     class FullHeightDialogViewModel : UtDialogViewModel() {

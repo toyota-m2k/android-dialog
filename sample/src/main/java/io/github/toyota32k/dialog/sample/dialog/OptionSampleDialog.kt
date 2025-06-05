@@ -2,31 +2,20 @@ package io.github.toyota32k.dialog.sample.dialog
 
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.core.view.children
 import androidx.lifecycle.viewModelScope
-import io.github.toyota32k.binder.VisibilityBinding
-import io.github.toyota32k.binder.clickBinding
 import io.github.toyota32k.binder.combinatorialVisibilityBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.list.ObservableList
-import io.github.toyota32k.binder.multiVisibilityBinding
-import io.github.toyota32k.binder.recyclerViewBinding
 import io.github.toyota32k.binder.recyclerViewBindingEx
 import io.github.toyota32k.binder.textBinding
-import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.sample.OptionActivity
-import io.github.toyota32k.dialog.sample.R
-import io.github.toyota32k.dialog.sample.databinding.DialogAutoScrollBinding
 import io.github.toyota32k.dialog.sample.databinding.DialogOptionSampleBinding
 import io.github.toyota32k.dialog.sample.databinding.ItemDialogOptionBinding
 import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.getViewModel
-import io.github.toyota32k.utils.asConstantLiveData
+import io.github.toyota32k.utils.lifecycle.asConstantLiveData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -74,33 +63,33 @@ class OptionSampleDialog : UtDialogEx() {
             clear()
             addAll(viewModel.systemEntries)
             put("-", "")
-            put("isDialog", "${isDialog}")
+            put("isDialog", "$isDialog")
             if(!isDialog) {
-                put("systemBarOption", "${systemBarOptionOnFragmentMode}")
+                put("systemBarOption", "$systemBarOptionOnFragmentMode")
             } else {
-                put("hideStatusBar", "${hideStatusBarOnDialogMode}")
+                put("hideStatusBar", "$hideStatusBarOnDialogMode")
             }
-            put("adjustContentMode", "${adjustContentForKeyboard}")
-            put("adjustContentsStrategy", "${adjustContentsStrategy}")
+            put("adjustContentMode", "$adjustContentForKeyboard")
+            put("adjustContentsStrategy", "$adjustContentsStrategy")
 
             put("-", "")
 
-            put("widthOption", "${widthOption}")
-            put("heightOption", "${heightOption}")
-            put("gravityOption", "${gravityOption}")
+            put("widthOption", "$widthOption")
+            put("heightOption", "$heightOption")
+            put("gravityOption", "$gravityOption")
 
             put("-", "")
 
-            put("draggable", "${draggable}")
-            put("scrollable", "${scrollable}")
-            put("cancellable", "${cancellable}")
-            put("noHeader", "${noHeader}")
-            put("noFooter", "${noFooter}")
+            put("draggable", "$draggable")
+            put("scrollable", "$scrollable")
+            put("cancellable", "$cancellable")
+            put("noHeader", "$noHeader")
+            put("noFooter", "$noFooter")
 
             put("-", "")
 
-            put("guardColor", "${guardColor}")
-            put("bodyGuardColor", "${bodyGuardColor}")
+            put("guardColor", "$guardColor")
+            put("bodyGuardColor", "$bodyGuardColor")
 
             put("-", "")
 

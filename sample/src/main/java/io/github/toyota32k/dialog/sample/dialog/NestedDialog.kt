@@ -6,23 +6,20 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.view.View
-import android.widget.TextView
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.list.ObservableList
-import io.github.toyota32k.binder.recyclerViewBinding
 import io.github.toyota32k.binder.recyclerViewBindingEx
 import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.broker.asActivityBrokerStore
-import io.github.toyota32k.dialog.sample.R
 import io.github.toyota32k.dialog.sample.databinding.DialogNestedBinding
 import io.github.toyota32k.dialog.sample.databinding.ItemStringListBinding
 import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.getViewModel
-import io.github.toyota32k.utils.asConstantLiveData
 import io.github.toyota32k.utils.letOnTrue
+import io.github.toyota32k.utils.lifecycle.asConstantLiveData
 import java.io.File
 
 class NestedDialog : UtDialogEx() {

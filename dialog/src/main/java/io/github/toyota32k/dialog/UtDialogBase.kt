@@ -6,19 +6,16 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.Insets
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.utils.hideActionBar
-import io.github.toyota32k.utils.hideStatusBar
-import io.github.toyota32k.utils.isActionBarVisible
-import io.github.toyota32k.utils.isStatusBarVisible
-import io.github.toyota32k.utils.showActionBar
-import io.github.toyota32k.utils.showStatusBar
+import io.github.toyota32k.utils.android.hideActionBar
+import io.github.toyota32k.utils.android.hideStatusBar
+import io.github.toyota32k.utils.android.isActionBarVisible
+import io.github.toyota32k.utils.android.isStatusBarVisible
+import io.github.toyota32k.utils.android.showActionBar
+import io.github.toyota32k.utils.android.showStatusBar
 import java.lang.ref.WeakReference
 
 /**

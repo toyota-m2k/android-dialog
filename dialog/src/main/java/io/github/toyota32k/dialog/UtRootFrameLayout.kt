@@ -5,8 +5,6 @@ import android.util.AttributeSet
 import android.view.KeyEvent
 import android.widget.FrameLayout
 import io.github.toyota32k.utils.WeakReferenceDelegate
-import io.github.toyota32k.utils.activity
-import java.lang.ref.WeakReference
 
 class UtRootFrameLayout : FrameLayout {
     constructor(context: Context) : super(context)
