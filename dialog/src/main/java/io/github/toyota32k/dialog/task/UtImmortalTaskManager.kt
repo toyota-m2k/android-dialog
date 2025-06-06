@@ -3,9 +3,9 @@ package io.github.toyota32k.dialog.task
 import android.app.Application
 import androidx.lifecycle.*
 import io.github.toyota32k.dialog.UtDialogOwner
+import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.IDisposable
 import io.github.toyota32k.utils.NamedMutex
-import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.lifecycle.ObservableFlow
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow

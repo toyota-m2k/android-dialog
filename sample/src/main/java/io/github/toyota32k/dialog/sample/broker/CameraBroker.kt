@@ -19,7 +19,7 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
 import io.github.toyota32k.dialog.broker.asActivityBrokerStore
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
-import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.onFalse
 import java.io.File
 import java.io.OutputStream

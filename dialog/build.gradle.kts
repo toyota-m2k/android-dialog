@@ -50,7 +50,7 @@ dependencies {
 
     implementation(libs.kotlinReflect)
 
-    implementation(libs.android.utilities)
+    api(libs.android.utilities)
     implementation(libs.android.binding)
     implementation(libs.android.viewex)
 

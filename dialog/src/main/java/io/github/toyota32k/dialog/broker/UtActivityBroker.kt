@@ -8,7 +8,7 @@ import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.task.IUtImmortalTaskContext
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.getActivity
-import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.logger.UtLog
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException

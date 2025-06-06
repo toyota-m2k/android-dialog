@@ -10,7 +10,7 @@ import androidx.annotation.IdRes
 import androidx.core.view.ancestors
 import androidx.core.view.descendants
 import androidx.core.view.isVisible
-import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.logger.UtLog
 import java.lang.ref.WeakReference
 
 /**

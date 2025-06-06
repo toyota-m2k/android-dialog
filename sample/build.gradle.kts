@@ -43,7 +43,6 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.constraintLayout)
 
-    implementation(libs.android.utilities)
     implementation(libs.android.binding)
     implementation(project(":dialog"))
 

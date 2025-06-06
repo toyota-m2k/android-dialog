@@ -1,8 +1,10 @@
 package io.github.toyota32k.dialog.task
 
 import androidx.lifecycle.LifecycleOwner
-import io.github.toyota32k.dialog.*
-import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.dialog.IUtDialog
+import io.github.toyota32k.dialog.UtDialogOwner
+import io.github.toyota32k.dialog.show
+import io.github.toyota32k.logger.UtLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -10,7 +12,6 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlin.reflect.full.createInstance
 
 /**
  * ImmortalTask の基本実装
