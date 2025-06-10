@@ -119,6 +119,7 @@ class OptionSampleDialog : UtDialogEx() {
                         inflate { parent-> ItemDialogOptionBinding.inflate(inflater.layoutInflater, parent, false) }
                         bindView { c, itemBinder, _, item ->
                             itemBinder
+                                .owner(owner)
                                 .combinatorialVisibilityBinding((item.label == "-").asConstantLiveData()) {
                                     straightGone(c.optionLabel,c.optionValue)
                                     inverseGone(c.separator)
