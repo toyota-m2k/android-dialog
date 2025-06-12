@@ -3,6 +3,7 @@ package io.github.toyota32k.dialog.task
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager.logger
+import io.github.toyota32k.utils.childScope
 import kotlinx.coroutines.*
 
 interface IUtImmortalTaskContextSource {
@@ -30,7 +31,7 @@ interface IUtImmortalTaskContext: ViewModelStoreOwner {
 class UtImmortalTaskContext(override val taskName:String, private val parentContext:IUtImmortalTaskContext?) : IUtImmortalTaskContext {
     private var mScope: CoroutineScope? = null
     override val coroutineScope:CoroutineScope
-        get() = mScope ?: (parentContext?.coroutineScope ?: CoroutineScope(SupervisorJob() + Dispatchers.Main)).apply { mScope=this }
+        get() = mScope ?: (parentContext?.coroutineScope?.childScope() ?: CoroutineScope(SupervisorJob() + Dispatchers.Main)).apply { mScope=this }
     override var clientData: Any? = null
 
     private var mViewModelStore: ViewModelStore? = parentContext?.viewModelStore

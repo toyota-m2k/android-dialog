@@ -35,6 +35,10 @@ class UtImmortalTask<T>(
         }
     }
 
+    override fun toString(): String {
+        return "UtImmortalTask($taskName)"
+    }
+
     companion object {
         private const val DEF_TASK_NAME = "UtImmortalTask.Default"
         /**

@@ -2,15 +2,11 @@ package io.github.toyota32k.dialog.sample
 
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.KeyEvent
 import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.ScrollView
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -21,8 +17,6 @@ import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.dialog.UtDialogConfig
-import io.github.toyota32k.dialog.UtMessageBox
-import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.dialog.broker.IUtActivityBrokerStoreProvider
 import io.github.toyota32k.dialog.broker.UtActivityBrokerStore
 import io.github.toyota32k.dialog.broker.UtMultiPermissionsBroker
@@ -39,21 +33,39 @@ import io.github.toyota32k.dialog.sample.dialog.CustomHeightDialog
 import io.github.toyota32k.dialog.sample.dialog.FullHeightDialog
 import io.github.toyota32k.dialog.sample.dialog.NestedDialog
 import io.github.toyota32k.dialog.task.UtImmortalTask.Companion.launchTask
-import io.github.toyota32k.dialog.task.UtDialogViewModel
-import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
-import io.github.toyota32k.dialog.task.showSingleSelectionBox
 import io.github.toyota32k.dialog.task.showYesNoMessageBox
+import io.github.toyota32k.logger.UtLogConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     class MainActivityViewModel : ViewModel() {
         val outputString = MutableStateFlow("")
+//        var count:Int = 0
+//        var flowSample = MutableStateFlow<String>("")
         val commandMessageBox = LiteUnitCommand {
+//            CoroutineScope(Dispatchers.Main+SupervisorJob()).launch {
+//                flowSample.disposableObserve(this.coroutineContext) {
+//                    logger.debug("value=$it")
+//                }
+//            }
+//            CoroutineScope(Dispatchers.Main).launch {
+//                withContext(Dispatchers.IO) {
+//                    val job = CoroutineScope(SupervisorJob()).launch {
+//                        flowSample.collect {
+//                            logger.debug("value = $it")
+//                        }
+//                    }
+//                    logger.debug("withContext: end")
+//                    delay(1000)
+////                    job.cancel()
+//                }
+//                logger.debug("completed")
+//            }
             launchTask {
                 outputString.value = "MessageBox opening"
-                showConfirmMessageBox("MessageBox", "Hello world.\naaa\nbbb\nccc\nddd")
+                showConfirmMessageBox("MessageBox", "Hello world.")
 //                showSingleSelectionBox("SingleSelection", arrayOf("aaa", "bbb", "ccc"))
                 outputString.value = "MessageBox closed"
             }
@@ -133,6 +145,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         controls = ActivityMainBinding.inflate(layoutInflater)
         setContentView(controls.root)
 
+        UtLogConfig.logLevel = 2 // Log.VERBOSE
 //        UtDialogConfig.showInDialogModeAsDefault = true
 //        UtDialogConfig.solidBackgroundOnPhone = true
         UtDialogConfig.dialogTheme = io.github.toyota32k.dialog.R.style.UtDialogThemeTertiary

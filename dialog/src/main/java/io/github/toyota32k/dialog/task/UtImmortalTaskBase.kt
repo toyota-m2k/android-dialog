@@ -77,6 +77,8 @@ abstract class UtImmortalTaskBase(
                 fireAsync()
             } catch(e:Throwable) {
                 logger.stackTrace(e, "ImmortalTask:$taskName")
+            } finally {
+                logger.verbose("ImmortalTask:$taskName finished")
             }
         }
     }
