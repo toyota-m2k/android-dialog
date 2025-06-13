@@ -134,5 +134,5 @@ object UtDialogConfig {
     /**
      * onBackInvokerDispatcherのプライオリティの基準値 (デフォルト値：OnBackInvokedDispatcher.PRIORITY_DEFAULT）
      */
-    var baseBackInvokedDispatcherPriority = 0 // Default Priofity
+    var baseBackInvokedDispatcherPriority = 0 // Default Priority
 }
