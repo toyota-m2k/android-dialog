@@ -5,6 +5,7 @@ package io.github.toyota32k.dialog
 import android.content.Context
 import android.graphics.Rect
 import android.os.Build
+import android.window.OnBackInvokedDispatcher
 import androidx.annotation.LayoutRes
 import androidx.annotation.StyleRes
 import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustMode
@@ -134,5 +135,5 @@ object UtDialogConfig {
     /**
      * onBackInvokerDispatcherのプライオリティの基準値 (デフォルト値：OnBackInvokedDispatcher.PRIORITY_DEFAULT）
      */
-    var baseBackInvokedDispatcherPriority = 0 // Default Priority
+    var baseBackInvokedDispatcherPriority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { OnBackInvokedDispatcher.PRIORITY_OVERLAY } else { 0 } // Default Priority
 }

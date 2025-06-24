@@ -38,6 +38,7 @@ import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
+import androidx.annotation.StyleRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
@@ -1293,11 +1294,18 @@ abstract class UtDialog: UtDialogBase() {
 
     private var keyboardObserver: ISoftwareKeyboardObserver? = null
 
+    private inner class XDialog(context: Context, @StyleRes themeResId: Int) : Dialog(context, themeResId) {
+        override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+            logger.debug("${event.keyCode} $event")
+            return handleKeyEvent(event) || super.dispatchKeyEvent(event)
+        }
+    }
+
     /**
      * isDialog == true の場合に呼ばれる。
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return Dialog(requireContext(), R.style.dlg_style).apply {
+        return XDialog(requireContext(), R.style.dlg_style).apply {
             window?.let { window ->
                 window.setBackgroundDrawable(GuardColor.TRANSPARENT.rawColor.toDrawable())
 
@@ -1314,13 +1322,12 @@ abstract class UtDialog: UtDialogBase() {
                         window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
                     }
                 }
-
             }
         }
     }
 
     private val compatBackKeyDispatcher = CompatBackKeyDispatcher()
-    private var backInvokerPriority = 0
+    private var backInvokerPriority = UtDialogConfig.baseBackInvokedDispatcherPriority
 
     /**
      * コンテントビュー生成処理
@@ -1333,7 +1340,6 @@ abstract class UtDialog: UtDialogBase() {
             }
             preCreateBodyView()
             rootView = inflater.inflate(UtDialogConfig.dialogFrameId, container, false) as FrameLayout
-            (rootView as? UtRootFrameLayout)?.apply { ownerDialog = this@UtDialog }
 
             if (noHeader) {
                 rootView.findViewById<View>(R.id.header).visibility = View.GONE
@@ -1651,23 +1657,29 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * キーイベントハンドラ
      * これは、FragmentやDialogFragmentのメソッドではなく、オリジナルのやつ。
-     * UtRootFrameLayout#dispatchKeyEvent() から呼び出す。
+     * UtMortalActivity -> UtMortalTaskKeeper から呼び出される。
+     *
      * @return  true:イベントを消費した / false:消費しなかった
      */
-    open fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (!isDialog) {
-            // ダイアログモード(isDialog==true)の場合は、OSによって、BACK/ESCキーで、自動的に閉じるが、
+    open fun handleKeyEvent(event: KeyEvent): Boolean {
+        if (event.action != KeyEvent.ACTION_DOWN) return false // DOWNのみ処理
+        val keyCode = event.keyCode
+
+        if (keyCode == KeyEvent.KEYCODE_ESCAPE || keyCode == KeyEvent.KEYCODE_BACK) {
             // フラグメントモード（isDialog==false）の場合は、自力で閉じる必要がある。
-            if ( keyCode==KeyEvent.KEYCODE_ESCAPE ) {
-                cancel()
-                return true
-            }
-        }
-        // フォーカス管理
-        if(focusManager?.root?.handleTabEvent(keyCode, event) { rootView.findFocus() } == true) {
+            // ダイアログモード(isDialog==true)の場合は、OSによって、BACK/ESCキーで、自動的に閉じるので、以前はフラグメントモードの場合のみ、
+            // ここでキャンセルを呼ぶようにしていたが、
+            //  - ESCキーが１回空振りして、２回押さないと閉じない
+            //  - １回目のESCキーで、フォーカスがダイアログの下地あたりに移動するようで、その後のタブによるフォーカス移動が不正になる。
+            //  - 万一cancelが２回呼び出されたとしても特に支障はない。
+            //
+            cancel()
             return true
         }
-
+        // フォーカス管理
+        if (focusManager?.root?.handleTabEvent(event) { rootView.findFocus() } == true) {
+            return true
+        }
         return false
     }
 

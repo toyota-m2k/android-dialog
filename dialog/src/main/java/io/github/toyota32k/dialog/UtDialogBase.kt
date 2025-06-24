@@ -42,6 +42,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      *
      */
     var isDialog : Boolean by bundle.booleanWithDefault(UtDialogConfig.showInDialogModeAsDefault)
+    val isFragment: Boolean get() = !isDialog
 
     enum class SystemBarOptionOnFragmentMode {
         NONE,   // 何もしない (NoActionBar ならこれでok)

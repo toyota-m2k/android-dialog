@@ -13,8 +13,11 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
+import io.github.toyota32k.binder.materialRadioButtonGroupBinding
+import io.github.toyota32k.binder.observe
 import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.broker.IUtActivityBrokerStoreProvider
@@ -133,6 +136,25 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
                 }
             }
         }
+        val isDialog = MutableStateFlow(UtDialogConfig.showInDialogModeAsDefault)
+
+        object IsDialogIDResolver : IIDValueResolver<Boolean> {
+            override fun id2value(id: Int): Boolean? {
+                return when (id) {
+                    R.id.dialog_mode_dialog -> true
+                    R.id.dialog_mode_fragment -> false
+                    else -> null
+                }
+            }
+
+            override fun value2id(v: Boolean): Int {
+                return when (v) {
+                    true -> R.id.dialog_mode_dialog
+                    false -> R.id.dialog_mode_fragment
+                }
+            }
+
+        }
     }
 
     override val activityBrokers = UtActivityBrokerStore(this, UtOpenFilePicker(), UtOpenReadOnlyFilePicker(),UtOpenReadOnlyMultiFilePicker(),UtMultiPermissionsBroker(), ImageCameraBroker())
@@ -149,7 +171,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //        UtDialogConfig.showInDialogModeAsDefault = true
 //        UtDialogConfig.solidBackgroundOnPhone = true
         UtDialogConfig.dialogTheme = io.github.toyota32k.dialog.R.style.UtDialogThemeTertiary
-        UtDialogConfig.showInDialogModeAsDefault = false
+        //UtDialogConfig.showInDialogModeAsDefault = true
 
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -173,6 +195,8 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             .bindCommand(viewModel.commandNestedDialog, controls.btnNestedDialog)
             .bindCommand(LiteUnitCommand(::startOptionActivity), controls.navigateOptionActivity)
             .textBinding(controls.outputText, viewModel.outputString)
+            .materialRadioButtonGroupBinding(controls.dialogMode, viewModel.isDialog, MainActivityViewModel.IsDialogIDResolver)
+            .observe(viewModel.isDialog) { UtDialogConfig.showInDialogModeAsDefault = it }
     }
 
     // LinearLayout に、layout_gravity=center_vertical を設定していると、portraitではいい感じだが、
@@ -198,10 +222,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         startActivity(Intent(this, OptionActivity::class.java))
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-//        if(keyCode == KeyEvent.KEYCODE_BACK) {
-//            return false
-//        }
-        return super.onKeyDown(keyCode, event)
-    }
+//    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+//        return super.onKeyDown(keyCode, event)
+//    }
 }

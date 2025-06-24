@@ -94,9 +94,33 @@
                 android:layout_height="wrap_content"
                 style="?attr/materialButtonOutlinedStyle"
                 />
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/dialog_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:singleSelection="true"
+                >
+                <Button
+                    android:id="@+id/dialog_mode_dialog"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="100dp"
+                    android:text="@string/mode_dialog"
+                    />
+                <Button
+                    android:id="@+id/dialog_mode_fragment"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="100dp"
+                    android:text="@string/mode_fragment"
+                    />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
             <Button
                 android:id="@+id/navigate_option_activity"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/option_activity_title"
                 />

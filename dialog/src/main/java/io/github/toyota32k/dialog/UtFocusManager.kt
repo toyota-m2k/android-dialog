@@ -332,8 +332,10 @@ class UtFocusManager : TextView.OnEditorActionListener {
         }
     }
 
-    fun handleTabEvent(keyCode:Int, event:KeyEvent?, currentFocus:()->View?):Boolean {
-        return if(keyCode==KeyEvent.KEYCODE_TAB && event!=null && event.action == KeyEvent.ACTION_DOWN) {
+    fun handleTabEvent(event:KeyEvent, currentFocus:()->View?):Boolean {
+        if(event.action != KeyEvent.ACTION_DOWN) return false // DOWNのみ処理
+        val keyCode = event.keyCode
+        return if(keyCode==KeyEvent.KEYCODE_TAB) {
             if (event.isShiftPressed) {
                 prevOrLoop(currentFocus()?.id ?: 0)
             } else {

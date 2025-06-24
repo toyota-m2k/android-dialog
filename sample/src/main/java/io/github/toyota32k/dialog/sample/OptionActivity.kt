@@ -43,6 +43,7 @@ import io.github.toyota32k.dialog.sample.dialog.OptionSampleDialog
 import io.github.toyota32k.dialog.sample.dialog.ThemeColorDialog
 import io.github.toyota32k.dialog.task.UtImmortalTask.Companion.launchTask
 import io.github.toyota32k.dialog.task.createViewModel
+import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.utils.android.ApplicationViewModelStoreOwner
 import io.github.toyota32k.utils.android.hideActionBar
 import io.github.toyota32k.utils.android.hideStatusBar
@@ -247,6 +248,8 @@ class OptionActivity : UtMortalActivity() {
     private val viewModel:OptionActivityViewModel = ViewModelProvider(ApplicationViewModelStoreOwner.viewModelStore, ViewModelProvider.NewInstanceFactory())[OptionActivityViewModel::class.java]
     private lateinit var controls: ActivityOptionBinding
 
+    private val compatBackKeyDispatcher = CompatBackKeyDispatcher()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val edgeToEdgeEnabled = viewModel.edgeToEdgeEnabled.value
@@ -258,6 +261,19 @@ class OptionActivity : UtMortalActivity() {
         setTheme(currentTheme)
         controls = ActivityOptionBinding.inflate(layoutInflater)
         setContentView(controls.root)
+
+        compatBackKeyDispatcher
+            .setInvokedDispatcherPriority(1) // NORMAL+1 ... 0 だと onBackInvokedCallbackより、onBackPressedCallback が優先される（compatBackKeyDispatcherが吸収するので、どちらでも動作に影響はないが動作確認のため。）
+            .register(this) {
+            logger.debug("BackKey pressed on OptionActivity")
+            launchTask("OpenActivity.Exit") {
+                if(showYesNoMessageBox("OptionActivity", "Activity is closing, Are you sure?")) {
+                    withOwner(OptionActivity::class.java) {
+                        it.asActivity()?.finish()
+                    }
+                }
+            }
+        }
 
         if(edgeToEdgeEnabled) {
             WindowCompat.setDecorFitsSystemWindows(window, false)

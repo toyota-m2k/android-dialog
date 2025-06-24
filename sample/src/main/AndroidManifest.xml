@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+        デバッグメモ
+        onBackKeyPressedDispatcherを試すなら、application または、activityに
+            android:enableOnBackInvokedCallback="true"
+        を追加し、minSdk=33にする
+    -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.DialogSample.DynamicColor.NoActionBar">
         <activity
             android:name=".MainActivity"

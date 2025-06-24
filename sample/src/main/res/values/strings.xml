@@ -16,4 +16,6 @@
     <string name="button_add_file">File</string>
     <string name="nested_dialog">Nested Dialog</string>
     <string name="button_add_files">Files</string>
+    <string name="mode_dialog">Dialog</string>
+    <string name="mode_fragment">Fragment</string>
 </resources>

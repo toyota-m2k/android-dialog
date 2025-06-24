@@ -41,28 +41,29 @@ open class UtMortalTaskKeeper(
         }
     }
 
-//    /**
-//     * KeyDownイベントハンドラ（オーバーライド禁止）
-//     * - ダイアログ表示中なら、ダイアログにイベントを渡す。
-//     * - ダイアログ表示中でなければ、handleKeyEvent()を呼び出す。
-//     * @return true ダイアログがイベントを消費した
-//     *         false 消費しなかった （Activity側のキーイベント処理を実行してください）
-//     */
-//    fun onKeyDown(activity: FragmentActivity, keyCode: Int, event: KeyEvent?): Boolean {
-//        val currentDialog: UtDialog? = UtDialogHelper.currentDialog(activity)
-//        if (currentDialog != null) {
-//            logger.debug { "key event consumed by dialog: $keyCode (${event}) : ${currentDialog.javaClass.simpleName}" }
-//            if(currentDialog.onKeyDown(keyCode, event)) {
-//                // ダイアログがイベントを処理した
-//                return true
-//            }
-//            if(!currentDialog.isDialog) {
-//                // フラグメントモードの場合は、ダイアログでイベントを処理しなくても、消費したことにする（ダイアログの後ろで、Activityが操作されてしまうのを防止）
-//                return true
-//            }
-//        }
-//        return false
-//    }
+    /**
+     * KeyDownイベントハンドラ（オーバーライド禁止）
+     * - ダイアログ表示中なら、ダイアログにイベントを渡す。
+     * - ダイアログ表示中でなければ、handleKeyEvent()を呼び出す。
+     * @return true ダイアログがイベントを消費した
+     *         false 消費しなかった （Activity側のキーイベント処理を実行してください）
+     */
+    fun handleKeyEvent(activity: FragmentActivity, event: KeyEvent): Boolean {
+        if (event.action != KeyEvent.ACTION_DOWN) return false   // DOWNのみ処理
+        val currentDialog: UtDialog? = UtDialogHelper.currentDialog(activity)
+        if (currentDialog != null) {
+            logger.debug { "key event consumed by dialog: ${event.keyCode} (${event}) : ${currentDialog.javaClass.simpleName}" }
+            if (currentDialog.handleKeyEvent(event)) {
+                // ダイアログがイベントを処理した
+                return true
+            }
+            if (!currentDialog.isDialog) {
+                // フラグメントモードの場合は、ダイアログでイベントを処理しなくても、消費したことにする（ダイアログの後ろで、Activityが操作されてしまうのを防止）
+                return true
+            }
+        }
+        return false
+    }
 
     open val logger = UtImmortalTaskManager.logger
 }
