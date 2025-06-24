@@ -45,6 +45,7 @@ import io.github.toyota32k.dialog.task.UtImmortalTask.Companion.launchTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.utils.android.ApplicationViewModelStoreOwner
+import io.github.toyota32k.utils.android.CompatBackKeyDispatcher
 import io.github.toyota32k.utils.android.hideActionBar
 import io.github.toyota32k.utils.android.hideStatusBar
 import io.github.toyota32k.utils.android.isActionBarVisible
