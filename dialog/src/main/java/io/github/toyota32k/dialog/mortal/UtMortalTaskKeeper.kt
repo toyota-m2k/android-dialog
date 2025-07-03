@@ -41,6 +41,9 @@ open class UtMortalTaskKeeper(
         }
     }
 
+    fun onKeyDown(activity: FragmentActivity, keyCode: Int, event: KeyEvent?): Boolean {
+        return ( UtDialogHelper.currentDialog(activity)?.isDialog == false )
+    }
     /**
      * KeyDownイベントハンドラ（オーバーライド禁止）
      * - ダイアログ表示中なら、ダイアログにイベントを渡す。
@@ -48,7 +51,7 @@ open class UtMortalTaskKeeper(
      * @return true ダイアログがイベントを消費した
      *         false 消費しなかった （Activity側のキーイベント処理を実行してください）
      */
-    fun handleKeyEvent(activity: FragmentActivity, event: KeyEvent): Boolean {
+    fun dispatchKeyEvent(activity: FragmentActivity, event: KeyEvent): Boolean {
         if (event.action != KeyEvent.ACTION_DOWN) return false   // DOWNのみ処理
         val currentDialog: UtDialog? = UtDialogHelper.currentDialog(activity)
         if (currentDialog != null) {
@@ -57,10 +60,10 @@ open class UtMortalTaskKeeper(
                 // ダイアログがイベントを処理した
                 return true
             }
-            if (!currentDialog.isDialog) {
-                // フラグメントモードの場合は、ダイアログでイベントを処理しなくても、消費したことにする（ダイアログの後ろで、Activityが操作されてしまうのを防止）
-                return true
-            }
+//            if (!currentDialog.isDialog) {
+//                // フラグメントモードの場合は、ダイアログでイベントを処理しなくても、消費したことにする（ダイアログの後ろで、Activityが操作されてしまうのを防止）
+//                return true
+//            }
         }
         return false
     }

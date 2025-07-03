@@ -54,13 +54,18 @@ abstract class UtMortalActivity(
      */
     final override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         logger.info("$keyCode ${event?:"null"}")
-        return handleKeyEvent(keyCode, event)
-               || super.onKeyDown(keyCode, event)
+        if( handleKeyEvent(keyCode, event) ) {
+            return true
+        }
+        if (mortalTaskKeeper.onKeyDown(this, keyCode, event)) {
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     final override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         logger.info("$event")
-        if (mortalTaskKeeper.handleKeyEvent(this, event)) {
+        if (mortalTaskKeeper.dispatchKeyEvent(this, event)) {
             return true
         }
         return super.dispatchKeyEvent(event)
