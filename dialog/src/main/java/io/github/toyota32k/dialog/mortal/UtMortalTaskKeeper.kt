@@ -8,6 +8,13 @@ import io.github.toyota32k.dialog.UtDialogHelper
 import io.github.toyota32k.dialog.UtDialogHostManager
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.dialog.toDialogOwner
+import io.github.toyota32k.utils.lifecycle.LifecycleOwnerHolder
+import io.github.toyota32k.utils.lifecycle.LifecycleReference
+import java.lang.ref.WeakReference
+
+interface IUtKeyEventDispatcher {
+    fun handleKeyEvent(keyCode: Int, event: KeyEvent?):Boolean
+}
 
 /**
  * Mortal Activity と Immortal Task の連携をサポートするための最小クラス
@@ -18,54 +25,94 @@ open class UtMortalTaskKeeper(
     private val dialogHostManager: UtDialogHostManager) : IUtDialogHost by dialogHostManager {
     constructor() : this(UtDialogHostManager())
 
+    private var ownerRef:WeakReference<FragmentActivity>? = null
+    protected var ownerActivity: FragmentActivity?
+        get() = ownerRef?.get()
+        set(value) { if (value!=null) ownerRef=WeakReference(value) else ownerRef = null }
+
+    fun attach(activity: FragmentActivity) {
+        ownerActivity = activity
+    }
+
+    protected fun <T> withActivity(fn:(FragmentActivity)->T):T? {
+        return ownerActivity?.run { fn(this) }
+    }
+
     /**
      * Activity が前面に上がる時点で、reserveTask()を呼び出して、タスクテーブルに登録しておく。
      */
-    open fun onResume(activity: FragmentActivity) {
+    open fun onResume() {
         // ImmortalTask に接続する
-        UtImmortalTaskManager.registerOwner(activity.toDialogOwner())
+        withActivity { activity->
+            UtImmortalTaskManager.registerOwner(activity.toDialogOwner())
+        }
     }
 
     /**
      * Activity が　finish()するときに disposeTask()する。
      */
-    open fun onPause(activity: FragmentActivity) {
-        UtImmortalTaskManager.unregisterOwner(activity.toDialogOwner())
+    open fun onPause() {
+        withActivity { activity->
+            UtImmortalTaskManager.unregisterOwner(activity.toDialogOwner())
+        }
     }
 
-    open fun onDestroy(activity: FragmentActivity) {
+    open fun onDestroy() {
         // タスクはActivityをまたいで生存可能とするが、ダイアログ（UI）はActivityの子なので閉じざるを得ない。
         // 普通、ダイアログが閉じるのを待ってActivityをfinish()すればよいはずなので、たぶん困ることはないはず。
-        if(activity.isFinishing) {
-            UtDialogHelper.forceCloseAllDialogs(activity)
+        withActivity { activity->
+            if (activity.isFinishing) {
+                UtDialogHelper.forceCloseAllDialogs(activity)
+            }
         }
     }
 
-    fun onKeyDown(activity: FragmentActivity, keyCode: Int, event: KeyEvent?): Boolean {
-        return ( UtDialogHelper.currentDialog(activity)?.isDialog == false )
-    }
     /**
-     * KeyDownイベントハンドラ（オーバーライド禁止）
-     * - ダイアログ表示中なら、ダイアログにイベントを渡す。
-     * - ダイアログ表示中でなければ、handleKeyEvent()を呼び出す。
-     * @return true ダイアログがイベントを消費した
-     *         false 消費しなかった （Activity側のキーイベント処理を実行してください）
+     * フラグメントモードのダイアログを表示中にカーソルキーなどを操作すると、ダイアログの下のActivityが操作されてしまう事案が発生。
+     * これを回避するため、フラグメントモードのダイアログ表示中は、onKeyDownイベントをActivityに回さないようにする。
+     * この処理を dispatchKeyEvent()でやってしまうと、キーイベントがダイアログにも伝わらなくなって操作不能に陥るため、
+     * onKeyDownに実装している。
+     *
+     * このように、キーイベントはとてもデリケートで、テキトーに処理されると困るので、UtDialogを利用するアクティビティでは、
+     * onKeyDown / dispatchKeyEventをオーバーライドしないで、IUtKeyEventDispatcher を実装し、handleKeyEvent()メソッドで
+     * キーイベントをハンドルするようにしてください。
      */
-    fun dispatchKeyEvent(activity: FragmentActivity, event: KeyEvent): Boolean {
-        if (event.action != KeyEvent.ACTION_DOWN) return false   // DOWNのみ処理
-        val currentDialog: UtDialog? = UtDialogHelper.currentDialog(activity)
-        if (currentDialog != null) {
-            logger.debug { "key event consumed by dialog: ${event.keyCode} (${event}) : ${currentDialog.javaClass.simpleName}" }
-            if (currentDialog.handleKeyEvent(event)) {
-                // ダイアログがイベントを処理した
-                return true
+    fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        return withActivity { activity->
+            if (UtDialogHelper.currentDialog(activity)?.isFragment == true) {
+                // フラグメントモードのダイアログが表示されているときは、Activityのキーイベントハンドラを呼び出さないようにする。
+                // そうしないとダイアログ表示中に、下のアクティビティがキー操作できてしまう。
+                true
+            } else if (activity is IUtKeyEventDispatcher) {
+                activity.handleKeyEvent(keyCode, event)
+            } else {
+                false
             }
-//            if (!currentDialog.isDialog) {
-//                // フラグメントモードの場合は、ダイアログでイベントを処理しなくても、消費したことにする（ダイアログの後ろで、Activityが操作されてしまうのを防止）
-//                return true
-//            }
-        }
-        return false
+        } == true
+    }
+
+    /**
+     * ダイアログへ確実にキーイベントを送るため、Activity.dispatchKeyEventを利用する。
+     *
+     * onKeyDownは、ダイアログ上のEditTextなどがフォーカスを持っていると呼ばれないことがあり、
+     * TABによるフォーカス移動が動作しないことがあった。
+     *
+     * @return true ダイアログがイベントを消費した
+     *         false 消費しなかった （super.dispatchKeyEventを呼んでください。）
+     */
+    fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action != KeyEvent.ACTION_DOWN) return false   // DOWNのみ処理
+        return withActivity { activity ->
+            val currentDialog: UtDialog? = UtDialogHelper.currentDialog(activity)
+            if (currentDialog != null) {
+                logger.debug { "key event consumed by dialog: ${event.keyCode} (${event}) : ${currentDialog.javaClass.simpleName}" }
+                if (currentDialog.handleKeyEvent(event)) {
+                    // ダイアログがイベントを処理した
+                    return@withActivity true
+                }
+            }
+            false
+        } == true
     }
 
     open val logger = UtImmortalTaskManager.logger

@@ -37,19 +37,21 @@ open class UtMortalStaticTaskKeeper : UtMortalTaskKeeper() {
     /**
      * Activity が前面に上がる時点で、reserveTask()を呼び出して、タスクテーブルに登録しておく。
      */
-    override fun onResume(activity: FragmentActivity) {
+    override fun onResume() {
         // ImmortalTask に接続する
-        super.onResume(activity)
-        val resultReceiver = activity as? IUtImmortalTaskResultReceiver
-        if(resultReceiver != null) {
-            for (taskName in resultReceiver.reservedImmortalTaskNames) {
-                val task = UtImmortalTaskManager.reserveTask(taskName)
-                observersDisposer.register(task.registerStateObserver(activity) { state ->
-                    if (state.finished) {
-                        // val task = UtImmortalTaskManager.taskOf(taskName) ?: return@registerStateObserver
-                        resultReceiver.onImmortalTaskResult(task)
-                    }
-                })
+        super.onResume()
+        withActivity { activity ->
+            val resultReceiver = activity as? IUtImmortalTaskResultReceiver
+            if (resultReceiver != null) {
+                for (taskName in resultReceiver.reservedImmortalTaskNames) {
+                    val task = UtImmortalTaskManager.reserveTask(taskName)
+                    observersDisposer.register(task.registerStateObserver(activity) { state ->
+                        if (state.finished) {
+                            // val task = UtImmortalTaskManager.taskOf(taskName) ?: return@registerStateObserver
+                            resultReceiver.onImmortalTaskResult(task)
+                        }
+                    })
+                }
             }
         }
     }
@@ -57,19 +59,21 @@ open class UtMortalStaticTaskKeeper : UtMortalTaskKeeper() {
     /**
      * Activity が　finish()するときに disposeTask()する。
      */
-    override fun onPause(activity: FragmentActivity) {
-        val resultReceiver = activity as? IUtImmortalTaskResultReceiver
-        if(resultReceiver != null) {
-            for (name in resultReceiver.reservedImmortalTaskNames) {
-                // デフォルトの動作では、Activityが完全終了(finish)するときに ImmortalTask も削除する。
-                // アクティビティが終了してもタスクの動作を継続する場合は、queryDisposeTaskOnFinishActivity をオーバーライドして false を返す。
-                if (activity.isFinishing && resultReceiver.queryDisposeTaskOnFinishActivity(name)) {
-                    UtImmortalTaskManager.disposeTask(name)
+    override fun onPause() {
+        withActivity { activity ->
+            val resultReceiver = activity as? IUtImmortalTaskResultReceiver
+            if (resultReceiver != null) {
+                for (name in resultReceiver.reservedImmortalTaskNames) {
+                    // デフォルトの動作では、Activityが完全終了(finish)するときに ImmortalTask も削除する。
+                    // アクティビティが終了してもタスクの動作を継続する場合は、queryDisposeTaskOnFinishActivity をオーバーライドして false を返す。
+                    if (activity.isFinishing && resultReceiver.queryDisposeTaskOnFinishActivity(name)) {
+                        UtImmortalTaskManager.disposeTask(name)
+                    }
                 }
             }
+            observersDisposer.reset()
         }
-        observersDisposer.reset()
-        super.onPause(activity)
+        super.onPause()
     }
 
 }

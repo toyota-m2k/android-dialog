@@ -7,19 +7,23 @@ import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 
 /**
  * ImmortalTask と協調動作するActivityの基本実装
- * ベースActivityクラスの変更が困難、または、AppCompatActivity以外から派生する場合は、このクラスの実装を参考に、実装を追加してください。
+ * ベースActivityクラスの変更が困難、または、AppCompatActivity以外から派生する場合は、このクラスの実装を参考に、
+ * 実装を追加してください。
  */
 abstract class UtMortalActivity(
     protected val mortalTaskKeeper: UtMortalTaskKeeper = UtMortalTaskKeeper())
     : AppCompatActivity()
-    , IUtDialogHost by mortalTaskKeeper {
+    , IUtDialogHost by mortalTaskKeeper, IUtKeyEventDispatcher {
 
+    init {
+        mortalTaskKeeper.attach(this)
+    }
     /**
      * Activity が前面に上がる時点で、reserveTask()を呼び出して、タスクテーブルに登録しておく。
      */
     override fun onResume() {
         super.onResume()
-        mortalTaskKeeper.onResume(this)
+        mortalTaskKeeper.onResume()
     }
 
     /**
@@ -27,12 +31,12 @@ abstract class UtMortalActivity(
      */
     override fun onPause() {
         super.onPause()
-        mortalTaskKeeper.onPause(this)
+        mortalTaskKeeper.onPause()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mortalTaskKeeper.onDestroy(this)
+        mortalTaskKeeper.onDestroy()
     }
 
     /**
@@ -41,8 +45,10 @@ abstract class UtMortalActivity(
      *
      * 自分自身のキーイベント処理(mortalActivityCore.onKeyDown()) と、
      * super.onKeyDown() の間に、派生クラスの onKeyDown() をはさむ必要があったので、このような構成にした。
+     *
+     * IKeyEventDispatcher i/f
      */
-    open fun handleKeyEvent(keyCode: Int, event: KeyEvent?):Boolean {
+    override fun handleKeyEvent(keyCode: Int, event: KeyEvent?):Boolean {
         return false
     }
 
@@ -53,19 +59,16 @@ abstract class UtMortalActivity(
      * - handleKeyEvent()がfalseを返したら、親クラス(FragmentActivity）の onKeyDownを呼ぶ。
      */
     final override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        logger.info("$keyCode ${event?:"null"}")
-        if( handleKeyEvent(keyCode, event) ) {
-            return true
-        }
-        if (mortalTaskKeeper.onKeyDown(this, keyCode, event)) {
+        logger.verbose("$keyCode ${event?:"null"}")
+        if (mortalTaskKeeper.onKeyDown(keyCode, event)) {
             return true
         }
         return super.onKeyDown(keyCode, event)
     }
 
     final override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        logger.info("$event")
-        if (mortalTaskKeeper.dispatchKeyEvent(this, event)) {
+        logger.verbose("$event")
+        if (mortalTaskKeeper.dispatchKeyEvent(event)) {
             return true
         }
         return super.dispatchKeyEvent(event)
