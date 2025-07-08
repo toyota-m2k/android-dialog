@@ -68,51 +68,43 @@ open class UtMortalTaskKeeper(
     }
 
     /**
-     * フラグメントモードのダイアログを表示中にカーソルキーなどを操作すると、ダイアログの下のActivityが操作されてしまう事案が発生。
-     * これを回避するため、フラグメントモードのダイアログ表示中は、onKeyDownイベントをActivityに回さないようにする。
-     * この処理を dispatchKeyEvent()でやってしまうと、キーイベントがダイアログにも伝わらなくなって操作不能に陥るため、
-     * onKeyDownに実装している。
+     * キーイベントの処理
+     * - ダイアログ表示中なら、ダイアログにイベントを渡す。
+     * - ダイアログがイベントを処理しなければ、
      *
      * このように、キーイベントはとてもデリケートで、テキトーに処理されると困るので、UtDialogを利用するアクティビティでは、
      * onKeyDown / dispatchKeyEventをオーバーライドしないで、IUtKeyEventDispatcher を実装し、handleKeyEvent()メソッドで
      * キーイベントをハンドルするようにしてください。
      */
     fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        return withActivity { activity->
-            if (UtDialogHelper.currentDialog(activity)?.isFragment == true) {
-                // フラグメントモードのダイアログが表示されているときは、Activityのキーイベントハンドラを呼び出さないようにする。
-                // そうしないとダイアログ表示中に、下のアクティビティがキー操作できてしまう。
-                true
-            } else if (activity is IUtKeyEventDispatcher) {
-                activity.handleKeyEvent(keyCode, event)
-            } else {
-                false
-            }
-        } == true
-    }
-
-    /**
-     * ダイアログへ確実にキーイベントを送るため、Activity.dispatchKeyEventを利用する。
-     *
-     * onKeyDownは、ダイアログ上のEditTextなどがフォーカスを持っていると呼ばれないことがあり、
-     * TABによるフォーカス移動が動作しないことがあった。
-     *
-     * @return true ダイアログがイベントを消費した
-     *         false 消費しなかった （super.dispatchKeyEventを呼んでください。）
-     */
-    fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.action != KeyEvent.ACTION_DOWN) return false   // DOWNのみ処理
-        return withActivity { activity ->
-            val currentDialog: UtDialog? = UtDialogHelper.currentDialog(activity)
-            if (currentDialog != null) {
+        logger.verbose { "onKeyDown: $keyCode (${event})" }
+        if (event==null) return false
+        val activity = ownerActivity ?: return false
+        val currentDialog: UtDialog? = UtDialogHelper.currentDialog(activity)
+        if (currentDialog != null) {
+            logger.debug { "key event to dialog (isFragment=${currentDialog.isFragment}: ${event.keyCode} (${event}) : ${currentDialog.javaClass.simpleName}" }
+            if (currentDialog.handleKeyEvent(event)) {
+                // ダイアログがイベントを処理した
                 logger.debug { "key event consumed by dialog: ${event.keyCode} (${event}) : ${currentDialog.javaClass.simpleName}" }
-                if (currentDialog.handleKeyEvent(event)) {
-                    // ダイアログがイベントを処理した
-                    return@withActivity true
+                return true
+            }
+
+            if (currentDialog.isFragment) { // isDialog=trueの場合は、そもそも この onKeyDownが呼ばれないので、このチェックは不要のはずだが。
+                when(keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP,
+                    KeyEvent.KEYCODE_DPAD_DOWN,
+                    KeyEvent.KEYCODE_DPAD_LEFT,
+                    KeyEvent.KEYCODE_DPAD_RIGHT-> return true
+                    else-> {}
                 }
             }
-            false
-        } == true
+            logger.debug { "key event pass through activity: ${event.keyCode} (${event}) : ${currentDialog.javaClass.simpleName}" }
+            return false
+        } else if (activity is IUtKeyEventDispatcher) {
+            return activity.handleKeyEvent(keyCode, event)
+        } else {
+            return false
+        }
     }
 
     open val logger = UtImmortalTaskManager.logger

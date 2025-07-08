@@ -122,6 +122,7 @@
                 style="@style/option_activity_item"
                 android:id="@+id/dialog_title_edit"
                 android:hint="Dialog Title"
+                android:inputType="textMultiLine"
                 />
             <TextView
                 style="@style/option_activity_item_label"

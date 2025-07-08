@@ -67,10 +67,6 @@ abstract class UtMortalActivity(
     }
 
     final override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        logger.verbose("$event")
-        if (mortalTaskKeeper.dispatchKeyEvent(event)) {
-            return true
-        }
         return super.dispatchKeyEvent(event)
     }
 
