@@ -89,15 +89,6 @@ open class UtMortalTaskKeeper(
                 return true
             }
 
-            if (currentDialog.isFragment) { // isDialog=trueの場合は、そもそも この onKeyDownが呼ばれないので、このチェックは不要のはずだが。
-                when(keyCode) {
-                    KeyEvent.KEYCODE_DPAD_UP,
-                    KeyEvent.KEYCODE_DPAD_DOWN,
-                    KeyEvent.KEYCODE_DPAD_LEFT,
-                    KeyEvent.KEYCODE_DPAD_RIGHT-> return true
-                    else-> {}
-                }
-            }
             logger.debug { "key event pass through activity: ${event.keyCode} (${event}) : ${currentDialog.javaClass.simpleName}" }
             return false
         } else if (activity is IUtKeyEventDispatcher) {

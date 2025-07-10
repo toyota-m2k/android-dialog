@@ -28,6 +28,7 @@ class AutoScrollDialog : UtDialogEx() {
         leftButtonType = ButtonType.CANCEL
         rightButtonType = ButtonType.DONE
         cancellable = true
+        enableFocusManagement().autoRegister()
     }
 
     private fun addItemToView(index:Int) {

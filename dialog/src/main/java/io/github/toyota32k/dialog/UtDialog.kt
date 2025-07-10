@@ -51,6 +51,7 @@ import androidx.core.view.marginStart
 import androidx.core.view.marginTop
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import io.github.toyota32k.dialog.UtFocusManager.UseKey
 import io.github.toyota32k.utils.android.CompatBackKeyDispatcher
 import io.github.toyota32k.utils.android.dp2px
 import io.github.toyota32k.utils.android.getAttrColor
@@ -548,11 +549,16 @@ abstract class UtDialog: UtDialogBase() {
     // endregion
 
     // region フォーカス移動
-    class FocusManager(withDialogButtons: Boolean) {
-        private val rootFocusManager: UtFocusManager = UtFocusManager()
+    class FocusManager(withDialogButtons: Boolean, useKey:UseKey?=null) {
+        private val rootFocusManager: UtFocusManager = UtFocusManager().apply {
+            if (useKey!=null) { setUseKeys(useKey) }
+        }
         private val bodyFocusManager: UtFocusManager? = if (withDialogButtons) {
             rootFocusManager.register(R.id.left_button, R.id.right_button)
-            UtFocusManager().apply { rootFocusManager.appendChild(this) }
+            UtFocusManager().apply {
+                rootFocusManager.appendChild(this)
+                if (useKey!=null) { setUseKeys(useKey) }
+            }
         } else {
             null
         }
@@ -589,8 +595,8 @@ abstract class UtDialog: UtDialogBase() {
 
     private var focusManager: FocusManager? = null
 
-    fun enableFocusManagement(withDialogButtons: Boolean = true): UtFocusManager {
-        val fm = focusManager ?: FocusManager(withDialogButtons).apply { focusManager = this }
+    fun enableFocusManagement(withDialogButtons: Boolean = true, useKey:UseKey?=null): UtFocusManager {
+        val fm = focusManager ?: FocusManager(withDialogButtons,useKey).apply { focusManager = this }
         return fm.body
     }
 
@@ -1295,9 +1301,12 @@ abstract class UtDialog: UtDialogBase() {
     private var keyboardObserver: ISoftwareKeyboardObserver? = null
 
     private inner class XDialog(context: Context, @StyleRes themeResId: Int) : Dialog(context, themeResId) {
-        override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
             logger.debug("${event.keyCode} $event")
-            return handleKeyEvent(event) || super.dispatchKeyEvent(event)
+            if (handleKeyEvent(event)) {
+                return true
+            }
+            return super.onKeyDown(keyCode, event)
         }
     }
 
@@ -1680,7 +1689,17 @@ abstract class UtDialog: UtDialogBase() {
         if (focusManager?.root?.handleTabEvent(event) { rootView.findFocus() } == true) {
             return true
         }
-        return false
+        return when(keyCode) {
+            KeyEvent.KEYCODE_MOVE_END,
+            KeyEvent.KEYCODE_MOVE_HOME,
+            KeyEvent.KEYCODE_PAGE_DOWN,
+            KeyEvent.KEYCODE_PAGE_UP,
+            KeyEvent.KEYCODE_DPAD_UP,
+            KeyEvent.KEYCODE_DPAD_DOWN,
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_DPAD_RIGHT -> true
+            else -> false
+        }
     }
 
     // rootViewで、Backキーによるダイアログキャンセルを行い、

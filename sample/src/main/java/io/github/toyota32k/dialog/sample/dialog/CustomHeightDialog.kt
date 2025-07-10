@@ -27,6 +27,7 @@ class CustomHeightDialog : UtDialogEx() {
         widthOption = WidthOption.LIMIT(400)
         leftButtonType = ButtonType.CANCEL
         rightButtonType = ButtonType.DONE
+        enableFocusManagement().autoRegister()
     }
 
     lateinit var controls: DialogFullHeightBinding  // レイアウトはFullHeightDialogと同じ

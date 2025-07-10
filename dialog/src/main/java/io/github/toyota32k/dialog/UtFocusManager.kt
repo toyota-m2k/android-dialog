@@ -12,6 +12,7 @@ import androidx.core.view.descendants
 import androidx.core.view.isVisible
 import io.github.toyota32k.logger.UtLog
 import java.lang.ref.WeakReference
+import java.util.EnumSet
 
 /**
  * UtFocusManager のカスタムアクション用デリゲート型
@@ -29,6 +30,12 @@ typealias UtEditorAction = (view:TextView, actionId:Int, moveFocus:Boolean)->Boo
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class UtFocusManager : TextView.OnEditorActionListener {
+    enum class UseKey(val ud:Boolean, val lr:Boolean) {
+        None(false,false),           // Tabキーのみ
+        UpDown(true, false),
+        LeftRight(false, true),
+        All(true,true),            // Tabキーと上下左右キー
+    }
 
     // region Internals
 
@@ -48,7 +55,7 @@ class UtFocusManager : TextView.OnEditorActionListener {
     private var initialFocus: Int = 0
     private var autoRegister = false
     private var customForwardAction = false
-
+    private var useKeys: UseKey = defaultUseKey
     private var externalEditorAction: UtEditorAction? = null
 
     private fun View.patchNextFocus(): View {
@@ -109,7 +116,12 @@ class UtFocusManager : TextView.OnEditorActionListener {
             if(baseView != null) {
                 focusables.addAll(baseView.descendants.mapNotNull {
                     if (it.isFocusable && it !is ViewGroup) {
-                        Focusable(it.id)
+                        if (it.id != View.NO_ID) {
+                            Focusable(it.id)
+                        } else {
+                            logger.warn("View ${it.javaClass.simpleName} is focusable but has no id, cannot be managed.")
+                            null
+                        }
                     } else null
                 })
             } else {
@@ -153,6 +165,11 @@ class UtFocusManager : TextView.OnEditorActionListener {
     fun setCustomEditorAction(fn:UtEditorAction?=null): UtFocusManager {
         customForwardAction = true
         externalEditorAction = fn
+        return this
+    }
+
+    fun setUseKeys(useKey:UseKey): UtFocusManager {
+        useKeys = useKey
         return this
     }
 
@@ -335,19 +352,47 @@ class UtFocusManager : TextView.OnEditorActionListener {
     fun handleTabEvent(event:KeyEvent, currentFocus:()->View?):Boolean {
         if(event.action != KeyEvent.ACTION_DOWN) return false // DOWNのみ処理
         val keyCode = event.keyCode
-        return if(keyCode==KeyEvent.KEYCODE_TAB) {
-            if (event.isShiftPressed) {
-                prevOrLoop(currentFocus()?.id ?: 0)
-            } else {
-                nextOrLoop(currentFocus()?.id ?: 0)
+        return when(keyCode) {
+            KeyEvent.KEYCODE_TAB-> {
+                if (event.isShiftPressed) {
+                    prevOrLoop(currentFocus()?.id ?: 0)
+                } else {
+                    nextOrLoop(currentFocus()?.id ?: 0)
+                }
+                true
             }
-            true
-        } else false
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                if (useKeys.ud) {
+                    prevOrLoop(currentFocus()?.id ?: 0)
+                    true
+                } else false
+            }
+            KeyEvent.KEYCODE_DPAD_LEFT-> {
+                if (useKeys.lr) {
+                    prevOrLoop(currentFocus()?.id ?: 0)
+                    true
+                } else false
+            }
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                if (useKeys.ud) {
+                    nextOrLoop(currentFocus()?.id ?: 0)
+                    true
+                } else false
+            }
+            KeyEvent.KEYCODE_DPAD_RIGHT-> {
+                if (useKeys.lr) {
+                    nextOrLoop(currentFocus()?.id ?: 0)
+                    true
+                } else false
+            }
+            else->false
+        }
     }
 
     // endregion
 
     companion object {
         val logger: UtLog get() = UtDialogBase.logger
+        var defaultUseKey: UseKey = UseKey.None
     }
 }

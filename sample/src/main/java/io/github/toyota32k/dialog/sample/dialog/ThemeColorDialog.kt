@@ -16,6 +16,7 @@ class ThemeColorDialog : UtDialogEx() {
         scrollable = true
         cancellable = true
         guardColor = UtDialog.GuardColor.THEME_DIM
+        enableFocusManagement().autoRegister()
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {

@@ -26,6 +26,7 @@ class FullHeightDialog : UtDialogEx() {
         leftButtonType = ButtonType.CANCEL
         rightButtonType = ButtonType.DONE
         draggable = true
+        enableFocusManagement().autoRegister()
     }
 
     lateinit var controls: DialogFullHeightBinding
