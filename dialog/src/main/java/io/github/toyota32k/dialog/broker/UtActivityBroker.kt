@@ -1,11 +1,11 @@
 package io.github.toyota32k.dialog.broker
 
 import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import io.github.toyota32k.dialog.task.IUtImmortalTaskContext
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.getActivity
 import io.github.toyota32k.logger.UtLog
@@ -26,7 +26,7 @@ import kotlin.coroutines.suspendCoroutine
  *      val launcher: IUtActivityLauncher<String> = UtOpenReadOnlyFilePicker.create(this) { uri?-> ... }
  */
 
-abstract class UtActivityBroker<I,O>
+abstract class UtActivityBroker<I,O>(owner: ActivityResultCaller? = null)
     : ActivityResultCallback<O>, IUtActivityBroker, IUtActivityLauncher<I> {
     companion object {
         val logger = UtLog("UtActivityBroker")
@@ -36,13 +36,15 @@ abstract class UtActivityBroker<I,O>
 
     abstract val contract: ActivityResultContract<I,O>
     private lateinit var launcher: ActivityResultLauncher<I>
-    private var taskContext: IUtImmortalTaskContext? = null
+//    private var taskContext: IUtImmortalTaskContext? = null
 
-    final override fun register(owner: Fragment) {
-        logger.debug()
-        launcher = owner.registerForActivityResult(contract, this)
+    init {
+        if (owner != null) {
+            register(owner)
+        }
     }
-    final override fun register(owner: FragmentActivity) {
+
+    final override fun register(owner: ActivityResultCaller) {
         logger.debug()
         launcher = owner.registerForActivityResult(contract, this)
     }
