@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
@@ -14,7 +15,7 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * 作成用にファイルを選択
  */
 @Suppress("unused")
-open class UtCreateFilePicker : UtActivityBroker<String, Uri?>() {
+open class UtCreateFilePicker(owner: ActivityResultCaller? = null) : UtActivityBroker<String, Uri?>(owner) {
     companion object {
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActivityLauncher<String> {
             return UtCreateFilePicker().apply {

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
@@ -16,7 +17,7 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * データの読み取りとインポートのみを行う場合
  */
 @Suppress("unused")
-open class UtOpenReadOnlyFilePicker() : UtActivityBroker<String, Uri?>()  {
+open class UtOpenReadOnlyFilePicker(owner: ActivityResultCaller? = null) : UtActivityBroker<String, Uri?>(owner)  {
     companion object {
         const val defaultMimeType: String = "*/*"
         @JvmStatic

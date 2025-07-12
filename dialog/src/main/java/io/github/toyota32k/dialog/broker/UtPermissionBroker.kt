@@ -2,6 +2,7 @@ package io.github.toyota32k.dialog.broker
 
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
@@ -10,7 +11,7 @@ interface IUtPermissionBrokerProvider {
     val permissionBroker: UtPermissionBroker
 }
 
-class UtPermissionBroker() : UtActivityBroker<String, Boolean>() {
+class UtPermissionBroker(owner: ActivityResultCaller? = null) : UtActivityBroker<String, Boolean>(owner) {
     companion object {
         fun isPermitted(context: Context, permission: String):Boolean {
             return context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
@@ -33,7 +34,7 @@ class UtPermissionBroker() : UtActivityBroker<String, Boolean>() {
 }
 
 @Suppress("unused")
-class UtMultiPermissionsBroker() : UtActivityBroker<Array<String>, Map<String,Boolean>>() {
+class UtMultiPermissionsBroker(owner: ActivityResultCaller? = null) : UtActivityBroker<Array<String>, Map<String,Boolean>>(owner) {
     override val contract: ActivityResultContract<Array<String>, Map<String,Boolean>>
         get() = ActivityResultContracts.RequestMultiplePermissions()
 

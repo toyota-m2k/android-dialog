@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
@@ -15,7 +16,7 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * ACTION_GET_CONTENT
  */
 @Suppress("unused")
-open class UtOpenReadOnlyMultiFilePicker : UtActivityBroker<String, List<Uri>>() {
+open class UtOpenReadOnlyMultiFilePicker(owner: ActivityResultCaller? = null) : UtActivityBroker<String, List<Uri>>(owner) {
     companion object {
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<List<Uri>>) : IUtActivityLauncher<String> {
             return UtOpenReadOnlyMultiFilePicker().apply {

@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
@@ -27,7 +28,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-abstract class CameraBroker(val forVideo:Boolean): UtActivityBroker<String?, CameraBroker.MediaFile?>() {
+abstract class CameraBroker(val forVideo:Boolean, owner: ActivityResultCaller? = null): UtActivityBroker<String?, CameraBroker.MediaFile?>(owner) {
     companion object {
         val logger = UtLog("Camera")
         val stringNow: String get() = SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(Date())
@@ -210,5 +211,5 @@ abstract class CameraBroker(val forVideo:Boolean): UtActivityBroker<String?, Cam
     }
 }
 
-class VideoCameraBroker():CameraBroker(forVideo = true)
-class ImageCameraBroker():CameraBroker(forVideo = false)
+class VideoCameraBroker(owner: ActivityResultCaller? = null):CameraBroker(forVideo = true, owner    )
+class ImageCameraBroker(owner: ActivityResultCaller? = null):CameraBroker(forVideo = false, owner)

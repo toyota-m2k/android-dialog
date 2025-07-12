@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
@@ -17,7 +18,7 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * この状態で、アイテムを選択すると、チェックボックスのon/off がトグルして、複数選択が可能になる。
  */
 @Suppress("unused")
-open class UtOpenMultiFilePicker : UtActivityBroker<Array<String>, List<Uri>>() {
+open class UtOpenMultiFilePicker(owner: ActivityResultCaller? = null) : UtActivityBroker<Array<String>, List<Uri>>(owner) {
     companion object {
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<List<Uri>>) : IUtActivityLauncher<Array<String>> {
             return UtOpenMultiFilePicker().apply {

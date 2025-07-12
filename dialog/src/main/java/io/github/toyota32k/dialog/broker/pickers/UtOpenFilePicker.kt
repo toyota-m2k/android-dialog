@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
@@ -16,7 +17,7 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * データの編集を行うなど、長期間の永続的なアクセスが必要な場合に使用。
  */
 @Suppress("unused")
-open class UtOpenFilePicker : UtActivityBroker<Array<String>, Uri?>() {
+open class UtOpenFilePicker(owner: ActivityResultCaller? = null) : UtActivityBroker<Array<String>, Uri?>(owner) {
     companion object {
         val defaultMimeTypes: Array<String> = arrayOf("*/*")
 
