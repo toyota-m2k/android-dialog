@@ -21,8 +21,8 @@ junit = "4.13.2"
 androidxJunit = "1.2.1"
 espressoCore = "3.6.1"
 activityVersion = "1.10.1"
-androidUtilities="4.5.0"
-androidBinding = "1.9.6"
+androidUtilities="4.5.1"
+androidBinding = "1.9.7"
 androidViewex = "1.1.16"
 
 [libraries]
