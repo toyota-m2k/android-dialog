@@ -53,7 +53,7 @@ class UtDialogOwnerStack: IUtMortalInstanceSource {
     override suspend fun getOwnerOf(clazz:Class<*>): UtDialogOwner {
         return ownerFlow.mapNotNull {
             val owner = it?.asDialogOwner
-            if (owner != null && owner.lifecycleOwner::class.java == clazz) owner else null
+            if (owner != null && clazz.isAssignableFrom(owner.lifecycleOwner::class.java)) owner else null
         }.first()
     }
 
