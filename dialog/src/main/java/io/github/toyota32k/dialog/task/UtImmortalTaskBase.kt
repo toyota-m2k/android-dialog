@@ -1,5 +1,6 @@
 package io.github.toyota32k.dialog.task
 
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialogOwner
@@ -106,6 +107,9 @@ abstract class UtImmortalTaskBase(
         return UtImmortalTaskManager.mortalInstanceSource.withOwner(ownerChooser) { owner ->
             fn(owner)
         }
+    }
+    suspend inline fun <reified T:FragmentActivity, R> withActivity(fn: (T)->R):R {
+        return UtImmortalTaskManager.mortalInstanceSource.withActivity<T,R>(fn)
     }
 
     /**

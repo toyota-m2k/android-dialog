@@ -54,7 +54,7 @@ suspend inline fun <reified T: FragmentActivity> IUtMortalInstanceSource.getActi
 }
 
 @Suppress("unused")
-suspend inline fun <reified T:FragmentActivity, R> IUtMortalInstanceSource.withActivity(fn:(FragmentActivity)->R):R {
+suspend inline fun <reified T:FragmentActivity, R> IUtMortalInstanceSource.withActivity(fn:(T)->R):R {
     return fn(getActivity<T>())
 }
 

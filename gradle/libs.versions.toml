@@ -12,17 +12,13 @@ lifecycleViewnodelKtxVersion = "2.9.2"
 lifecycleLivedataKtx = "2.9.2"
 lifecycleViewmodelSavedstate = "2.9.2"
 material = "1.12.0"
-activity = "1.10.1"
 constraintLayout = "2.2.1"
-rxjava = "3.1.2"
-rxandroid = "3.0.0"
-rxkotlin = "3.0.1"
 junit = "4.13.2"
 androidxJunit = "1.2.1"
 espressoCore = "3.6.1"
 activityVersion = "1.10.1"
-androidUtilities="4.5.1"
-androidBinding = "1.9.7"
+androidUtilities="4.6.0"
+androidBinding = "1.9.8"
 androidViewex = "1.1.16"
 
 [libraries]
@@ -30,15 +26,11 @@ kotlinReflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = 
 coreKtx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
-androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
 constraintLayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintLayout" }
 lifecycleLiveDataKtx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 lifecycleViewModelKtx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewnodelKtxVersion" }
 lifecycleRuntimeKtx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 lifecycleViewModelSavedState = { module = "androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "lifecycleViewmodelSavedstate" }
-rxjava = { module = "io.reactivex.rxjava3:rxjava", version.ref = "rxjava" }
-rxandroid = { module = "io.reactivex.rxjava3:rxandroid", version.ref = "rxandroid" }
-rxkotlin = { module = "io.reactivex.rxjava3:rxkotlin", version.ref = "rxkotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
 androidxJunit = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
 espressoCore = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
