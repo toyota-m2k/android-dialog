@@ -4,6 +4,7 @@ import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import io.github.toyota32k.dialog.UtDialogOwner
+import io.github.toyota32k.dialog.mortal.UtMortalActivity
 import java.io.Closeable
 
 /**
@@ -47,6 +48,14 @@ suspend inline fun <T> IUtMortalInstanceSource.withOwner(clazz:Class<*>, fn:(UtD
 
 suspend inline fun <T> IUtMortalInstanceSource.withOwner(noinline ownerChooser:(LifecycleOwner)->Boolean, fn:(UtDialogOwner)->T):T {
     return fn(getOwnerBy(ownerChooser))
+}
+
+suspend fun IUtMortalInstanceSource.getOwnerAsActivity(): UtMortalActivity {
+    return getOwnerOf(UtMortalActivity::class.java).asActivity() as? UtMortalActivity ?: throw java.lang.IllegalStateException("not target activity")
+}
+
+suspend fun <R> IUtMortalInstanceSource.withMortalActivity(fn:(UtMortalActivity)->R):R {
+    return fn(getOwnerAsActivity())
 }
 
 suspend inline fun <reified T: FragmentActivity> IUtMortalInstanceSource.getActivity():T {
