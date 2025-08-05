@@ -2,6 +2,7 @@
 
 package io.github.toyota32k.dialog
 
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
@@ -101,9 +102,14 @@ object UtDialogHelper {
      * 待ち合わせタスクを解放する。
      */
     fun forceCloseAllDialogs(activity: FragmentActivity) {
-        val list = allDialogsAndMessageBoxes(activity)
-        for (d in list.reverse()) {
-            d.forceDismiss()
+        try {
+            val list = allDialogsAndMessageBoxes(activity)
+            for (d in list.reverse()) {
+                d.forceDismiss()
+            }
+        } catch(e:Throwable) {
+            // ダイアログを表示した状態でアプリを終了すると例外が出るケースがある
+            logger.stackTrace(Log.INFO, e)
         }
     }
 

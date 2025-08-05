@@ -276,7 +276,8 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      */
     override fun onDismiss(dialog: DialogInterface) {
         logger.debug()
-        if( !isAlertDialog || !willBeBackSoon ) {   // 戻ってこない場合だけ
+        val isFinishing = activity?.isFinishing ?: true
+        if( !isAlertDialog || !willBeBackSoon || isFinishing) {   // 戻ってこない場合だけ
             setFinishingStatus(IUtDialog.Status.NEGATIVE)
         }
         super.onDismiss(dialog)
@@ -284,7 +285,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
             dialogClosed = true
         }
 
-        if(isDialog && !willBeBackSoon) {
+        if(isFinishing || (isDialog && !willBeBackSoon)) {
             // AlertDialog系のダイアログ（UtMessageBox/UtSelectionBox）は画面外タップで閉じると notifyResult()が呼ばれないので、ここで呼んでおく。
             // ただし、回転の場合も呼ばれるので、これを除外するため、willBeBackSoon フラグをチェックする
             // ダイアログモードの場合で、HWキーボードのESCキー押下で閉じる場合も、AlertDialog同様、notifyResultが呼ばれないことが判明。isDialog==true ならこれを呼ぶ。
