@@ -53,15 +53,15 @@ suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(title:Int, message:Int
 }
 
 suspend fun UtImmortalTaskBase.showSingleSelectionBox(title:String?, items:Array<String>, cancellable:Boolean=false) : Int {
-    return showDialog("internalSingleSelection") { UtSingleSelectionBox.create(title, items, cancellable) }.selectedIndex
+    return showDialog("internalSingleSelection") { UtSingleSelectionBox.create(title, items, cancellable) }.run { if(status.positive) selectedIndex else -1 }
 }
 
 suspend fun UtImmortalTaskBase.showRadioSelectionBox(title:String?, items:Array<String>, initialSelection:Int, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text, cancellable:Boolean=true) : Int {
-    return showDialog("internalRadioSelection") { UtRadioSelectionBox.create(title, items, initialSelection, okLabel, cancelLabel, cancellable) }.selectedIndex
+    return showDialog("internalRadioSelection") { UtRadioSelectionBox.create(title, items, initialSelection, okLabel, cancelLabel, cancellable) }.run { if (status.positive) selectedIndex else -1 }
 }
 
 suspend fun UtImmortalTaskBase.showMultiSelectionBox(title:String?, items:Array<String>, initialSelections:BooleanArray?, okLabel:String= UtStandardString.OK.text, cancelLabel:String?=UtStandardString.CANCEL.text, cancellable:Boolean=true) : BooleanArray {
-    return showDialog("internalMultiSelection") { UtMultiSelectionBox.create(title, items, initialSelections, okLabel, cancelLabel, cancellable) }.selectionFlags
+    return showDialog("internalMultiSelection") { UtMultiSelectionBox.create(title, items, initialSelections, okLabel, cancelLabel, cancellable) }.run { if(status.positive) selectionFlags else booleanArrayOf() }
 }
 
 /**
