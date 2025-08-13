@@ -175,13 +175,13 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, maxOf(systemBars.bottom, ime.bottom))
-            insets
-        }
+//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+//            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, maxOf(systemBars.bottom, ime.bottom))
+//            insets
+//        }
+        setupWindowInsetsListener(controls.root)
 
         binder
             .owner(this)

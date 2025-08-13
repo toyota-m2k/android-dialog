@@ -278,13 +278,18 @@ class OptionActivity : UtMortalActivity() {
 
         if(edgeToEdgeEnabled) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
-            ViewCompat.setOnApplyWindowInsetsListener(controls.root) { v, insets ->
-                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-                val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, maxOf(systemBars.bottom, ime.bottom))
-                insets
-            }
+            setupWindowInsetsListener(controls.root)
+
+//            ViewCompat.setOnApplyWindowInsetsListener(controls.root) { v, insets ->
+//                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+//                // ディスプレイカットアウト（ノッチ、パンチホール）のインセットを取得
+//                // displayCutout() はノッチやパンチホールがない場合は Insets.NONE を返す
+//                val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+//
+//                val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+//                v.setPadding(maxOf(systemBars.left, cutout.left), maxOf(systemBars.top,cutout.top), maxOf(systemBars.right, cutout.right), maxOf(systemBars.bottom, ime.bottom, cutout.bottom))
+//                insets
+//            }
         }
 
         if(!viewModel.showStatusBar.value && isActionBarVisible()) {

@@ -1,9 +1,14 @@
 package io.github.toyota32k.dialog.mortal
 
 import android.view.KeyEvent
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import io.github.toyota32k.dialog.*
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
+import java.util.EnumSet
 
 /**
  * ImmortalTask と協調動作するActivityの基本実装
@@ -68,6 +73,51 @@ abstract class UtMortalActivity(
 
     final override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         return super.dispatchKeyEvent(event)
+    }
+
+    enum class SupportInsetsType {
+        SYSTEM_BARS,
+        IME,
+        CUTOUT,
+        ;
+        companion object {
+            val ALL: EnumSet<SupportInsetsType> = EnumSet.allOf(SupportInsetsType::class.java)
+            val WIDE: EnumSet<SupportInsetsType> = EnumSet.of(SYSTEM_BARS, IME) // cutoutは除けない（動画プレーヤーの全画面表示とか）
+        }
+    }
+
+    protected fun applyWindowInsetsToRootView(rootView: View, targetInsetsTypes:EnumSet<SupportInsetsType> = SupportInsetsType.ALL) {
+        val insets = ViewCompat.getRootWindowInsets(rootView) ?: return // SDK 20以下なら nullが返るが、その場合は処理不要
+        applyWindowInsetsToRootView(insets, rootView, targetInsetsTypes)
+    }
+
+    protected fun applyWindowInsetsToRootView(insets: WindowInsetsCompat, rootView: View, targetInsetsTypes:EnumSet<SupportInsetsType> = SupportInsetsType.ALL) {
+        val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+        val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+        var all = Insets.NONE
+        if (targetInsetsTypes.contains(SupportInsetsType.SYSTEM_BARS)) {
+            all = bars
+        }
+        if (targetInsetsTypes.contains(SupportInsetsType.IME)) {
+            all = Insets.max(all, ime)
+        }
+        if (targetInsetsTypes.contains(SupportInsetsType.CUTOUT)) {
+            all = Insets.max(all, cutout)
+        }
+        rootView.setPadding(all.left, all.top, all.right, all.bottom)
+    }
+
+    protected fun setupWindowInsetsListener(rootView: View, getTargetInsetsTypes: ()-> EnumSet<SupportInsetsType>) {
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
+            val targetInsetsTypes = getTargetInsetsTypes()
+            applyWindowInsetsToRootView(insets, v, targetInsetsTypes)
+            insets
+        }
+    }
+
+    protected fun setupWindowInsetsListener(rootView: View, targetInsetsTypes: EnumSet<SupportInsetsType> = SupportInsetsType.ALL) {
+        setupWindowInsetsListener(rootView) { targetInsetsTypes }
     }
 
     open val logger = UtImmortalTaskManager.logger
