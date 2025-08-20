@@ -52,6 +52,7 @@ import androidx.core.view.marginTop
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import io.github.toyota32k.dialog.UtFocusManager.UseKey
+import io.github.toyota32k.dialog.mortal.UtMortalActivity
 import io.github.toyota32k.utils.android.CompatBackKeyDispatcher
 import io.github.toyota32k.utils.android.dp2px
 import io.github.toyota32k.utils.android.getAttrColor
@@ -606,7 +607,7 @@ abstract class UtDialog: UtDialogBase() {
      */
     enum class KeyboardAdjustMode {
         NONE,                   // 何もしない
-        AUTO,                   // isDialog==true なら BY_WINDOW_INSETS, isDialog == falseならBY_WINDOW_INSETS
+        AUTO,                   // isDialog==true なら BY_GLOBAL_LAYOUT, isDialog == falseならBY_WINDOW_INSETS
         BY_WINDOW_INSETS,       // WindowInsets のリスナーを利用して IMEのサイズを取得（正しい方法）
         BY_GLOBAL_LAYOUT,       // GlobalLayout のリスナーを利用して、IMEらしきビューの出現を監視（WindowInsets のリスナーが呼ばれないケースのための対策：抜本的な回避策が見つかっていない。。。）
     }
@@ -1314,11 +1315,12 @@ abstract class UtDialog: UtDialogBase() {
      * isDialog == true の場合に呼ばれる。
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        assert(isDialog) { "onCreateDialog() must be called only when isDialog == true" }
         return XDialog(requireContext(), R.style.dlg_style).apply {
             window?.let { window ->
                 window.setBackgroundDrawable(GuardColor.TRANSPARENT.rawColor.toDrawable())
 
-                if (isDialog && hideStatusBarOnDialogMode) {
+                if (hideStatusBarOnDialogMode) {
                     val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                     insetsController.hide(WindowInsetsCompat.Type.systemBars())
 
@@ -1349,6 +1351,13 @@ abstract class UtDialog: UtDialogBase() {
             }
             preCreateBodyView()
             rootView = inflater.inflate(UtDialogConfig.dialogFrameId, container, false) as FrameLayout
+
+            if (container==null && isDialog && !hideStatusBarOnDialogMode) {
+                // container == null となるのは、ダイアログモードの場合だけのはず。
+                // ステータスバーを隠さないモードの場合は、これらを除けるため、
+                // 親Activityのコンテンツビューのパディングをダイアログに適用する。
+                (requireActivity() as? UtMortalActivity)?.  setupLastInsetsToRootView(rootView)
+            }
 
             if (noHeader) {
                 rootView.findViewById<View>(R.id.header).visibility = View.GONE

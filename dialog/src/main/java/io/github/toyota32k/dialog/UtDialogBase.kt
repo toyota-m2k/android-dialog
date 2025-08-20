@@ -389,9 +389,13 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         complete(IUtDialog.Status.NEGATIVE)
     }
 
+    protected fun getActivityContentView(activity:FragmentActivity):ViewGroup? {
+        return activity.findViewById<ViewGroup>(android.R.id.content)?.getChildAt(0) as? ViewGroup
+    }
+
     private fun getActivityContentViewId(activity:FragmentActivity):Int {
         if(strictSystemBarMode) {
-            val container = activity.findViewById<ViewGroup>(android.R.id.content)?.getChildAt(0) as? ViewGroup
+            val container = getActivityContentView(activity)
             if (container != null && container.id != View.NO_ID) {
                 return container.id
             }

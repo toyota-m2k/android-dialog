@@ -83,6 +83,9 @@ abstract class UtMortalActivity(
         companion object {
             val ALL: EnumSet<SupportInsetsType> = EnumSet.allOf(SupportInsetsType::class.java)
             val WIDE: EnumSet<SupportInsetsType> = EnumSet.of(SYSTEM_BARS, IME) // cutoutは除けない（動画プレーヤーの全画面表示とか）
+            fun of(vararg types: SupportInsetsType): EnumSet<SupportInsetsType> {
+                return EnumSet.copyOf(types.asList())
+            }
         }
     }
 
@@ -105,10 +108,12 @@ abstract class UtMortalActivity(
         if (targetInsetsTypes.contains(SupportInsetsType.CUTOUT)) {
             all = Insets.max(all, cutout)
         }
+        mLastTargetInsetsTypes = targetInsetsTypes
+//        mLastInsets = all
         rootView.setPadding(all.left, all.top, all.right, all.bottom)
     }
 
-    protected fun setupWindowInsetsListener(rootView: View, getTargetInsetsTypes: ()-> EnumSet<SupportInsetsType>) {
+    fun setupWindowInsetsListener(rootView: View, getTargetInsetsTypes: ()-> EnumSet<SupportInsetsType>) {
         ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
             val targetInsetsTypes = getTargetInsetsTypes()
             applyWindowInsetsToRootView(insets, v, targetInsetsTypes)
@@ -116,9 +121,22 @@ abstract class UtMortalActivity(
         }
     }
 
-    protected fun setupWindowInsetsListener(rootView: View, targetInsetsTypes: EnumSet<SupportInsetsType> = SupportInsetsType.ALL) {
+    fun setupWindowInsetsListener(rootView: View, targetInsetsTypes: EnumSet<SupportInsetsType> = SupportInsetsType.ALL) {
         setupWindowInsetsListener(rootView) { targetInsetsTypes }
     }
+
+//    private var mLastInsets : Insets = Insets.NONE
+    private var mLastTargetInsetsTypes : EnumSet<SupportInsetsType> = SupportInsetsType.ALL
+
+    /**
+     * UtMortalActivityに対して最後に適用したinsetsをrootViewに適用し、WindowInsetsListenerを設定する。
+     * ダイアログの位置調整専用
+     */
+    fun setupLastInsetsToRootView(rootView: View) {
+//        rootView.setPadding(mLastInsets.left, mLastInsets.top, mLastInsets.right, mLastInsets.bottom)
+        setupWindowInsetsListener(rootView, mLastTargetInsetsTypes)
+    }
+
 
     open val logger = UtImmortalTaskManager.logger
 }
