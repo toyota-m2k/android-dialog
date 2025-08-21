@@ -51,7 +51,6 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginEnd
 import androidx.core.view.marginStart
 import androidx.core.view.marginTop
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import io.github.toyota32k.dialog.UtDialogConfig.SystemZoneOption
@@ -64,8 +63,6 @@ import io.github.toyota32k.utils.android.setLayoutHeight
 import io.github.toyota32k.utils.android.setLayoutWidth
 import io.github.toyota32k.utils.android.setMargin
 import io.github.toyota32k.utils.android.withAlpha
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
 
@@ -178,27 +175,6 @@ abstract class UtDialog: UtDialogBase() {
      * UtDialogConfig.dialogMarginOnPortrait / dialogMarginOnLandscape によるマージン設定を無効化する場合は true をセットする。
      */
     var noDialogMargin: Boolean by bundle.booleanFalse
-
-    /**
-     * isDialog == true の場合に、StatusBar を非表示にして、全画面にダイアログを表示するか？
-     * フラグメントモード(isDialog==false)の場合には無視される。
-     * true にすると、
-     * - StatusBar は非表示
-     * - FLAG_LAYOUT_NO_LIMITS を設定して、rootView を全画面に表示
-     * - LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES をセット（切り欠き部分にも表示する）
-     *
-     * NoActionBar系のスタイルを適用し、（プログラム的に）StatusBarを非表示にしたとき、
-     * Activityの root view が、切り欠き（インカメラ）部分を含む、スクリーン全体に表示される。
-     * フラグメントモードの場合は、Activity（のwindow）上に構築されるので、Activityの状態に応じた適切な領域にダイアログの rootView が配置されるが、
-     * ダイアログモードの場合、Activityとは独立した window が作成されるが、StatusBar は表示された状態となり、切り欠き部分を避けた領域に rootViewが配置される。
-     * 背景が透明なダイアログなら、あまり問題はないが、
-     * 背景をguardView で隠すタイプ（cancellable == falseの場合など）は、Activityの一部が露出した感じの表示になって不格好となる。
-     * その場合は、hideStatusBarOnDialogMode = true として、スクリーン全体を覆うよう指示することとした。
-     *
-     * Activity の window と同じ状態を Dialogのwindow に再現しようと、いろいろ試みたが、どうもうまくいかないので、プロパティで渡すことにした。
-     * 将来よい方法が見つかれば。。。
-     */
-//    var hideStatusBarOnDialogMode: Boolean by bundle.booleanWithDefault(UtDialogConfig.hideStatusBarOnDialogMode)
 
     // endregion
 
@@ -419,16 +395,6 @@ abstract class UtDialog: UtDialogBase() {
     /**
      * ガードビュー（ダイアログの「画面外」）の背景の描画方法フラグ
      */
-//    enum class GuardColorX(@ColorInt val color:Int) {
-//        INVALID(Color.argb(0,0,0,0)),                       // 透明（無効値）
-//        TRANSPARENT(Color.argb(0,0xFF,0xFF,0xFF)),          // 透明（通常、 cancellable == true のとき用）
-//        DIM(Color.argb(0xB0,0,0,0)),                        // 黒っぽいやつ　（cancellable == false のとき用）
-//        SEE_THROUGH(Color.argb(0xB0,0xFF, 0xFF, 0xFF)),     // 白っぽいやつ　（好みで）
-//        SOLID_GRAY(Color.rgb(0xc1,0xc1,0xc1)),
-//
-//        THEME_DIM(Color.argb(0, 2,2,2)),                    // colorSurface の反対色で目立つように覆う（colorSurfaceが白なら黒っぽい/黒なら白っぽい色で覆う）
-//        THEME_SEE_THROUGH(Color.argb(0, 3,3,3)),            // colorSurface と同じ色で、コントラストを落とすような感じ。
-//    }
     data class GuardColor(@param:ColorInt val rawColor: Int, @param:AttrRes val dynamic: Int?, val dynamicAlpha: Int = 0xB0) {
         constructor(@ColorInt color: Int) : this(color, null)
 
@@ -496,37 +462,6 @@ abstract class UtDialog: UtDialogBase() {
             bodyGuardColorDynamic = v.dynamic
             bodyGuardColorDynamicAlpha = v.dynamicAlpha
         }
-
-//    @ColorInt
-//    private fun Resources.Theme.getAttrColor(@AttrRes attr:Int, @ColorInt def:Int):Int {
-//        val typedValue = TypedValue()
-//        if(resolveAttribute(attr, typedValue, true)) {
-//            return typedValue.data
-//        } else {
-//            return def
-//        }
-//    }
-//
-//    private fun isDark(@ColorInt color:Int) :Boolean {
-//        val hsl = FloatArray(3)
-//        ColorUtils.colorToHSL(color, hsl)
-//        return hsl[2] < 0.5f
-//    }
-//    private fun autoDim(context:Context):Int {
-//        return context.theme.getAttrColor(R.attr.color_dlg_text, 0).withAlpha(0xB0)
-//    }
-//    private fun autoSeeThrough(context:Context):Int {
-//        return context.theme.getAttrColor(R.attr.color_dlg_bg, 0).withAlpha(0xB0)
-//    }
-//
-//    @ColorInt
-//    fun resolveColor(@ColorInt color:Int): Int  {
-//        return when(color) {
-//            GuardColor.THEME_DIM.color -> autoDim(context) //context.getColor(R.color.guard_dim)
-//            GuardColor.THEME_SEE_THROUGH.color -> autoSeeThrough(context)   // context.getColor(R.color.guard_see_through)
-//            else -> color
-//        }
-//    }
 
     /**
      * 実際に描画するガードビューの背景色を取得
@@ -649,6 +584,11 @@ abstract class UtDialog: UtDialogBase() {
      */
     var parentVisibilityOption by bundle.enum(ParentVisibilityOption.HIDE_AND_SHOW)
 
+    /**
+     * 親ダイアログを隠すときに、親のViewをGONEにするか、INVISIBLEにするか？
+     * true: 親のViewをGONEにする
+     * false: 親のViewはINVISIBLEにする（デフォルト）
+     */
     var hideParentByGone: Boolean by bundle.booleanWithDefault(UtDialogConfig.hideDialogByGone)
 
     /**
@@ -732,18 +672,6 @@ abstract class UtDialog: UtDialogBase() {
      * - 「閉じる」ボタンは、右（CLOSE：Positive）にも、左（CLOSE_LEFT:Negative）にも配置可能。
      * setLeftButton(), setRightButton()で、これら標準以外のボタンを作成することは可能だが、あまりポリシーから逸脱しないように。
      */
-//    enum class BuiltInButtonType(val string:UtStandardString, val positive:Boolean, val blueColor:Boolean) {
-//        OK(UtStandardString.OK, true, true),                // OK
-//        DONE(UtStandardString.DONE, true, true),            // 完了
-//        CLOSE(UtStandardString.CLOSE, true, true),          // 閉じる
-//
-//        CANCEL(UtStandardString.CANCEL, false, false),      // キャンセル
-//        BACK(UtStandardString.BACK, false, false),          // 戻る
-//        CLOSE_LEFT(UtStandardString.CLOSE, false, false),   // 閉じる
-//
-//        NONE(UtStandardString.NONE, false, false),          // ボタンなし
-//    }
-
     data class ButtonType(val string: String?, val positive: Boolean) {
         constructor(@StringRes stringId: Int, positive: Boolean) : this(UtStandardString.getText(stringId), positive)
 
@@ -814,13 +742,6 @@ abstract class UtDialog: UtDialogBase() {
             updateRightButton()
         }
     }
-
-    /**
-     * 右ボタンのプロパティをタイプで指定
-     */
-//    fun setRightButton(type: BuiltInButtonType) {
-//        setRightButton(type.string.id, type.positive)
-//    }
 
     private val themedContext: Context by lazy { ContextThemeWrapper(super.getContext(), UtDialogConfig.dialogTheme) }
     override fun getContext(): Context {
@@ -1311,6 +1232,9 @@ abstract class UtDialog: UtDialogBase() {
 
     private var keyboardObserver: ISoftwareKeyboardObserver? = null
 
+    /**
+     * onKeyDown()をオーバーライドするダイアログクラス
+     */
     private inner class XDialog(context: Context, @StyleRes themeResId: Int) : ComponentDialog(context, themeResId) {
         override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
             logger.debug("${event.keyCode} $event")
@@ -1327,6 +1251,8 @@ abstract class UtDialog: UtDialogBase() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // assert(isDialog) { "onCreateDialog() must be called only when isDialog == true" }
         if (!isDialog) {
+            // fragmentTransaction.add(fragment,tag) でフラグメントを表示すると isDialog == false でもここに入る。
+            // ただし、UtDialogBase.show() で表示する限り、ここに入ることはない。
             return super.onCreateDialog(savedInstanceState)
         }
 
@@ -1423,19 +1349,12 @@ abstract class UtDialog: UtDialogBase() {
             rightButton.setOnClickListener(this::onRightButtonTapped)
 
             rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
-//            rootView.isFocusableInTouchMode = true
-//            rootView.setOnKeyListener(this@UtDialog::onBackgroundKeyListener)
-//          画面外タップで閉じるかどうかにかかわらず、リスナーをセットする。そうしないと、ダイアログ外のビューで操作できてしまう。
-//            if (lightCancelable) {
-//                rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
-//            }
             updateLeftButton()
             updateRightButton()
             bodyView = createBodyView(savedInstanceState, ViewInflater(inflater, bodyContainer))
             bodyContainer.addView(bodyView)
             focusManager?.attach(rootView, bodyView)
             setupLayout()
-//            dlg?.setContentView(rootView)
             if (draggable) {
                 enableDrag()
             }
@@ -1472,6 +1391,9 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
+    /**
+     * android:configChanges="orientation" の場合に呼ばれる。
+     */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
@@ -1488,10 +1410,10 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-    }
-
+    /**
+     * ダイアログが表示されるときの処理
+     * 初期フォーカスの設定を行う
+     */
     override fun onResume() {
         super.onResume()
         focusManager?.applyInitialFocus {
@@ -1754,19 +1676,6 @@ abstract class UtDialog: UtDialogBase() {
             else -> false
         }
     }
-
-    // rootViewで、Backキーによるダイアログキャンセルを行い、
-    // かつ、ダイアログ表示中に、親Activityがキーイベントを拾ってしまうのを防止できれば、と考えたが、
-    // フォーカスがない状態では、onKeyListenerが呼ばれないので、役に立たなかった。残念。
-//    protected open fun onBackgroundKeyListener(view:View, keyCode: Int, keyEvent: KeyEvent?): Boolean {
-//        if(keyCode==KeyEvent.KEYCODE_BACK) {
-//            if(!status.finished) {
-//                cancel()
-//            }
-//        }
-//        return true
-//    }
-
 
     /**
      * 左ボタンがタップされたときのハンドラ

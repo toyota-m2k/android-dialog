@@ -159,38 +159,6 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         if(savedInstanceState==null) {
             onDialogOpening()
         }
-        // edgeToEdgeEnabled（DODGE）モードは廃止。
-        // 苦労して調整したが、STRICTモードで、より効果的な「よけ」が達成できたので、泣く泣く削除。
-//        if(!isDialog && edgeToEdgeEnabled) {
-//            // システムバーを避けるためのマージン設定
-//            fun applySystemBarsInsets(view:View, systemBarsInsets:Insets) {
-//                val params = view.layoutParams as ViewGroup.MarginLayoutParams
-//                params.topMargin = systemBarsInsets.top
-//                params.bottomMargin = systemBarsInsets.bottom
-//                view.layoutParams = params
-//            }
-//
-//            // 当初は、setOnApplyWindowInsetsListener のコールバックで System Bars の insets を取得していたが、
-//            // ダイアログはActivityが起動した状態から表示されるので、デバイスを回転するなどの操作が行われるまで、
-//            // 最初の１回目のコールバックが発生せず、表示が不正（ActionBarの下にダイアログが潜る）になる。
-//            // ViewCompat.getRootWindowInsets(view) で Insets を取得することにしたが、このメソッドではなぜか
-//            // ActionBar のサイズが含まれず、StatusBarのサイズだけになってしまう。
-//            // 仕方がないから、自力で ActionBar のサイズを計算する、getActionBarHeight() を実装し、
-//            // getRootWindowInsets()の insets.top これを加算して使用することとした。
-//
-////            ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
-////                val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-////                applySystemBarsInsets(v, systemBarsInsets)
-////                WindowInsetsCompat.Builder(insets).setInsets(WindowInsetsCompat.Type.systemBars(), Insets.NONE).build()
-////            }
-//
-//            view.post {
-//                val insets = ViewCompat.getRootWindowInsets(view)
-//                if(insets!=null) {
-//                    val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//                    applySystemBarsInsets(view, Insets.add(systemBarsInsets, Insets.of(0, getActionBarHeight(), 0, 0)))
-//                }
-//            }
     }
 
     // dismiss()を呼んでから、viewがdestroyされるまで、少し時間があり、
@@ -401,13 +369,6 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     }
 
     /**
-     *
-     */
-    protected fun getActivityContentView(activity:FragmentActivity):ViewGroup? {
-        return activity.findViewById<ViewGroup>(android.R.id.content)?.getChildAt(0) as? ViewGroup
-    }
-
-    /**
      * ダイアログを表示する
      */
     override fun show(activity:FragmentActivity, tag:String?) {
@@ -421,20 +382,6 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         } else {
             activity.supportFragmentManager.apply {
                 beginTransaction()
-//                .apply {
-//                    if (systemZoneOption == SystemZoneOption.FIT_TO_ACTIVITY) {
-//                        val container = getActivityContentView(activity)
-//                        // ActionBarを隠す場合は、ActivityのContentViewのルートコンテナに id が必要。
-//                        // LinearLayout はコンテントに追加されてしまうので不可。
-//                        if (container != null && container.id != View.NO_ID && container !is LinearLayout) {
-//                            systemZoneOption = SystemZoneOption.NONE
-//                            add(container.id, this@UtDialogBase, tag)
-//                        } else {
-//                            add(this@UtDialogBase, tag)
-//                        }
-//                    }
-//                }
-//              .addToBackStack(null)     // スタックには積まず、UtMortalDialog経由で自力で何とかする。
                 .add(android.R.id.content, this@UtDialogBase, tag)
                 .apply {
                     if(UtDialogConfig.showDialogImmediately==UtDialogConfig.ShowDialogMode.CommitNow) {

@@ -91,24 +91,6 @@ object UtDialogConfig {
     var systemZoneFlags:Int = SystemZone.NORMAL
 
     /**
-     * UtDialog#hideStatusBarOnDialogMode のデフォルト値
-     * ダイアログモード（isDialog == true）の場合に、StatusBar を非表示にして、全画面にダイアログを表示するか？
-     * フラグメントモード(isDialog==false)の場合には無視される。
-     */
-    // var hideStatusBarOnDialogMode = true
-
-    /**
-     * UtDialogBase#systemBarOptionOnFragmentModeのデフォルト値
-     * フラグメントモード(isDialog == false) の場合に、system bar （特に ActionBar）をどのように扱うか？
-     * - NONE 何も対策しない ... NoActionBar系のThemeを使う前提（デフォルト）
-     * - DODGE SystemBar をよける
-     * - HIDE SystemBar を一時的に非表示にする
-     * ダイアログモード（isDialog == true）の場合には無視される
-     */
-    // var systemBarOptionOnFragmentMode = SystemBarOptionOnFragmentMode.NONE
-//    var edgeToEdgeEnabledAsDefault = true
-
-    /**
      * ソフトウェアキーボードが表示された時に、フォーカスのあるEditTextが見えるよう
      * コンテンツを自動調整するかどうかを指定するフラグ
      * true: 自動調整する（デフォルト）

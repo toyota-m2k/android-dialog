@@ -79,18 +79,6 @@ abstract class UtMortalActivity(
         return super.dispatchKeyEvent(event)
     }
 
-    /**
-     * WindowInsetsが変更され、ActivityのrootViewにInsetsが適用されたときに呼び出されるリスナー。
-     */
-//    fun interface IRootViewInsetsListener {
-//        /**
-//         * WindowInsetsが変更されたときに呼び出される。
-//         * @param insets 適用されたInsets
-//         */
-//        fun onInsetsChanged(insets: Insets)
-//    }
-
-
     private var mRootViewInsetsListeners = Listeners<Insets>()
     private var mLastInsets: Insets? = null
 
