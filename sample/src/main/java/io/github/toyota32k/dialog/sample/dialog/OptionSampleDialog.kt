@@ -9,6 +9,7 @@ import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.binder.recyclerViewBindingEx
 import io.github.toyota32k.binder.textBinding
+import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.sample.OptionActivity
 import io.github.toyota32k.dialog.sample.databinding.DialogOptionSampleBinding
@@ -32,13 +33,14 @@ class OptionSampleDialog : UtDialogEx() {
         fun setup(vm: OptionActivity.OptionActivityViewModel) {
             settings = vm
             systemEntries = listOf(
-                Entry("statusBar", "${vm.showStatusBar.value}"),
-                Entry("actionBar", "${vm.showActionBar.value}"),
-                Entry("edgeToEdge", "${vm.edgeToEdgeEnabled.value}"),
-                Entry("fitSystemWindows", "${vm.fitSystemWindows.value}"),
-                Entry("dialogMode", "${vm.isDialogMode.value}"),
-                Entry("portraitMargin", "${vm.portraitMarginInfo.value}"),
-                Entry("landscapeMargin", "${vm.landscapeMarginInfo.value}"),
+                Entry("Activity: statusBar", "${vm.showStatusBar.value}"),
+                Entry("Activity: actionBar", "${vm.showActionBar.value}"),
+                Entry("Activity: edgeToEdge", "${vm.edgeToEdgeEnabled.value}"),
+//                Entry("Activity: fitSystemWindows", "${vm.fitSystemWindows.value}"),
+                Entry("Global: dialogMode", "${vm.isDialogMode.value}"),
+                Entry("Global: portraitMargin", "${vm.portraitMarginInfo.value}"),
+                Entry("Global: Activity:landscapeMargin", "${vm.landscapeMarginInfo.value}"),
+                Entry("-", ""),
             )
         }
 
@@ -62,14 +64,23 @@ class OptionSampleDialog : UtDialogEx() {
         viewModel.entries.apply {
             clear()
             addAll(viewModel.systemEntries)
-            put("-", "")
             put("isDialog", "$isDialog")
-            if(!isDialog) {
-                put("systemBarOption", "$systemBarOptionOnFragmentMode")
-            } else {
-                put("hideStatusBar", "$hideStatusBarOnDialogMode")
+            put("systemZoneOption", "$systemZoneOption")
+            if (systemZoneOption== UtDialogConfig.SystemZoneOption.CUSTOM_INSETS) {
+                val custom = systemZoneFlags
+                var dodges = ""
+                if ((custom and UtDialogConfig.SystemZone.SYSTEM_BARS) == UtDialogConfig.SystemZone.SYSTEM_BARS) {
+                    dodges += "bars, "
+                }
+                if ((custom and UtDialogConfig.SystemZone.CUTOUT) == UtDialogConfig.SystemZone.CUTOUT) {
+                    dodges += "cutout, "
+                }
+                if ((custom and UtDialogConfig.SystemZone.IME) == UtDialogConfig.SystemZone.IME) {
+                    dodges += "ime, "
+                }
+                put("systemZoneFlags", dodges)
             }
-            put("adjustContentMode", "$adjustContentForKeyboard")
+            put("adjustContentForKeyboard", "$adjustContentForKeyboard")
             put("adjustContentsStrategy", "$adjustContentsStrategy")
 
             put("-", "")
@@ -121,8 +132,8 @@ class OptionSampleDialog : UtDialogEx() {
                             itemBinder
                                 .owner(owner)
                                 .combinatorialVisibilityBinding((item.label == "-").asConstantLiveData()) {
-                                    straightGone(c.optionLabel,c.optionValue)
-                                    inverseGone(c.separator)
+                                    inverseGone(c.optionLabel,c.optionValue)
+                                    straightGone(c.separator)
                                 }
                                 .textBinding(c.optionLabel, item.label.asConstantLiveData())
                                 .textBinding(c.optionValue, item.value.asConstantLiveData())

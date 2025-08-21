@@ -18,4 +18,5 @@
     <string name="button_add_files">Files</string>
     <string name="mode_dialog">Dialog</string>
     <string name="mode_fragment">Fragment</string>
+    <string name="button_add_bool">Bool</string>
 </resources>

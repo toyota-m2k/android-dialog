@@ -28,9 +28,16 @@ class NestedDialog : UtDialogEx() {
         val commandAddText = LiteUnitCommand {
             launchSubTask {
                 val vm = createViewModel<CompactDialog.CompactDialogViewModel>()
-                if(showDialog(CompactDialog()).status.ok) {
+                if (showDialog(CompactDialog()).status.ok) {
                     observableList.add(vm.yourName.value)
                 }
+            }
+        }
+        val commandAddBool = LiteUnitCommand {
+            launchSubTask {
+                val vm = createViewModel<CompactDialog.CompactDialogViewModel>()
+                val r = showDialog(AutoScrollDialog()).status.ok
+                observableList.add("$r")
             }
         }
         val commandAddFile = LiteUnitCommand {
@@ -87,6 +94,7 @@ class NestedDialog : UtDialogEx() {
         controls = DialogNestedBinding.inflate(inflater.layoutInflater)
         binder
             .bindCommand(viewModel.commandAddText, controls.addTextButton)
+            .bindCommand(viewModel.commandAddBool, controls.addBoolButton)
             .bindCommand(viewModel.commandAddFile, controls.addFileButton)
             .bindCommand(viewModel.commandAddFiles, controls.multiFileButton)
             .recyclerViewBindingEx(controls.recyclerView) {

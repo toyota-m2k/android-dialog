@@ -5,12 +5,16 @@ package io.github.toyota32k.dialog
 import android.content.Context
 import android.graphics.Rect
 import android.os.Build
+import android.view.View
 import android.window.OnBackInvokedDispatcher
 import androidx.annotation.LayoutRes
 import androidx.annotation.StyleRes
+import androidx.core.graphics.Insets
+import androidx.core.view.WindowInsetsCompat
 import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustMode
 import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustStrategy
 import io.github.toyota32k.dialog.UtDialogBase.SystemBarOptionOnFragmentMode
+import java.util.EnumSet
 
 /**
  * アプリ内で共通のダイアログ動作に関する設定をここにまとめます。
@@ -30,12 +34,68 @@ object UtDialogConfig {
      */
     var showInDialogModeAsDefault = true
 
+    object SystemZone {
+        val SYSTEM_BARS:Int = WindowInsetsCompat.Type.systemBars()
+        val IME:Int = WindowInsetsCompat.Type.ime()
+        val CUTOUT:Int = WindowInsetsCompat.Type.displayCutout()
+
+        // combinations
+        val NORMAL:Int = SYSTEM_BARS or CUTOUT
+        val ALL:Int = SYSTEM_BARS or IME or CUTOUT
+
+        fun calcInsets(insets:WindowInsetsCompat,zones:Int): Insets {
+            var all = Insets.NONE
+            if ((zones and SYSTEM_BARS) == SYSTEM_BARS) {
+                all = insets.getInsets(SYSTEM_BARS)
+            }
+            if ((zones and IME) == IME) {
+                all = Insets.max(all, insets.getInsets(IME))
+            }
+            if ((zones and CUTOUT) == CUTOUT) {
+                all = Insets.max(all, insets.getInsets(CUTOUT))
+            }
+            return all
+        }
+    }
+
+    /**
+     * UtDialog#visible = false としたとき、
+     * INVISIBLE にするか、GONE にするか？の初期値
+     *
+     * false: INVISIBLE にする（デフォルト）
+     * true : GONE にする
+     *
+     * android:configChanges="orientation" が設定されている場合、デバイスを回転してもビューが再作成されず、
+     * 表示が不正になる（子ダイアログの下にINVISIBLEにした親ダイアログが見えてしまう）現象が発生した。
+     * 親ダイアログをGONEで非表示にすることで、この現象は回避できることが判明。
+     * onConfigurationChanged()で自動的に、このフラグを true にするので、通常は意識する必要はないが、
+     * すべてのActivity に、android:configChanges="orientation"を指定している場合などは、無駄な切り替えをなくすため、
+     * このフラグを true にセットすることも可能としておく。
+     */
+    var hideDialogByGone:Boolean = false
+
+    enum class SystemZoneOption(val value:Int) {
+        NONE(0),                    // 何もしない
+        FIT_TO_ACTIVITY(1),         // ActivityのWindowに合わせる
+        HIDE_ACTION_BAR(2),         // ActionBarを非表示にしてできるだけ全画面に表示（cutoutもよけない）
+        CUSTOM_INSETS(3),           // systemZoneFlags に従う
+        ;
+        companion object {
+            fun of(value:Int):SystemZoneOption {
+                return entries.firstOrNull { it.value == value } ?: NONE
+            }
+        }
+    }
+
+    var systemZoneOption: SystemZoneOption = SystemZoneOption.FIT_TO_ACTIVITY
+    var systemZoneFlags:Int = SystemZone.NORMAL
+
     /**
      * UtDialog#hideStatusBarOnDialogMode のデフォルト値
      * ダイアログモード（isDialog == true）の場合に、StatusBar を非表示にして、全画面にダイアログを表示するか？
      * フラグメントモード(isDialog==false)の場合には無視される。
      */
-    var hideStatusBarOnDialogMode = true
+    // var hideStatusBarOnDialogMode = true
 
     /**
      * UtDialogBase#systemBarOptionOnFragmentModeのデフォルト値
@@ -45,7 +105,7 @@ object UtDialogConfig {
      * - HIDE SystemBar を一時的に非表示にする
      * ダイアログモード（isDialog == true）の場合には無視される
      */
-    var systemBarOptionOnFragmentMode = SystemBarOptionOnFragmentMode.NONE
+    // var systemBarOptionOnFragmentMode = SystemBarOptionOnFragmentMode.NONE
 //    var edgeToEdgeEnabledAsDefault = true
 
     /**

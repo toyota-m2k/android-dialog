@@ -5,9 +5,12 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import io.github.toyota32k.dialog.UtDialogConfig.SystemZone
+import io.github.toyota32k.dialog.UtDialogConfig.SystemZoneOption
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.android.hideActionBar
@@ -55,14 +58,22 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
      * フラグメントモードの場合に、setOnApplyWindowInsetsListenerを呼び出して、insets の調整を行うかどうか。
      */
 //    private val edgeToEdgeEnabled get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.DODGE
-    private val hideSystemBarOnFragmentMode get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.HIDE
-    private val strictSystemBarMode get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.STRICT
+//    private val hideSystemBarOnFragmentMode get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.HIDE
+//    private val strictSystemBarMode get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.STRICT
 
     /**
      * フラグメントモードの場合に、StatusBar / ActionBar をどう扱うか。
      */
-    var systemBarOptionOnFragmentMode : SystemBarOptionOnFragmentMode by bundle.enum(def=UtDialogConfig.systemBarOptionOnFragmentMode)
+    // var systemBarOptionOnFragmentMode : SystemBarOptionOnFragmentMode by bundle.enum(def=UtDialogConfig.systemBarOptionOnFragmentMode)
 
+
+    private var systemZoneOptionValue:Int by bundle.intNonnull(UtDialogConfig.systemZoneOption.value)
+    var systemZoneOption: SystemZoneOption
+        get() = SystemZoneOption.of(systemZoneOptionValue)
+        set(value) {
+            systemZoneOptionValue = value.value
+        }
+    var systemZoneFlags:Int by bundle.intNonnull(UtDialogConfig.systemZoneFlags)
 
 
     private var dialogHost: WeakReference<IUtDialogHost>? = null
@@ -99,7 +110,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         if (context is IUtDialogHost) {
             dialogHost = WeakReference(context)
         }
-        if(!isDialog && hideSystemBarOnFragmentMode) {
+        if(!isDialog && systemZoneOption == SystemZoneOption.HIDE_ACTION_BAR) {
             val activity = context as? AppCompatActivity
             if(activity!=null) {
                 originalStatusBarVisibility = activity.isStatusBarVisible()
@@ -216,7 +227,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     override fun onDetach() {
         super.onDetach()
         dialogHost = null
-        if(!isDialog && hideSystemBarOnFragmentMode) {
+        if(!isDialog) {
             val activity = requireActivity() as? AppCompatActivity
             if(activity!=null) {
                 if(originalStatusBarVisibility==true) {
@@ -389,19 +400,11 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         complete(IUtDialog.Status.NEGATIVE)
     }
 
+    /**
+     *
+     */
     protected fun getActivityContentView(activity:FragmentActivity):ViewGroup? {
         return activity.findViewById<ViewGroup>(android.R.id.content)?.getChildAt(0) as? ViewGroup
-    }
-
-    private fun getActivityContentViewId(activity:FragmentActivity):Int {
-        if(strictSystemBarMode) {
-            val container = getActivityContentView(activity)
-            if (container != null && container.id != View.NO_ID) {
-                return container.id
-            }
-            logger.error("No container found.")
-        }
-        return android.R.id.content
     }
 
     /**
@@ -416,11 +419,23 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         if(isDialog) {
             super.show(activity.supportFragmentManager, tag)
         } else {
-            val containerId = getActivityContentViewId(activity)
             activity.supportFragmentManager.apply {
                 beginTransaction()
-                .add(containerId, this@UtDialogBase, tag)
+//                .apply {
+//                    if (systemZoneOption == SystemZoneOption.FIT_TO_ACTIVITY) {
+//                        val container = getActivityContentView(activity)
+//                        // ActionBarを隠す場合は、ActivityのContentViewのルートコンテナに id が必要。
+//                        // LinearLayout はコンテントに追加されてしまうので不可。
+//                        if (container != null && container.id != View.NO_ID && container !is LinearLayout) {
+//                            systemZoneOption = SystemZoneOption.NONE
+//                            add(container.id, this@UtDialogBase, tag)
+//                        } else {
+//                            add(this@UtDialogBase, tag)
+//                        }
+//                    }
+//                }
 //              .addToBackStack(null)     // スタックには積まず、UtMortalDialog経由で自力で何とかする。
+                .add(android.R.id.content, this@UtDialogBase, tag)
                 .apply {
                     if(UtDialogConfig.showDialogImmediately==UtDialogConfig.ShowDialogMode.CommitNow) {
                         commitNow()	// これを使うとonDialogClosed()の中から showDialog()を呼ぶケースで、fragmentManagerが例外を投げるようなので注意。

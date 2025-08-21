@@ -34,6 +34,7 @@ import android.widget.ListView
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.ComponentDialog
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.LayoutRes
@@ -42,6 +43,7 @@ import androidx.annotation.StyleRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -49,8 +51,10 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginEnd
 import androidx.core.view.marginStart
 import androidx.core.view.marginTop
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import io.github.toyota32k.dialog.UtDialogConfig.SystemZoneOption
 import io.github.toyota32k.dialog.UtFocusManager.UseKey
 import io.github.toyota32k.dialog.mortal.UtMortalActivity
 import io.github.toyota32k.utils.android.CompatBackKeyDispatcher
@@ -60,6 +64,8 @@ import io.github.toyota32k.utils.android.setLayoutHeight
 import io.github.toyota32k.utils.android.setLayoutWidth
 import io.github.toyota32k.utils.android.setMargin
 import io.github.toyota32k.utils.android.withAlpha
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
 
@@ -192,7 +198,7 @@ abstract class UtDialog: UtDialogBase() {
      * Activity の window と同じ状態を Dialogのwindow に再現しようと、いろいろ試みたが、どうもうまくいかないので、プロパティで渡すことにした。
      * 将来よい方法が見つかれば。。。
      */
-    var hideStatusBarOnDialogMode: Boolean by bundle.booleanWithDefault(UtDialogConfig.hideStatusBarOnDialogMode)
+//    var hideStatusBarOnDialogMode: Boolean by bundle.booleanWithDefault(UtDialogConfig.hideStatusBarOnDialogMode)
 
     // endregion
 
@@ -423,7 +429,7 @@ abstract class UtDialog: UtDialogBase() {
 //        THEME_DIM(Color.argb(0, 2,2,2)),                    // colorSurface の反対色で目立つように覆う（colorSurfaceが白なら黒っぽい/黒なら白っぽい色で覆う）
 //        THEME_SEE_THROUGH(Color.argb(0, 3,3,3)),            // colorSurface と同じ色で、コントラストを落とすような感じ。
 //    }
-    data class GuardColor(@ColorInt val rawColor: Int, @AttrRes val dynamic: Int?, val dynamicAlpha: Int = 0xB0) {
+    data class GuardColor(@param:ColorInt val rawColor: Int, @param:AttrRes val dynamic: Int?, val dynamicAlpha: Int = 0xB0) {
         constructor(@ColorInt color: Int) : this(color, null)
 
         @ColorInt
@@ -643,12 +649,16 @@ abstract class UtDialog: UtDialogBase() {
      */
     var parentVisibilityOption by bundle.enum(ParentVisibilityOption.HIDE_AND_SHOW)
 
+    var hideParentByGone: Boolean by bundle.booleanWithDefault(UtDialogConfig.hideDialogByGone)
+
     /**
      * ダイアログの表示/非表示
      */
     var visible: Boolean
         get() = rootView.isVisible
-        set(v) { rootView.visibility = if(v) View.VISIBLE else View.INVISIBLE }
+        set(v) {
+            rootView.visibility = if(v) View.VISIBLE else if (hideParentByGone) View.GONE else View.INVISIBLE
+        }
 
     private val fadeInAnimation get() = UtFadeAnimation(true, UtDialogConfig.fadeInDuration)
     private val fadeOutAnimation get() = UtFadeAnimation(false, UtDialogConfig.fadeOutDuraton)
@@ -1301,7 +1311,7 @@ abstract class UtDialog: UtDialogBase() {
 
     private var keyboardObserver: ISoftwareKeyboardObserver? = null
 
-    private inner class XDialog(context: Context, @StyleRes themeResId: Int) : Dialog(context, themeResId) {
+    private inner class XDialog(context: Context, @StyleRes themeResId: Int) : ComponentDialog(context, themeResId) {
         override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
             logger.debug("${event.keyCode} $event")
             if (handleKeyEvent(event)) {
@@ -1315,12 +1325,16 @@ abstract class UtDialog: UtDialogBase() {
      * isDialog == true の場合に呼ばれる。
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        assert(isDialog) { "onCreateDialog() must be called only when isDialog == true" }
+        // assert(isDialog) { "onCreateDialog() must be called only when isDialog == true" }
+        if (!isDialog) {
+            return super.onCreateDialog(savedInstanceState)
+        }
+
         return XDialog(requireContext(), R.style.dlg_style).apply {
             window?.let { window ->
                 window.setBackgroundDrawable(GuardColor.TRANSPARENT.rawColor.toDrawable())
 
-                if (hideStatusBarOnDialogMode) {
+                if (systemZoneOption == SystemZoneOption.HIDE_ACTION_BAR) {
                     val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                     insetsController.hide(WindowInsetsCompat.Type.systemBars())
 
@@ -1352,11 +1366,21 @@ abstract class UtDialog: UtDialogBase() {
             preCreateBodyView()
             rootView = inflater.inflate(UtDialogConfig.dialogFrameId, container, false) as FrameLayout
 
-            if (container==null && isDialog && !hideStatusBarOnDialogMode) {
-                // container == null となるのは、ダイアログモードの場合だけのはず。
-                // ステータスバーを隠さないモードの場合は、これらを除けるため、
-                // 親Activityのコンテンツビューのパディングをダイアログに適用する。
-                (requireActivity() as? UtMortalActivity)?.  setupLastInsetsToRootView(rootView)
+            val mortalActivity = requireActivity() as? UtMortalActivity
+            if (mortalActivity!=null) {
+                if (systemZoneOption == SystemZoneOption.FIT_TO_ACTIVITY) {
+                    // ActivityのルートビューのInsetsをダイアログのrootViewに適用する。
+                    mortalActivity.addRootViewInsetsListener(this) {
+                        rootView.setPadding(it.left, it.top, it.right, it.bottom)
+                    }
+                } else if (systemZoneOption == SystemZoneOption.CUSTOM_INSETS && systemZoneFlags != 0) {
+                    // カスタムなInsetsをダイアログのrootViewに適用する。
+                    ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
+                        val all = UtDialogConfig.SystemZone.calcInsets(insets, systemZoneFlags)
+                        rootView.setPadding(all.left, all.top, all.right, all.bottom)
+                        insets
+                    }
+                }
             }
 
             if (noHeader) {
@@ -1448,6 +1472,26 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        // android:configChanges="orientation" が設定されている場合、デバイスを回転しても onCreateView() が呼ばれない（ビューが再作成されない）。
+        // このとき、parentDialog が INVISIBLE にもかかわらず表示されてしまう。デバイスドライバの不具合っぽい挙動。
+        // これを回避するため、この条件の場合は、INVISIBLEではなく、GONEによって親ダイアログを隠すことにする。
+        if (parentVisibilityOption != ParentVisibilityOption.NONE) {
+            parentDialog?.let { parent ->
+                if(!parent.hideParentByGone) {
+                    parent.hideParentByGone = true
+                    parent.visible = false
+                }
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+    }
+
     override fun onResume() {
         super.onResume()
         focusManager?.applyInitialFocus {
@@ -1510,7 +1554,7 @@ abstract class UtDialog: UtDialogBase() {
         } else adjustContentForKeyboard
         keyboardObserver?.dispose()
         keyboardObserver = when(mode) {
-            KeyboardAdjustMode.BY_WINDOW_INSETS -> UtSoftwareKeyboardObserver.byWindowInsets(this, rootView).observe(::onSoftwareKeyboardChanged)
+            KeyboardAdjustMode.BY_WINDOW_INSETS -> UtSoftwareKeyboardObserver.byWindowInsets(this, bodyContainer).observe(::onSoftwareKeyboardChanged)
             KeyboardAdjustMode.BY_GLOBAL_LAYOUT -> UtSoftwareKeyboardObserver.byGlobalLayout(this@UtDialog, requireActivity()).observe(::onSoftwareKeyboardChanged)
             else -> null
         }
