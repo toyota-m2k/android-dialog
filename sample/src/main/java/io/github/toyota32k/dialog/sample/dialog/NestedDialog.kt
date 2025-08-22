@@ -35,8 +35,7 @@ class NestedDialog : UtDialogEx() {
         }
         val commandAddBool = LiteUnitCommand {
             launchSubTask {
-                val vm = createViewModel<CompactDialog.CompactDialogViewModel>()
-                val r = showDialog(AutoScrollDialog()).status.ok
+                val r = showDialog<AutoScrollDialog.AutoScrollDialogViewModel,AutoScrollDialog>().status.ok
                 observableList.add("$r")
             }
         }

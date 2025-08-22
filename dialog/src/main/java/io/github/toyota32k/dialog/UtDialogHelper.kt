@@ -96,6 +96,28 @@ object UtDialogHelper {
         }
     }
 
+    private class RefugeDialogs(val list: List<IUtDialog.IRefuge>): IUtDialog.IRefuge {
+        override fun dismiss() {
+            list.forEach { it.dismiss() }
+        }
+
+        override fun restore(activity: FragmentActivity) {
+            list.forEach { it.restore(activity) }
+            activity.supportFragmentManager.executePendingTransactions()
+        }
+    }
+
+    fun refugeAll(activity: FragmentActivity): IUtDialog.IRefuge? {
+        val list = allDialogsAndMessageBoxes(activity).reverse().mapNotNull { it.refuge() }.reverse().toList()
+        if (list.isEmpty()) {
+            return null
+        } else {
+            activity.supportFragmentManager.executePendingTransactions()
+            return RefugeDialogs(list)
+        }
+    }
+
+
     /**
      * ActivityがFinishするとき(onDestroyでisFinishing==trueのとき）に、
      * まだ開いたままになっているダイアログ（＝ImmortalTaskで待ち合わせているダイアログ）を強制的に閉じて notifyResultを発行することにより、

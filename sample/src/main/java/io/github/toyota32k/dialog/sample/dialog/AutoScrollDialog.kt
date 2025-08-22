@@ -7,16 +7,33 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.children
+import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.binder.clickBinding
+import io.github.toyota32k.binder.command.LiteCommand
+import io.github.toyota32k.binder.command.LiteUnitCommand
+import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogEx
+import io.github.toyota32k.dialog.UtDialogHelper
 import io.github.toyota32k.dialog.sample.databinding.DialogAutoScrollBinding
 import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.getViewModel
+import kotlinx.coroutines.delay
 
 class AutoScrollDialog : UtDialogEx() {
     class AutoScrollDialogViewModel : UtDialogViewModel() {
         var count = 3
+
+        val refugeCommand = LiteCommand<FragmentActivity> {
+            launchSubTask {
+                delay(1000)
+                val rf = UtDialogHelper.refugeAll(it)
+                if (rf!=null) {
+                    delay(2000)
+                    rf.restore(it)
+                }
+            }
+        }
     }
     private lateinit var controls: DialogAutoScrollBinding
     private val viewModel by lazy { getViewModel<AutoScrollDialogViewModel>() }
@@ -59,6 +76,7 @@ class AutoScrollDialog : UtDialogEx() {
                     controls.root.removeView(view)
                     viewModel.count--
                 }
+                .bindCommand(viewModel.refugeCommand, Pair(controls.refugeButton,requireActivity()))
         }.root
     }
 }

@@ -397,6 +397,29 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         }
     }
 
+    private class Refuge(val dialog: UtDialogBase) : IUtDialog.IRefuge {
+        override fun dismiss() {
+            dialog.cancel()
+        }
+
+        override fun restore(activity: FragmentActivity) {
+            activity.supportFragmentManager.apply {
+                beginTransaction()
+                    .add(android.R.id.content, dialog, dialog.tag)
+                    .commit()
+            }
+        }
+    }
+    override fun refuge(): IUtDialog.IRefuge? {
+        if (isDialog) return null
+        requireActivity().supportFragmentManager.apply {
+            beginTransaction()
+                .remove(this@UtDialogBase)
+                .commit()
+        }
+        return Refuge(this)
+    }
+
     companion object {
         val logger = UtLog("DLG", null, "io.github.toyota32k.dialog.")
     }

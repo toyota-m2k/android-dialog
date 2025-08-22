@@ -94,8 +94,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         }
         val commandAutoScrollDialog = LiteUnitCommand {
             launchTask {
-                createViewModel<AutoScrollDialog.AutoScrollDialogViewModel>()
-                showDialog(AutoScrollDialog())
+                showDialog<AutoScrollDialog.AutoScrollDialogViewModel,AutoScrollDialog>()
             }
         }
         val commandFullHeightDialog = LiteUnitCommand {

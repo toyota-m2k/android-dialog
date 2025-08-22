@@ -3,6 +3,7 @@ package io.github.toyota32k.dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import io.github.toyota32k.utils.IDisposable
 
 @Suppress("unused")
 interface IUtDialog {
@@ -63,6 +64,14 @@ interface IUtDialog {
      * - dismissAllowingStateLoss()で閉じる
      */
     fun forceDismiss()
+
+    interface IRefuge {
+        fun dismiss()
+        fun restore(activity: FragmentActivity)
+    }
+
+    fun refuge(): IRefuge?
+
 
     val asFragment: DialogFragment
 }
