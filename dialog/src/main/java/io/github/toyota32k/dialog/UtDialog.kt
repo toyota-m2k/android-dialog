@@ -51,6 +51,7 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginEnd
 import androidx.core.view.marginStart
 import androidx.core.view.marginTop
+import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import io.github.toyota32k.dialog.UtDialogConfig.SystemZoneOption
@@ -585,28 +586,22 @@ abstract class UtDialog: UtDialogBase() {
     var parentVisibilityOption by bundle.enum(ParentVisibilityOption.HIDE_AND_SHOW)
 
     /**
-     * 親ダイアログを隠すときに、親のViewをGONEにするか、INVISIBLEにするか？
-     * true: 親のViewをGONEにする
-     * false: 親のViewはINVISIBLEにする（デフォルト）
-     */
-    var hideParentByGone: Boolean by bundle.booleanWithDefault(UtDialogConfig.hideDialogByGone)
-
-    /**
      * ダイアログの表示/非表示
      */
     var visible: Boolean
         get() = rootView.isVisible
         set(v) {
-            rootView.visibility = if(v) View.VISIBLE else if (hideParentByGone) View.GONE else View.INVISIBLE
+            rootView.visibility = if(v) View.VISIBLE else View.INVISIBLE
+            rootView.alpha = if (v) 1f else 0f  // visibility だけでは非表示にならないケース（原因不明）があるので alphaも操作しておく
         }
 
     private val fadeInAnimation get() = UtFadeAnimation(true, UtDialogConfig.fadeInDuration)
     private val fadeOutAnimation get() = UtFadeAnimation(false, UtDialogConfig.fadeOutDuraton)
 
-    fun fadeIn(completed: (() -> Unit)? = null) {
+    private fun fadeIn(enableAnimation:Boolean, completed: (() -> Unit)? = null) {
         if (!this::rootView.isInitialized) {
             completed?.invoke()         // onCreateViewでnullを返す（開かないでcancelされる）ダイアログの場合、ここに入ってくる
-        } else if (animationEffect) {
+        } else if (enableAnimation) {
             fadeInAnimation.start(rootView) {
                 completed?.invoke()
             }
@@ -616,10 +611,10 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
-    fun fadeOut(completed: (() -> Unit)? = null) {
+    private fun fadeOut(enableAnimation:Boolean, completed: (() -> Unit)? = null) {
         if (!this::rootView.isInitialized || !visible) {
             completed?.invoke()
-        } else if (animationEffect) {
+        } else if (enableAnimation) {
             fadeOutAnimation.start(rootView) {
                 visible = false
                 completed?.invoke()
@@ -1280,6 +1275,10 @@ abstract class UtDialog: UtDialogBase() {
     private val compatBackKeyDispatcher = CompatBackKeyDispatcher()
     private var backInvokerPriority = UtDialogConfig.baseBackInvokedDispatcherPriority
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+    }
+
     /**
      * コンテントビュー生成処理
      */
@@ -1362,9 +1361,9 @@ abstract class UtDialog: UtDialogBase() {
             if (savedInstanceState == null) {
                 // 新しくダイアログを開く
                 // アニメーションして開くときは、初期状態を非表示にしておく。
-                if (animationEffect) {
-                    this.visible = false
-                }
+//                if (animationEffect) {
+//                    this.visible = false
+//                }
                 // 初回フォーカスセットを予約
                 focusManager?.reserveInitialFocus()
             } else {
@@ -1391,24 +1390,31 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
-    /**
-     * android:configChanges="orientation" の場合に呼ばれる。
-     */
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
+    private var mRestoringFromRefuge = false
 
-        // android:configChanges="orientation" が設定されている場合、デバイスを回転しても onCreateView() が呼ばれない（ビューが再作成されない）。
-        // このとき、parentDialog が INVISIBLE にもかかわらず表示されてしまう。デバイスドライバの不具合っぽい挙動。
-        // これを回避するため、この条件の場合は、INVISIBLEではなく、GONEによって親ダイアログを隠すことにする。
-        if (parentVisibilityOption != ParentVisibilityOption.NONE) {
-            parentDialog?.let { parent ->
-                if(!parent.hideParentByGone) {
-                    parent.hideParentByGone = true
-                    parent.visible = false
-                }
-            }
+    private class Refuge(val dialog: UtDialog) : UtDialogHelper.IDialogRefuge {
+        override fun dismiss() {
+            dialog.cancel()
+        }
+
+        override fun restore(transaction: FragmentTransaction) {
+            transaction.attach( dialog)
         }
     }
+
+
+    fun comebackFromRefuge(transaction: FragmentTransaction) {
+        if (isDialog) return
+        transaction.attach( this@UtDialog)
+    }
+
+    fun refuge(transaction: FragmentTransaction): UtDialogHelper.IDialogRefuge? {
+        if (isDialog) return null
+        mRestoringFromRefuge = true
+        transaction.detach(this@UtDialog)
+        return Refuge(this)
+    }
+
 
     /**
      * ダイアログが表示されるときの処理
@@ -1430,7 +1436,7 @@ abstract class UtDialog: UtDialogBase() {
     // region イベント
 
     override fun internalCloseDialog() {
-        fadeOut {
+        fadeOut(animationEffect) {
             super.internalCloseDialog()
         }
     }
@@ -1439,16 +1445,17 @@ abstract class UtDialog: UtDialogBase() {
      * ダイアログが表示されるときのイベントハンドラ
      */
     override fun onDialogOpening() {
-        fadeIn()
+        fadeIn(animationEffect && !mRestoringFromRefuge)
         parentDialog?.let { parent ->
             if (!parent.status.finished) {   // parentのcompleteハンドラの中から別のダイアログを開く場合、parentのfadeOutが完了する前に、ここからfadeOutの追撃が行われ、completeハンドラがクリアされて親ダイアログが閉じられなくなってしまう
                 // 子ダイアログが開いた後、親ダイアログが開いたソフトウェアキーボードが残ってしまうと嫌なので、明示的に閉じておく
                 parent.hideSoftwareKeyboard()
                 if (parentVisibilityOption != ParentVisibilityOption.NONE) {
-                    parent.fadeOut()
+                    parent.fadeOut(parent.animationEffect && !mRestoringFromRefuge)
                 }
             }
         }
+        mRestoringFromRefuge = false
     }
 
     /**
@@ -1621,7 +1628,7 @@ abstract class UtDialog: UtDialogBase() {
         if(  parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW ||
             (parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW_ON_NEGATIVE && status.negative) ||
             (parentVisibilityOption==ParentVisibilityOption.HIDE_AND_SHOW_ON_POSITIVE && status.positive)) {
-            parent.fadeIn()
+            parent.fadeIn(parent.animationEffect)
         }
     }
 

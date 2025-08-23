@@ -4,12 +4,9 @@ import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
-import io.github.toyota32k.dialog.UtDialogConfig.SystemZone
 import io.github.toyota32k.dialog.UtDialogConfig.SystemZoneOption
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.logger.UtLog
@@ -47,12 +44,12 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     var isDialog : Boolean by bundle.booleanWithDefault(UtDialogConfig.showInDialogModeAsDefault)
     val isFragment: Boolean get() = !isDialog
 
-    enum class SystemBarOptionOnFragmentMode {
-        NONE,   // 何もしない (NoActionBar ならこれでok)
-//        DODGE,  // SystemBarを避ける
-        HIDE,   // SystemBarを隠す
-        STRICT, // ActivityのContentView領域だけを使い、それ以外には一切手出ししない（Activityの layout のルートコンテナに id 必須）
-    }
+//    enum class SystemBarOptionOnFragmentMode {
+//        NONE,   // 何もしない (NoActionBar ならこれでok)
+////        DODGE,  // SystemBarを避ける
+//        HIDE,   // SystemBarを隠す
+//        STRICT, // ActivityのContentView領域だけを使い、それ以外には一切手出ししない（Activityの layout のルートコンテナに id 必須）
+//    }
 
     /**
      * フラグメントモードの場合に、setOnApplyWindowInsetsListenerを呼び出して、insets の調整を行うかどうか。
@@ -168,7 +165,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     // ビューが破棄された状態（onDestroyView()が呼ばれて、onViewCreated()が呼ばれる前）に dismiss()されるケースも考慮し、
     // 初期状態は viewDestroyed は true で開始する。
     private var viewDestroyed = true
-        private set(v) {
+        set(v) {
             if(v!=field) {
                 field = v
                 if(v && dialogClosed) {
@@ -177,7 +174,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
             }
         }
     private var dialogClosed = false
-        private set(v) {
+        set(v) {
             if(v && !field) {
                 field = true
                 if(viewDestroyed) {
@@ -368,6 +365,15 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         complete(IUtDialog.Status.NEGATIVE)
     }
 
+//    protected fun getActivityContentViewId(activity:FragmentActivity): Int {
+//        val id = activity.findViewById<ViewGroup>(android.R.id.content)?.getChildAt(0)?.id
+//        return if (id != null && id != View.NO_ID) {
+//            id
+//        } else {
+//            android.R.id.content
+//        }
+//    }
+
     /**
      * ダイアログを表示する
      */
@@ -395,29 +401,6 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
                 }
             }
         }
-    }
-
-    private class Refuge(val dialog: UtDialogBase) : IUtDialog.IRefuge {
-        override fun dismiss() {
-            dialog.cancel()
-        }
-
-        override fun restore(activity: FragmentActivity) {
-            activity.supportFragmentManager.apply {
-                beginTransaction()
-                    .add(android.R.id.content, dialog, dialog.tag)
-                    .commit()
-            }
-        }
-    }
-    override fun refuge(): IUtDialog.IRefuge? {
-        if (isDialog) return null
-        requireActivity().supportFragmentManager.apply {
-            beginTransaction()
-                .remove(this@UtDialogBase)
-                .commit()
-        }
-        return Refuge(this)
     }
 
     companion object {

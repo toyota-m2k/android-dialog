@@ -27,10 +27,27 @@ class AutoScrollDialog : UtDialogEx() {
         val refugeCommand = LiteCommand<FragmentActivity> {
             launchSubTask {
                 delay(1000)
+//                val cur = UtDialogHelper.currentDialog(it)
+//                if (cur!=null) {
+//                    val fragmentManager = cur.requireActivity().supportFragmentManager
+//                    val fragments = fragmentManager.fragments
+//                    assert(fragments.contains(cur)) { "Current dialog is not in the fragment manager." }
+//                    cur.requireActivity().supportFragmentManager.beginTransaction().hide(cur).commitNow()
+//                    assert(cur.dialogView.parent == cur.rootView) { "Dialog view is not attached to the root view." }
+////                    cur.rootView.visibility = View.GONE
+//
+//                }
                 val rf = UtDialogHelper.refugeAll(it)
                 if (rf!=null) {
                     delay(2000)
                     rf.restore(it)
+//                    delay(1000)
+//                    val cur = UtDialogHelper.currentDialog(it)
+//                    if (cur is AutoScrollDialog) {
+//                        cur.visible = false
+//                        delay(2000)
+//                        cur.visible = true
+//                    }
                 }
             }
         }
@@ -45,6 +62,7 @@ class AutoScrollDialog : UtDialogEx() {
         leftButtonType = ButtonType.CANCEL
         rightButtonType = ButtonType.DONE
         cancellable = true
+        guardColor = GuardColor.SEE_THROUGH
         enableFocusManagement().autoRegister()
     }
 

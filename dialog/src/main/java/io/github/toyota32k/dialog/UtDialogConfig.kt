@@ -5,7 +5,6 @@ package io.github.toyota32k.dialog
 import android.content.Context
 import android.graphics.Rect
 import android.os.Build
-import android.view.View
 import android.window.OnBackInvokedDispatcher
 import androidx.annotation.LayoutRes
 import androidx.annotation.StyleRes
@@ -13,8 +12,6 @@ import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
 import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustMode
 import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustStrategy
-import io.github.toyota32k.dialog.UtDialogBase.SystemBarOptionOnFragmentMode
-import java.util.EnumSet
 
 /**
  * アプリ内で共通のダイアログ動作に関する設定をここにまとめます。
@@ -57,22 +54,6 @@ object UtDialogConfig {
             return all
         }
     }
-
-    /**
-     * UtDialog#visible = false としたとき、
-     * INVISIBLE にするか、GONE にするか？の初期値
-     *
-     * false: INVISIBLE にする（デフォルト）
-     * true : GONE にする
-     *
-     * android:configChanges="orientation" が設定されている場合、デバイスを回転してもビューが再作成されず、
-     * 表示が不正になる（子ダイアログの下にINVISIBLEにした親ダイアログが見えてしまう）現象が発生した。
-     * 親ダイアログをGONEで非表示にすることで、この現象は回避できることが判明。
-     * onConfigurationChanged()で自動的に、このフラグを true にするので、通常は意識する必要はないが、
-     * すべてのActivity に、android:configChanges="orientation"を指定している場合などは、無駄な切り替えをなくすため、
-     * このフラグを true にセットすることも可能としておく。
-     */
-    var hideDialogByGone:Boolean = false
 
     enum class SystemZoneOption(val value:Int) {
         NONE(0),                    // 何もしない

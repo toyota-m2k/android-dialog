@@ -65,14 +65,6 @@ interface IUtDialog {
      */
     fun forceDismiss()
 
-    interface IRefuge {
-        fun dismiss()
-        fun restore(activity: FragmentActivity)
-    }
-
-    fun refuge(): IRefuge?
-
-
     val asFragment: DialogFragment
 }
 
