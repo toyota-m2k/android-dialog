@@ -145,6 +145,7 @@ class UtBundleDelegate(private val namespace:String?, val source:()->Bundle) {
     val booleanFalse:ReadWriteProperty<Any,Boolean> by lazy { GenericDelegate<Boolean>{(it as? Boolean)?:false} }
     val booleanTrue: ReadWriteProperty<Any,Boolean> by lazy { GenericDelegate<Boolean>{(it as? Boolean)?:true} }
     fun booleanWithDefault(def:Boolean) : ReadWriteProperty<Any,Boolean> { return GenericDelegate<Boolean>{(it as? Boolean)?:def} }
+    fun booleanNonnull(def:Boolean) : ReadWriteProperty<Any,Boolean> = booleanWithDefault(def)
 
     // String
     val string:ReadWriteProperty<Any,String> by lazy { GenericDelegate<String>{it as? String ?: ""} }

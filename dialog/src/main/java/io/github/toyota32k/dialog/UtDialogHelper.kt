@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import io.github.toyota32k.utils.reverse
 
 object UtDialogHelper {
@@ -95,6 +96,56 @@ object UtDialogHelper {
             d.cancel()
         }
     }
+
+    /**
+     * refuge()で引きはがしたダイアログを、Activityに戻したり、そのまま閉じたりする i/f
+     */
+    interface IRefuge {
+        fun dismiss()
+        fun restore(activity: FragmentActivity)
+    }
+    interface IDialogRefuge {
+        fun dismiss()
+        fun restore(transaction: FragmentTransaction)
+    }
+
+    private class Refuges(val list: List<IDialogRefuge>): IRefuge {
+        override fun dismiss() {
+            list.forEach { it.dismiss() }
+        }
+
+        override fun restore(activity: FragmentActivity) {
+            activity.supportFragmentManager
+                .beginTransaction()
+                .apply {
+                    list.forEach { it.restore(this) }
+                }
+                .commit()
+            activity.supportFragmentManager.executePendingTransactions()
+        }
+    }
+
+    /**
+     * ダイアログをActivityから引きはがして退避する。
+     *
+     * Activityで、setContentView()によってビューの構成を変更するとき（例：onConfigurationChangedでレイアウトを変更する、など）、
+     * ダイアログを表示したまま（Activityのビューにaddした状態のまま）setContentView()を呼び出すと、ダイアログが消えてしまう。
+     * これを防ぐために、ダイアログを一時的にActivityから引きはがして、Activityのビュー構成を変更した後、IRefuge#restore()で元に戻す。
+     *
+     * このメソッドがIRefugeインスタンスを返した場合は、必ず、restore()または、dismiss()を呼び出すこと。（--> タスクがリークし、同名のタスクが実行できなくなる。）
+     */
+    fun refugeAll(activity: FragmentActivity): IRefuge? {
+        val transaction = activity.supportFragmentManager.beginTransaction()
+        val list = allDialogsAndMessageBoxes(activity).reverse().mapNotNull { (it as? UtDialog)?.refuge(transaction) }.reverse().toList()
+        if (list.isEmpty()) {
+            return null
+        } else {
+            transaction.commit()
+            activity.supportFragmentManager.executePendingTransactions()
+            return Refuges(list)
+        }
+    }
+
 
     /**
      * ActivityがFinishするとき(onDestroyでisFinishing==trueのとき）に、

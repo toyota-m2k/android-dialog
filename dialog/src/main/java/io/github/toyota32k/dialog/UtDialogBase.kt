@@ -4,10 +4,10 @@ import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import io.github.toyota32k.dialog.UtDialogConfig.SystemZoneOption
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.android.hideActionBar
@@ -44,25 +44,33 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     var isDialog : Boolean by bundle.booleanWithDefault(UtDialogConfig.showInDialogModeAsDefault)
     val isFragment: Boolean get() = !isDialog
 
-    enum class SystemBarOptionOnFragmentMode {
-        NONE,   // 何もしない (NoActionBar ならこれでok)
-//        DODGE,  // SystemBarを避ける
-        HIDE,   // SystemBarを隠す
-        STRICT, // ActivityのContentView領域だけを使い、それ以外には一切手出ししない（Activityの layout のルートコンテナに id 必須）
-    }
+//    enum class SystemBarOptionOnFragmentMode {
+//        NONE,   // 何もしない (NoActionBar ならこれでok)
+////        DODGE,  // SystemBarを避ける
+//        HIDE,   // SystemBarを隠す
+//        STRICT, // ActivityのContentView領域だけを使い、それ以外には一切手出ししない（Activityの layout のルートコンテナに id 必須）
+//    }
 
     /**
      * フラグメントモードの場合に、setOnApplyWindowInsetsListenerを呼び出して、insets の調整を行うかどうか。
      */
 //    private val edgeToEdgeEnabled get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.DODGE
-    private val hideSystemBarOnFragmentMode get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.HIDE
-    private val strictSystemBarMode get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.STRICT
+//    private val hideSystemBarOnFragmentMode get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.HIDE
+//    private val strictSystemBarMode get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.STRICT
 
     /**
      * フラグメントモードの場合に、StatusBar / ActionBar をどう扱うか。
      */
-    var systemBarOptionOnFragmentMode : SystemBarOptionOnFragmentMode by bundle.enum(def=UtDialogConfig.systemBarOptionOnFragmentMode)
+    // var systemBarOptionOnFragmentMode : SystemBarOptionOnFragmentMode by bundle.enum(def=UtDialogConfig.systemBarOptionOnFragmentMode)
 
+
+    private var systemZoneOptionValue:Int by bundle.intNonnull(UtDialogConfig.systemZoneOption.value)
+    var systemZoneOption: SystemZoneOption
+        get() = SystemZoneOption.of(systemZoneOptionValue)
+        set(value) {
+            systemZoneOptionValue = value.value
+        }
+    var systemZoneFlags:Int by bundle.intNonnull(UtDialogConfig.systemZoneFlags)
 
 
     private var dialogHost: WeakReference<IUtDialogHost>? = null
@@ -99,7 +107,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         if (context is IUtDialogHost) {
             dialogHost = WeakReference(context)
         }
-        if(!isDialog && hideSystemBarOnFragmentMode) {
+        if(!isDialog && systemZoneOption == SystemZoneOption.HIDE_ACTION_BAR) {
             val activity = context as? AppCompatActivity
             if(activity!=null) {
                 originalStatusBarVisibility = activity.isStatusBarVisible()
@@ -148,38 +156,6 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         if(savedInstanceState==null) {
             onDialogOpening()
         }
-        // edgeToEdgeEnabled（DODGE）モードは廃止。
-        // 苦労して調整したが、STRICTモードで、より効果的な「よけ」が達成できたので、泣く泣く削除。
-//        if(!isDialog && edgeToEdgeEnabled) {
-//            // システムバーを避けるためのマージン設定
-//            fun applySystemBarsInsets(view:View, systemBarsInsets:Insets) {
-//                val params = view.layoutParams as ViewGroup.MarginLayoutParams
-//                params.topMargin = systemBarsInsets.top
-//                params.bottomMargin = systemBarsInsets.bottom
-//                view.layoutParams = params
-//            }
-//
-//            // 当初は、setOnApplyWindowInsetsListener のコールバックで System Bars の insets を取得していたが、
-//            // ダイアログはActivityが起動した状態から表示されるので、デバイスを回転するなどの操作が行われるまで、
-//            // 最初の１回目のコールバックが発生せず、表示が不正（ActionBarの下にダイアログが潜る）になる。
-//            // ViewCompat.getRootWindowInsets(view) で Insets を取得することにしたが、このメソッドではなぜか
-//            // ActionBar のサイズが含まれず、StatusBarのサイズだけになってしまう。
-//            // 仕方がないから、自力で ActionBar のサイズを計算する、getActionBarHeight() を実装し、
-//            // getRootWindowInsets()の insets.top これを加算して使用することとした。
-//
-////            ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
-////                val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-////                applySystemBarsInsets(v, systemBarsInsets)
-////                WindowInsetsCompat.Builder(insets).setInsets(WindowInsetsCompat.Type.systemBars(), Insets.NONE).build()
-////            }
-//
-//            view.post {
-//                val insets = ViewCompat.getRootWindowInsets(view)
-//                if(insets!=null) {
-//                    val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//                    applySystemBarsInsets(view, Insets.add(systemBarsInsets, Insets.of(0, getActionBarHeight(), 0, 0)))
-//                }
-//            }
     }
 
     // dismiss()を呼んでから、viewがdestroyされるまで、少し時間があり、
@@ -189,7 +165,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     // ビューが破棄された状態（onDestroyView()が呼ばれて、onViewCreated()が呼ばれる前）に dismiss()されるケースも考慮し、
     // 初期状態は viewDestroyed は true で開始する。
     private var viewDestroyed = true
-        private set(v) {
+        set(v) {
             if(v!=field) {
                 field = v
                 if(v && dialogClosed) {
@@ -198,7 +174,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
             }
         }
     private var dialogClosed = false
-        private set(v) {
+        set(v) {
             if(v && !field) {
                 field = true
                 if(viewDestroyed) {
@@ -216,7 +192,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     override fun onDetach() {
         super.onDetach()
         dialogHost = null
-        if(!isDialog && hideSystemBarOnFragmentMode) {
+        if(!isDialog) {
             val activity = requireActivity() as? AppCompatActivity
             if(activity!=null) {
                 if(originalStatusBarVisibility==true) {
@@ -389,16 +365,14 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         complete(IUtDialog.Status.NEGATIVE)
     }
 
-    private fun getActivityContentViewId(activity:FragmentActivity):Int {
-        if(strictSystemBarMode) {
-            val container = activity.findViewById<ViewGroup>(android.R.id.content)?.getChildAt(0) as? ViewGroup
-            if (container != null && container.id != View.NO_ID) {
-                return container.id
-            }
-            logger.error("No container found.")
-        }
-        return android.R.id.content
-    }
+//    protected fun getActivityContentViewId(activity:FragmentActivity): Int {
+//        val id = activity.findViewById<ViewGroup>(android.R.id.content)?.getChildAt(0)?.id
+//        return if (id != null && id != View.NO_ID) {
+//            id
+//        } else {
+//            android.R.id.content
+//        }
+//    }
 
     /**
      * ダイアログを表示する
@@ -412,11 +386,9 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         if(isDialog) {
             super.show(activity.supportFragmentManager, tag)
         } else {
-            val containerId = getActivityContentViewId(activity)
             activity.supportFragmentManager.apply {
                 beginTransaction()
-                .add(containerId, this@UtDialogBase, tag)
-//              .addToBackStack(null)     // スタックには積まず、UtMortalDialog経由で自力で何とかする。
+                .add(android.R.id.content, this@UtDialogBase, tag)
                 .apply {
                     if(UtDialogConfig.showDialogImmediately==UtDialogConfig.ShowDialogMode.CommitNow) {
                         commitNow()	// これを使うとonDialogClosed()の中から showDialog()を呼ぶケースで、fragmentManagerが例外を投げるようなので注意。

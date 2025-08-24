@@ -24,10 +24,10 @@
     <View
         android:id="@+id/separator"
         android:layout_height="2dp"
-        android:layout_width="0dp"
-        android:background="@drawable/dlg_header_separator"
-        android:layout_marginStart="1dp"
-        android:layout_marginEnd="1dp"
+        android:layout_width="match_parent"
+        android:background="?attr/colorOnSurface"
+        android:layout_marginStart="2dp"
+        android:layout_marginEnd="2dp"
         android:visibility="gone"
         />
 

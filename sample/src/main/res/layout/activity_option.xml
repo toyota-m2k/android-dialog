@@ -7,233 +7,289 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".OptionActivity">
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/show_dialog_button"
         android:layout_marginBottom="10dp"
         android:background="?attr/colorSurface"
-        >
+        app:layout_constraintBottom_toTopOf="@+id/show_dialog_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="10dp"
             android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            >
+            app:layout_constraintTop_toTopOf="parent">
 
             <!-- Theme -->
             <TextView
                 style="@style/option_activity_category_label"
-                android:text="Activity Settings"
-                />
+                android:text="Activity Settings" />
+
             <TextView
                 style="@style/option_activity_item_label"
-                android:text="Material Theme"
-                />
+                android:text="Material Theme" />
+
             <Spinner
-                style="@style/option_activity_item"
                 android:id="@+id/theme_spinner"
-                />
+                style="@style/option_activity_item" />
+
             <TextView
                 style="@style/option_activity_item_label"
-                android:text="Dark / Light"
-                />
+                android:text="Dark / Light" />
+
             <Spinner
-                style="@style/option_activity_item"
                 android:id="@+id/dark_light_spinner"
-                />
+                style="@style/option_activity_item" />
 
             <Button
                 android:id="@+id/theme_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Check Theme Color"
                 android:layout_gravity="center_horizontal"
-                />
+                android:text="Check Theme Color" />
 
             <CheckBox
                 android:id="@+id/check_action_bar"
                 style="@style/option_activity_item_check"
-                android:text="Show Action Bar"
-                />
+                android:text="Show Action Bar" />
+
             <CheckBox
                 android:id="@+id/check_status_bar"
                 style="@style/option_activity_item_check"
-                android:text="Show Status Bar"
-                />
+                android:text="Show Status Bar" />
+
             <CheckBox
                 android:id="@+id/check_edge_to_edge"
                 style="@style/option_activity_item_check"
-                android:text="Edge to Edge"
-                />
+                android:text="Edge to Edge" />
+
+<!--            <CheckBox-->
+<!--                android:id="@+id/fit_system_window"-->
+<!--                style="@style/option_activity_item_check"-->
+<!--                android:text="Fit System Window" />-->
+
+            <TextView
+                style="@style/option_activity_item_label"
+                android:text="Window Insets" />
             <CheckBox
-                android:id="@+id/fit_system_window"
+                android:id="@+id/window_insets_system_bars"
                 style="@style/option_activity_item_check"
-                android:text="Fit System Window"
-                />
+                android:layout_marginStart="16dp"
+                android:text="System Bars" />
+            <CheckBox
+                android:id="@+id/window_insets_cutout"
+                style="@style/option_activity_item_check"
+                android:layout_marginStart="16dp"
+                android:text="Cutout" />
+            <CheckBox
+                android:id="@+id/window_insets_ime"
+                style="@style/option_activity_item_check"
+                android:layout_marginStart="16dp"
+                android:text="IME" />
+
+
 
 
             <!-- Global Options -->
             <TextView
                 style="@style/option_activity_category_label"
-                android:text="Global Options"
-                />
+                android:text="Global Options" />
+
             <CheckBox
                 android:id="@+id/check_dialog_mode"
                 style="@style/option_activity_item_check"
-                android:text="Dialog Mode"
-                />
+                android:text="Dialog Mode" />
+
+            <CheckBox
+                android:id="@+id/check_animation_effect"
+                style="@style/option_activity_item_check"
+                android:text="Animation Effect" />
 
             <TextView
                 style="@style/option_activity_item_label"
-                android:text="Dialog Margin (portrait)"
-                />
+                android:text="Dialog Margin (portrait)" />
+
             <Spinner
-                style="@style/option_activity_item"
                 android:id="@+id/portrait_margin_spinner"
-                />
+                style="@style/option_activity_item" />
 
             <TextView
                 style="@style/option_activity_item_label"
-                android:text="Dialog Margin (landscape)"
-                />
+                android:text="Dialog Margin (landscape)" />
+
             <Spinner
-                style="@style/option_activity_item"
                 android:id="@+id/landscape_margin_spinner"
-                />
+                style="@style/option_activity_item" />
 
             <!-- Dialog Options -->
             <TextView
                 style="@style/option_activity_category_label"
-                android:text="Dialog Options"
-                />
-            <TextView
-                style="@style/option_activity_item_label"
-                android:text="Dialog Title"
-                />
-            <EditText
-                style="@style/option_activity_item"
-                android:id="@+id/dialog_title_edit"
-                android:hint="Dialog Title"
-                android:inputType="textMultiLine"
-                />
-            <TextView
-                style="@style/option_activity_item_label"
-                android:text="Width Option"
-                />
-            <Spinner
-                android:id="@+id/width_option_spinner"
-                style="@style/option_activity_item"
-                />
-            <TextView
-                style="@style/option_activity_item_label"
-                android:text="Height Option"
-                />
-            <Spinner
-                android:id="@+id/height_option_spinner"
-                style="@style/option_activity_item"
-                />
-            <TextView
-                style="@style/option_activity_item_label"
-                android:text="Gravity Option"
-                />
-            <Spinner
-                android:id="@+id/gravity_option_spinner"
-                style="@style/option_activity_item"
-                />
+                android:text="Dialog Options" />
 
             <TextView
                 style="@style/option_activity_item_label"
-                android:text="Guard Color"
-                />
-            <Spinner
-                android:id="@+id/guard_color_spinner"
+                android:text="Dialog Title" />
+
+            <EditText
+                android:id="@+id/dialog_title_edit"
                 style="@style/option_activity_item"
-                />
+                android:hint="Dialog Title"
+                android:inputType="textMultiLine" />
+
             <TextView
                 style="@style/option_activity_item_label"
-                android:text="Body Guard Color"
-                />
+                android:text="Width Option" />
+
+            <Spinner
+                android:id="@+id/width_option_spinner"
+                style="@style/option_activity_item" />
+
+            <TextView
+                style="@style/option_activity_item_label"
+                android:text="Height Option" />
+
+            <Spinner
+                android:id="@+id/height_option_spinner"
+                style="@style/option_activity_item" />
+
+            <TextView
+                style="@style/option_activity_item_label"
+                android:text="Gravity Option" />
+
+            <Spinner
+                android:id="@+id/gravity_option_spinner"
+                style="@style/option_activity_item" />
+
+            <TextView
+                style="@style/option_activity_item_label"
+                android:text="Guard Color" />
+
+            <Spinner
+                android:id="@+id/guard_color_spinner"
+                style="@style/option_activity_item" />
+
+            <TextView
+                style="@style/option_activity_item_label"
+                android:text="Body Guard Color" />
+
             <Spinner
                 android:id="@+id/body_guard_color_spinner"
-                style="@style/option_activity_item"
-                />
+                style="@style/option_activity_item" />
 
             <CheckBox
                 android:id="@+id/check_progress_ring_on_body_guard_view"
                 style="@style/option_activity_item_check"
-                android:text="Show Progress Ring on bodyGuardView"
-                />
+                android:text="Show Progress Ring on bodyGuardView" />
+
             <CheckBox
                 android:id="@+id/check_progress_ring_on_header"
                 style="@style/option_activity_item_check"
-                android:text="Show Progress Ring on Header"
-                />
+                android:text="Show Progress Ring on Header" />
 
             <CheckBox
                 android:id="@+id/check_scrollable"
                 style="@style/option_activity_item_check"
-                android:text="Scrollable"
-                />
+                android:text="Scrollable" />
+
             <CheckBox
                 android:id="@+id/check_cancellable"
                 style="@style/option_activity_item_check"
-                android:text="Cancellable"
-                />
+                android:text="Cancellable" />
+
             <CheckBox
                 android:id="@+id/check_draggable"
                 style="@style/option_activity_item_check"
-                android:text="Draggable"
-                />
+                android:text="Draggable" />
 
             <CheckBox
                 android:id="@+id/no_header"
                 style="@style/option_activity_item_check"
-                android:text="No Header"
-                />
+                android:text="No Header" />
+
             <CheckBox
                 android:id="@+id/no_footer"
                 style="@style/option_activity_item_check"
-                android:text="No Footer"
-                />
-            <CheckBox
-                android:id="@+id/check_hide_status_bar_on_dialog"
-                style="@style/option_activity_item_check"
-                android:text="Hide StatusBar on opening dialog (only for Dialog Mode)"
-                />
+                android:text="No Footer" />
+            <!--            <CheckBox-->
+            <!--                android:id="@+id/check_hide_status_bar_on_dialog"-->
+            <!--                style="@style/option_activity_item_check"-->
+            <!--                android:text="Hide StatusBar on opening dialog (only for Dialog Mode)"-->
+            <!--                />-->
+
+            <TextView
+                style="@style/option_activity_category_label"
+                android:text="Dodge Options" />
+
             <TextView
                 style="@style/option_activity_item_label"
-                android:text="Adjust Contents for Keyboard"
-                />
+                android:text="System Zone Options" />
+
             <Spinner
-                style="@style/option_activity_item"
+                android:id="@+id/system_zone_spinner"
+                style="@style/option_activity_item" />
+
+            <LinearLayout
+                android:id="@+id/custom_zone_options"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp">
+                <TextView
+                    style="@style/option_activity_item_label"
+                    android:text="Dodges" />
+                <CheckBox
+                    android:id="@+id/custom_zone_system_bars"
+                    style="@style/option_activity_item_check"
+                    android:text="System Bars" />
+
+                <CheckBox
+                    android:id="@+id/custom_zone_cutout"
+                    style="@style/option_activity_item_check"
+                    android:text="Cutout" />
+
+                <CheckBox
+                    android:id="@+id/custom_zone_ime"
+                    style="@style/option_activity_item_check"
+                    android:text="IME" />
+            </LinearLayout>
+
+
+            <TextView
+                style="@style/option_activity_item_label"
+                android:text="Adjust Contents for Keyboard" />
+
+            <Spinner
                 android:id="@+id/adjust_contents_for_keyboard"
-                />
+                style="@style/option_activity_item" />
+
             <TextView
                 style="@style/option_activity_item_label"
-                android:text="Adjust Strategy"
-                />
+                android:text="Adjust Strategy" />
+
             <Spinner
-                style="@style/option_activity_item"
                 android:id="@+id/adjust_contents_strategy"
-                />
-            <TextView
-                style="@style/option_activity_item_label"
-                android:text="System Bar Option (only for Fragment Mode)"
-                />
-            <Spinner
-                style="@style/option_activity_item"
-                android:id="@+id/system_bar_mode_on_fragment"
-                />
+                style="@style/option_activity_item" />
+            <!--            <TextView-->
+            <!--                style="@style/option_activity_item_label"-->
+            <!--                android:text="System Bar Option (only for Fragment Mode)"-->
+            <!--                />-->
+            <!--            <Spinner-->
+            <!--                style="@style/option_activity_item"-->
+            <!--                android:id="@+id/system_bar_mode_on_fragment"-->
+            <!--                />-->
         </LinearLayout>
     </ScrollView>
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

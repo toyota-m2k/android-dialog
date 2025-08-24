@@ -12,6 +12,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.activityActionBarBinding
@@ -21,8 +22,10 @@ import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.editTextBinding
 import io.github.toyota32k.binder.enableBinding
+import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.observe
 import io.github.toyota32k.binder.spinnerBinding
+import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialog.ButtonType
 import io.github.toyota32k.dialog.UtDialog.GravityOption
@@ -51,7 +54,11 @@ import io.github.toyota32k.utils.android.hideStatusBar
 import io.github.toyota32k.utils.android.isActionBarVisible
 import io.github.toyota32k.utils.android.isStatusBarVisible
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 
 class OptionActivity : UtMortalActivity() {
     class OptionActivityViewModel : ViewModel() {
@@ -61,16 +68,23 @@ class OptionActivity : UtMortalActivity() {
         val showStatusBar = MutableStateFlow(true)
         val showActionBar = MutableStateFlow(true)
         val edgeToEdgeEnabled = MutableStateFlow(true)
-        val fitSystemWindows = MutableStateFlow(false)
+//        val fitSystemWindows = MutableStateFlow(false)
+        val windowInsetsSystemBar = MutableStateFlow(true)
+        val windowInsetsCutout = MutableStateFlow(true)
+        val windowInsetsIme = MutableStateFlow(false)
+        val windowsInsetsZoneFlags = combine(edgeToEdgeEnabled, windowInsetsIme, windowInsetsCutout, windowInsetsSystemBar) { e2e, ime, cutout, systemBars ->
+            if (e2e) zoneFlagsOf(systemBars, ime, cutout) else -1
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
         // Global Options
         val isDialogMode = MutableStateFlow(UtDialogConfig.showInDialogModeAsDefault)
-        val portraitMarginInfo = MutableStateFlow(DialogMarginInfo.DEFAULT_PORTRAIT)
-        val landscapeMarginInfo = MutableStateFlow(DialogMarginInfo.DEFAULT_LANDSCAPE)
+        val portraitMarginInfo = MutableStateFlow(DialogMarginInfo.ZERO)
+        val landscapeMarginInfo = MutableStateFlow(DialogMarginInfo.ZERO)
+        val animationEffect = MutableStateFlow(UtDialogConfig.animationEffect)
 
         // Dialog Options
         val dialogTitle = MutableStateFlow("Sample Dialog")
-        val widthOptionInfo = MutableStateFlow(WidthOptionInfo.COMPACT)
+        val widthOptionInfo = MutableStateFlow(WidthOptionInfo.FULL)
         val heightOptionInfo = MutableStateFlow(HeightOptionInfo.FULL)  // デフォルトと異なるが、COMPACTだと layout.xmlが、wrap_contentの中に、match_parentのビューが含まれる構成になって変なレイアウトになってしまう。
         val gravityOptionInfo = MutableStateFlow(GravityOptionInfo.CENTER)
         val guardColorInfo = MutableStateFlow(GuardColorInfo.DEFAULT)
@@ -82,15 +96,19 @@ class OptionActivity : UtMortalActivity() {
         val draggable = MutableStateFlow(false)
         val noHeader = MutableStateFlow(false)
         val noFooter = MutableStateFlow(false)
-        val hideStatusBarOnDialog = MutableStateFlow(UtDialogConfig.hideStatusBarOnDialogMode)
-        val systemBarOptionOnFragmentMode = MutableStateFlow(UtDialogConfig.systemBarOptionOnFragmentMode)
+//        val hideStatusBarOnDialog = MutableStateFlow(UtDialogConfig.hideStatusBarOnDialogMode)
+//        val systemBarOptionOnFragmentMode = MutableStateFlow(UtDialogConfig.systemBarOptionOnFragmentMode)
+        val systemZoneOption = MutableStateFlow(UtDialogConfig.systemZoneOption)
+        val systemZoneSystemBars = MutableStateFlow(true)
+        val systemZoneIme = MutableStateFlow(false)
+        val systemZoneCutout = MutableStateFlow(true)
         val adjustContentForKeyboard = MutableStateFlow(UtDialogConfig.adjustContentForKeyboard)
         val adjustContentsStrategy = MutableStateFlow(UtDialogConfig.adjustContentsStrategy)
 
         val hasActionBar = themeInfo.map { it.hasActionBar }
         val isMaterial3 = themeInfo.map { it.material3 }
 
-        data class ThemeInfo(val label: String, @StyleRes val themeId: Int, val hasActionBar: Boolean, val material3:Boolean=true) {
+        data class ThemeInfo(val label: String, @param:StyleRes val themeId: Int, val hasActionBar: Boolean, val material3:Boolean=true) {
             override fun toString():String {
                 return label
             }
@@ -193,11 +211,20 @@ class OptionActivity : UtMortalActivity() {
             }
         }
 
+        fun zoneFlagsOf(systemBars:Boolean, ime:Boolean, cutout:Boolean):Int {
+            var flags = 0
+            flags = flags or if (systemBars) UtDialogConfig.SystemZone.SYSTEM_BARS else 0
+            flags = flags or if (ime) UtDialogConfig.SystemZone.IME else 0
+            flags = flags or if (cutout) UtDialogConfig.SystemZone.CUTOUT else 0
+            return flags
+        }
+
         fun <T: UtDialog> T.applySettings():T {
             val vm = this@OptionActivityViewModel
             isDialog = vm.isDialogMode.value
-            systemBarOptionOnFragmentMode = vm.systemBarOptionOnFragmentMode.value
-            hideStatusBarOnDialogMode = vm.hideStatusBarOnDialog.value
+            animationEffect = vm.animationEffect.value
+            systemZoneOption = vm.systemZoneOption.value
+            systemZoneFlags = zoneFlagsOf(vm.systemZoneSystemBars.value, vm.systemZoneIme.value, vm.systemZoneCutout.value)
             adjustContentForKeyboard = vm.adjustContentForKeyboard.value
             adjustContentsStrategy = vm.adjustContentsStrategy.value
 
@@ -253,10 +280,10 @@ class OptionActivity : UtMortalActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val edgeToEdgeEnabled = viewModel.edgeToEdgeEnabled.value
-        if(edgeToEdgeEnabled) {
+        if (viewModel.edgeToEdgeEnabled.value) {
             enableEdgeToEdge()
         }
+        val windowInsetsZoneFlags = viewModel.windowsInsetsZoneFlags.value
 
         val currentTheme = viewModel.themeInfo.value.themeId
         setTheme(currentTheme)
@@ -276,9 +303,13 @@ class OptionActivity : UtMortalActivity() {
             }
         }
 
-        if(edgeToEdgeEnabled) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-            setupWindowInsetsListener(controls.root)
+        if (viewModel.edgeToEdgeEnabled.value) {
+            // enableEdgeToEdge() は、WindowInsetsControllerCompat.setAppearanceLightNavigationBars() を呼び出すので、
+            // あらためて呼ぶ必要はない
+            // WindowCompat.setDecorFitsSystemWindows(window, false)
+            if (windowInsetsZoneFlags>0) {
+                setupWindowInsetsListener(controls.root, windowInsetsZoneFlags)
+            }
 
 //            ViewCompat.setOnApplyWindowInsetsListener(controls.root) { v, insets ->
 //                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -298,8 +329,8 @@ class OptionActivity : UtMortalActivity() {
         if(!viewModel.showActionBar.value && isStatusBarVisible()) {
             hideStatusBar()
         }
-        var fitSystemWindows = viewModel.fitSystemWindows.value
-        WindowCompat.setDecorFitsSystemWindows(window, fitSystemWindows)
+//        var fitSystemWindows = viewModel.fitSystemWindows.value
+//        WindowCompat.setDecorFitsSystemWindows(window, fitSystemWindows)
 
         binder.owner(this)
             .bindCommand(viewModel.commandShowDialog, controls.showDialogButton)
@@ -307,8 +338,8 @@ class OptionActivity : UtMortalActivity() {
             .activityStatusBarBinding(viewModel.showStatusBar)
             .activityActionBarBinding(viewModel.showActionBar)
             .checkBinding(controls.checkDialogMode, viewModel.isDialogMode)
+            .checkBinding(controls.checkAnimationEffect, viewModel.animationEffect)
             .checkBinding(controls.checkEdgeToEdge, viewModel.edgeToEdgeEnabled)
-            .checkBinding(controls.checkHideStatusBarOnDialog, viewModel.hideStatusBarOnDialog)
             .checkBinding(controls.checkCancellable, viewModel.cancellable)
             .checkBinding(controls.checkDraggable, viewModel.draggable)
             .checkBinding(controls.checkScrollable, viewModel.scrollable)
@@ -318,11 +349,20 @@ class OptionActivity : UtMortalActivity() {
             .checkBinding(controls.checkProgressRingOnHeader, viewModel.progressRingOnHeader)
             .checkBinding(controls.noHeader, viewModel.noHeader)
             .checkBinding(controls.noFooter, viewModel.noFooter)
-            .checkBinding(controls.fitSystemWindow, viewModel.fitSystemWindows)
+//            .checkBinding(controls.fitSystemWindow, viewModel.fitSystemWindows)
+            .checkBinding(controls.windowInsetsSystemBars, viewModel.windowInsetsSystemBar)
+            .checkBinding(controls.windowInsetsCutout, viewModel.windowInsetsCutout)
+            .checkBinding(controls.windowInsetsIme, viewModel.windowInsetsIme)
+            .checkBinding(controls.customZoneSystemBars, viewModel.systemZoneSystemBars)
+            .checkBinding(controls.customZoneIme, viewModel.systemZoneIme)
+            .checkBinding(controls.customZoneCutout, viewModel.systemZoneCutout)
+            .multiVisibilityBinding(arrayOf(controls.windowInsetsSystemBars,controls.windowInsetsCutout,controls.windowInsetsIme),viewModel.edgeToEdgeEnabled)
+            .visibilityBinding(controls.customZoneOptions, viewModel.systemZoneOption.map { it == UtDialogConfig.SystemZoneOption.CUSTOM_INSETS })
+
 
             .editTextBinding(controls.dialogTitleEdit, viewModel.dialogTitle)
             .spinnerBinding(controls.gravityOptionSpinner, viewModel.gravityOptionInfo, GravityOptionInfo.values)
-            .spinnerBinding(controls.systemBarModeOnFragment, viewModel.systemBarOptionOnFragmentMode, UtDialogBase.SystemBarOptionOnFragmentMode.entries.toList(), null)
+            .spinnerBinding(controls.systemZoneSpinner, viewModel.systemZoneOption, UtDialogConfig.SystemZoneOption.entries.toList(), null)
             .spinnerBinding(controls.adjustContentsForKeyboard, viewModel.adjustContentForKeyboard, UtDialog.KeyboardAdjustMode.entries.toList(), null)
             .spinnerBinding(controls.adjustContentsStrategy, viewModel.adjustContentsStrategy, UtDialog.KeyboardAdjustStrategy.entries.toList(), null)
             .spinnerBinding(controls.widthOptionSpinner, viewModel.widthOptionInfo, WidthOptionInfo.values)
@@ -333,8 +373,6 @@ class OptionActivity : UtMortalActivity() {
             .spinnerBinding(controls.darkLightSpinner, viewModel.darkLightInfo, DarkLightInfo.values)
             .spinnerBinding(controls.portraitMarginSpinner, viewModel.portraitMarginInfo, DialogMarginInfo.portraitValues)
             .spinnerBinding(controls.landscapeMarginSpinner, viewModel.landscapeMarginInfo, DialogMarginInfo.landscapeValues)
-            .enableBinding(controls.checkHideStatusBarOnDialog, viewModel.isDialogMode)
-            .enableBinding(controls.systemBarModeOnFragment, viewModel.isDialogMode, boolConvert = BoolConvert.Inverse)
             .enableBinding(controls.checkActionBar, viewModel.hasActionBar)
             .enableBinding(controls.adjustContentsStrategy, viewModel.adjustContentForKeyboard.map { it != UtDialog.KeyboardAdjustMode.NONE })
 
@@ -343,8 +381,8 @@ class OptionActivity : UtMortalActivity() {
                     restartActivity()
                 }
             }
-            .observe(viewModel.edgeToEdgeEnabled) {
-                if(edgeToEdgeEnabled!=it) {
+            .observe(viewModel.windowsInsetsZoneFlags) {
+                if(windowInsetsZoneFlags!=it) {
                     restartActivity()
                 }
             }
@@ -353,12 +391,12 @@ class OptionActivity : UtMortalActivity() {
                     AppCompatDelegate.setDefaultNightMode(it.mode)
                 }
             }
-            .observe(viewModel.fitSystemWindows) {
-                if(fitSystemWindows!=it) {
-                    fitSystemWindows = it
-                    WindowCompat.setDecorFitsSystemWindows(window, it)
-                }
-            }
+//            .observe(viewModel.fitSystemWindows) {
+//                if(fitSystemWindows!=it) {
+//                    fitSystemWindows = it
+//                    WindowCompat.setDecorFitsSystemWindows(window, it)
+//                }
+//            }
     }
 
     private fun restartActivity() {

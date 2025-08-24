@@ -8,9 +8,10 @@ import android.os.Build
 import android.window.OnBackInvokedDispatcher
 import androidx.annotation.LayoutRes
 import androidx.annotation.StyleRes
+import androidx.core.graphics.Insets
+import androidx.core.view.WindowInsetsCompat
 import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustMode
 import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustStrategy
-import io.github.toyota32k.dialog.UtDialogBase.SystemBarOptionOnFragmentMode
 
 /**
  * アプリ内で共通のダイアログ動作に関する設定をここにまとめます。
@@ -31,22 +32,58 @@ object UtDialogConfig {
     var showInDialogModeAsDefault = true
 
     /**
-     * UtDialog#hideStatusBarOnDialogMode のデフォルト値
-     * ダイアログモード（isDialog == true）の場合に、StatusBar を非表示にして、全画面にダイアログを表示するか？
-     * フラグメントモード(isDialog==false)の場合には無視される。
+     * UtDialog#animationEffect のデフォルト値
+     * true: フェードイン/フェードアウトアニメーションを伴う
+     * false: アニメーションなし
      */
-    var hideStatusBarOnDialogMode = true
+    var animationEffect = true
 
     /**
-     * UtDialogBase#systemBarOptionOnFragmentModeのデフォルト値
-     * フラグメントモード(isDialog == false) の場合に、system bar （特に ActionBar）をどのように扱うか？
-     * - NONE 何も対策しない ... NoActionBar系のThemeを使う前提（デフォルト）
-     * - DODGE SystemBar をよける
-     * - HIDE SystemBar を一時的に非表示にする
-     * ダイアログモード（isDialog == true）の場合には無視される
+     * UtDialog#draggable のデフォルト値
+     * true: ダイアログをドラッグで移動可能にする
+     * false: 移動不可
      */
-    var systemBarOptionOnFragmentMode = SystemBarOptionOnFragmentMode.NONE
-//    var edgeToEdgeEnabledAsDefault = true
+    var draggable = false
+
+    object SystemZone {
+        val SYSTEM_BARS:Int = WindowInsetsCompat.Type.systemBars()
+        val IME:Int = WindowInsetsCompat.Type.ime()
+        val CUTOUT:Int = WindowInsetsCompat.Type.displayCutout()
+
+        // combinations
+        val NORMAL:Int = SYSTEM_BARS or CUTOUT
+        val ALL:Int = SYSTEM_BARS or IME or CUTOUT
+
+        fun calcInsets(insets:WindowInsetsCompat,zones:Int): Insets {
+            var all = Insets.NONE
+            if ((zones and SYSTEM_BARS) == SYSTEM_BARS) {
+                all = insets.getInsets(SYSTEM_BARS)
+            }
+            if ((zones and IME) == IME) {
+                all = Insets.max(all, insets.getInsets(IME))
+            }
+            if ((zones and CUTOUT) == CUTOUT) {
+                all = Insets.max(all, insets.getInsets(CUTOUT))
+            }
+            return all
+        }
+    }
+
+    enum class SystemZoneOption(val value:Int) {
+        NONE(0),                    // 何もしない
+        FIT_TO_ACTIVITY(1),         // ActivityのWindowに合わせる
+        HIDE_ACTION_BAR(2),         // ActionBarを非表示にしてできるだけ全画面に表示（cutoutもよけない）
+        CUSTOM_INSETS(3),           // systemZoneFlags に従う
+        ;
+        companion object {
+            fun of(value:Int):SystemZoneOption {
+                return entries.firstOrNull { it.value == value } ?: NONE
+            }
+        }
+    }
+
+    var systemZoneOption: SystemZoneOption = SystemZoneOption.FIT_TO_ACTIVITY
+    var systemZoneFlags:Int = SystemZone.NORMAL
 
     /**
      * ソフトウェアキーボードが表示された時に、フォーカスのあるEditTextが見えるよう

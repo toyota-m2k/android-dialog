@@ -4,13 +4,10 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Gravity
-import android.view.KeyEvent
 import android.widget.FrameLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.IIDValueResolver
@@ -97,8 +94,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         }
         val commandAutoScrollDialog = LiteUnitCommand {
             launchTask {
-                createViewModel<AutoScrollDialog.AutoScrollDialogViewModel>()
-                showDialog(AutoScrollDialog())
+                showDialog<AutoScrollDialog.AutoScrollDialogViewModel,AutoScrollDialog>()
             }
         }
         val commandFullHeightDialog = LiteUnitCommand {

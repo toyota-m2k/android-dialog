@@ -21,21 +21,20 @@ class UtFadeAnimation(val show:Boolean, duration:Long) : Animation.AnimationList
 
     override fun onAnimationStart(animation: Animation?) {
         val view = this.view ?: return
-        if(show) {
-            view.visibility = View.VISIBLE
-        } else {
-            view.alpha = 1f
-        }
+        // fade-in/out に関わらず、VISIBLE + alpha=1 からスタートする。
+        // fade-in の場合は、alpha=0 から始まるべきかと思ったが、alpha=0 からスタートするとアニメーションしない。
+        view.alpha = 1f
+        view.visibility = View.VISIBLE
     }
 
     override fun onAnimationEnd(animation: Animation?) {
         val view = this.view ?: return
         this.view = null
-        if(!show) {
-            view.visibility = View.INVISIBLE
-        } else {
-            view.visibility = View.VISIBLE
+        if(show) {
             view.alpha = 1f
+        } else {
+            view.visibility = View.INVISIBLE
+            view.alpha = 0f
         }
         completed?.invoke()
         completed = null

@@ -31,3 +31,4 @@ app/release
 .idea/AndroidProjectSystem.xml
 .idea/gradle.xml
 app/build
+.idea/deviceManager.xml

@@ -122,8 +122,12 @@ abstract class UtImmortalTaskBase(
     /**
      * showDialogの簡略版
      */
-    suspend inline fun <reified D> showDialog(dlg:D):D where D:IUtDialog {
+    suspend fun <D> showDialog(dlg:D):D where D:IUtDialog {
         return showDialog(dlg.javaClass.name) { dlg }
+    }
+    suspend inline fun <reified VM, reified D> showDialog():D where VM: UtDialogViewModel, D:IUtDialog {
+        createViewModel<VM>()
+        return showDialog(D::class.java.name) { D::class.java.getDeclaredConstructor().newInstance() }
     }
 
     /**
