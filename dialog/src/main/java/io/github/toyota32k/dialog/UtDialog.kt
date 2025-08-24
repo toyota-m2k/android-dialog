@@ -1095,7 +1095,7 @@ abstract class UtDialog: UtDialogBase() {
      */
     private fun updateDynamicHeight(lp: ConstraintLayout.LayoutParams): Boolean {
         if (heightFlag.isDynamicSizing) {
-            val winHeight = rootView.height
+            val winHeight = rootView.height - rootView.paddingTop - rootView.paddingBottom
             if (winHeight == 0) return false
             val containerHeight = refContainerView.height
             val dlgHeight = dialogView.height + dialogView.marginTop + dialogView.marginBottom
