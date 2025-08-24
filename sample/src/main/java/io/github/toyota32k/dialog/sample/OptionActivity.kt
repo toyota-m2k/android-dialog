@@ -80,6 +80,7 @@ class OptionActivity : UtMortalActivity() {
         val isDialogMode = MutableStateFlow(UtDialogConfig.showInDialogModeAsDefault)
         val portraitMarginInfo = MutableStateFlow(DialogMarginInfo.ZERO)
         val landscapeMarginInfo = MutableStateFlow(DialogMarginInfo.ZERO)
+        val animationEffect = MutableStateFlow(UtDialogConfig.animationEffect)
 
         // Dialog Options
         val dialogTitle = MutableStateFlow("Sample Dialog")
@@ -221,6 +222,7 @@ class OptionActivity : UtMortalActivity() {
         fun <T: UtDialog> T.applySettings():T {
             val vm = this@OptionActivityViewModel
             isDialog = vm.isDialogMode.value
+            animationEffect = vm.animationEffect.value
             systemZoneOption = vm.systemZoneOption.value
             systemZoneFlags = zoneFlagsOf(vm.systemZoneSystemBars.value, vm.systemZoneIme.value, vm.systemZoneCutout.value)
             adjustContentForKeyboard = vm.adjustContentForKeyboard.value
@@ -336,6 +338,7 @@ class OptionActivity : UtMortalActivity() {
             .activityStatusBarBinding(viewModel.showStatusBar)
             .activityActionBarBinding(viewModel.showActionBar)
             .checkBinding(controls.checkDialogMode, viewModel.isDialogMode)
+            .checkBinding(controls.checkAnimationEffect, viewModel.animationEffect)
             .checkBinding(controls.checkEdgeToEdge, viewModel.edgeToEdgeEnabled)
             .checkBinding(controls.checkCancellable, viewModel.cancellable)
             .checkBinding(controls.checkDraggable, viewModel.draggable)

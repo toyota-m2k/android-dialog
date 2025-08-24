@@ -110,7 +110,7 @@ abstract class UtDialog: UtDialogBase() {
      * false:許可しない（デフォルト）
      * createBodyView()より前（コンストラクタか、preCreateBodyView()）にセットする。
      */
-    var draggable: Boolean by bundle.booleanFalse
+    var draggable: Boolean by bundle.booleanWithDefault(UtDialogConfig.draggable)
 
     /**
      * ドラッグ中に上下方向の位置を画面内にクリップするか？
@@ -133,7 +133,7 @@ abstract class UtDialog: UtDialogBase() {
      * true: つける
      * false:つけない
      */
-    var animationEffect: Boolean by bundle.booleanTrue
+    var animationEffect: Boolean by bundle.booleanWithDefault(UtDialogConfig.animationEffect)
 
     /**
      * ヘッダ（ok/cancelボタンやタイトル）無しにするか？

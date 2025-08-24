@@ -110,6 +110,11 @@
                 style="@style/option_activity_item_check"
                 android:text="Dialog Mode" />
 
+            <CheckBox
+                android:id="@+id/check_animation_effect"
+                style="@style/option_activity_item_check"
+                android:text="Animation Effect" />
+
             <TextView
                 style="@style/option_activity_item_label"
                 android:text="Dialog Margin (portrait)" />

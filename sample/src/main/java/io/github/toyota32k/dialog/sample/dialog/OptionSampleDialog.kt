@@ -65,6 +65,7 @@ class OptionSampleDialog : UtDialogEx() {
             clear()
             addAll(viewModel.systemEntries)
             put("isDialog", "$isDialog")
+            put("animationEffect", "$animationEffect")
             put("systemZoneOption", "$systemZoneOption")
             if (systemZoneOption== UtDialogConfig.SystemZoneOption.CUSTOM_INSETS) {
                 val custom = systemZoneFlags
@@ -91,9 +92,11 @@ class OptionSampleDialog : UtDialogEx() {
 
             put("-", "")
 
-            put("draggable", "$draggable")
-            put("scrollable", "$scrollable")
             put("cancellable", "$cancellable")
+            put("scrollable", "$scrollable")
+            put("draggable", "$draggable")
+            put("  clipVerticalOnDrag", "$clipVerticalOnDrag")
+            put("  clipHorizontalOnDrag", "$clipHorizontalOnDrag")
             put("noHeader", "$noHeader")
             put("noFooter", "$noFooter")
 
@@ -105,9 +108,6 @@ class OptionSampleDialog : UtDialogEx() {
             put("-", "")
 
             put("positiveCancellable", "$positiveCancellable")
-            put("clipVerticalOnDrag", "$clipVerticalOnDrag")
-            put("clipHorizontalOnDrag", "$clipHorizontalOnDrag")
-            put("animationEffect", "$animationEffect")
             put("invisibleBuiltInButton", "$invisibleBuiltInButton")
             put("noDialogMargin", "$noDialogMargin")
             put("bodyContainerMargin", "$bodyContainerMargin")

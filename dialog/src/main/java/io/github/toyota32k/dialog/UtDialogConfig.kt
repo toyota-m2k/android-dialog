@@ -31,6 +31,20 @@ object UtDialogConfig {
      */
     var showInDialogModeAsDefault = true
 
+    /**
+     * UtDialog#animationEffect のデフォルト値
+     * true: フェードイン/フェードアウトアニメーションを伴う
+     * false: アニメーションなし
+     */
+    var animationEffect = true
+
+    /**
+     * UtDialog#draggable のデフォルト値
+     * true: ダイアログをドラッグで移動可能にする
+     * false: 移動不可
+     */
+    var draggable = false
+
     object SystemZone {
         val SYSTEM_BARS:Int = WindowInsetsCompat.Type.systemBars()
         val IME:Int = WindowInsetsCompat.Type.ime()
