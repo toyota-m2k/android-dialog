@@ -161,12 +161,37 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:orientation="horizontal"
-            android:gravity="end|center_vertical"
+            android:gravity="center_vertical"
             android:background="?attr/color_dlg_footer_bg"
             android:layout_marginStart="1dp"
             android:layout_marginEnd="1dp"
             android:layout_marginBottom="1dp"
             >
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="start"
+                android:paddingStart="4dp"
+                >
+                <Button
+                    style="@style/dlg_option_button_style"
+                    android:id="@+id/option_button_accent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:text="オプション"
+                    />
+                <Button
+                    style="@style/dlg_footer_button_style"
+                    android:id="@+id/option_button_no_accent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:text="オプション"
+                    />
+
+            </FrameLayout>
             <Button
                 style="@style/dlg_footer_button_style"
                 android:id="@+id/left_button"

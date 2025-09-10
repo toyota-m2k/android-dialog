@@ -17,7 +17,7 @@ interface IUtStringTable {
     }
 }
 
-enum class UtStandardString(@StringRes private val resId:Int, val defaultText:String) {
+enum class UtStandardString(@param:StringRes private val resId:Int, val defaultText:String) {
     OK(R.string.ut_dialog_ok, "OK"),
     CANCEL(R.string.ut_dialog_cancel, "Cancel"),
     CLOSE(R.string.ut_dialog_close, "Close"),

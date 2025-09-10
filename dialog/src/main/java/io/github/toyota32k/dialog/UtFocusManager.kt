@@ -12,7 +12,6 @@ import androidx.core.view.descendants
 import androidx.core.view.isVisible
 import io.github.toyota32k.logger.UtLog
 import java.lang.ref.WeakReference
-import java.util.EnumSet
 
 /**
  * UtFocusManager のカスタムアクション用デリゲート型
@@ -39,7 +38,7 @@ class UtFocusManager : TextView.OnEditorActionListener {
 
     // region Internals
 
-    private data class Focusable (@IdRes val id: Int, val fm: UtFocusManager?) {
+    private data class Focusable (@param:IdRes val id: Int, val fm: UtFocusManager?) {
         constructor(@IdRes id: Int) : this(id, null)
         constructor(fm: UtFocusManager) : this(0, fm)
 

@@ -68,5 +68,8 @@
     <style name="dlg_footer_button_style" parent="Widget.Material3.Button.TextButton">
         <item name="android:textColor">@color/dlg_footer_button_text</item>
     </style>
+    <style name="dlg_option_button_style" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textColor">@color/dlg_footer_button_text</item>
+    </style>
 
 </resources>

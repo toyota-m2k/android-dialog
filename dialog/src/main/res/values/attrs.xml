@@ -16,7 +16,7 @@
     <attr name="color_footer_button_text_pressed" format="color"/>
     <attr name="color_footer_button_text_disabled" format="color"/>
 
-    <!--    <attr name="color_m3_accent_button_bg" format="color"/>-->
+<!--    <attr name="color_m3_accent_button_bg" format="color"/>-->
 <!--    <attr name="color_m3_accent_button_bg_disabled" format="color"/>-->
 <!--    <attr name="color_m3_accent_button_bg_pressed" format="color"/>-->
 <!--    <attr name="color_m3_accent_button_text" format="color"/>-->
