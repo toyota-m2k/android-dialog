@@ -62,10 +62,10 @@
                         style="?android:attr/progressBarStyleSmall"
                         android:indeterminateTint="?attr/color_dlg_title_progress"
                         />
-                        <TextView
-                            android:id="@+id/dialog_title"
-                            style="@style/dlg_title_style"
-                            tools:text="設定"/>
+                    <TextView
+                        android:id="@+id/dialog_title"
+                        style="@style/dlg_title_style"
+                        tools:text="設定"/>
                     <Space
                         android:layout_width="20dp"
                         android:layout_height="match_parent"/>

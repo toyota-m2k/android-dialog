@@ -148,13 +148,26 @@ object UtDialogConfig {
 
     /**
      * 旧バージョン互換モード
+     * - Done/Cancelボタンをヘッダー領域に配置
      */
     fun useLegacyTheme() {
         dialogFrameId = R.layout.dialog_frame_legacy
+        dialogTheme = R.style.UtDialogLegacyTheme
         dialogMarginOnPortrait = null
         dialogMarginOnLandscape = null
     }
 
+    /**
+     * 旧バージョン互換モード
+     * - Done/Cancelボタンをヘッダー領域に配置
+     * - テーマを無視したイケてない配色
+     */
+    fun useAlternativeLegacyTheme() {
+        dialogFrameId = R.layout.dialog_frame_legacy
+        dialogTheme = R.style.UtDialogAlternativeLegacyTheme
+        dialogMarginOnPortrait = null
+        dialogMarginOnLandscape = null
+    }
     /**
      * フェードイン/アウトアニメーションの遷移時間
      */

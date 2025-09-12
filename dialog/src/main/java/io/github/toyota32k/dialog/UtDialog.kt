@@ -703,7 +703,7 @@ abstract class UtDialog: UtDialogBase() {
     // 右ボタンのプロパティ（setRightButton()で設定）
     private var rightButtonText: String? by bundle.stringNullable
     private var rightButtonPositive: Boolean by bundle.booleanFalse
-    private var rightButtonBlue: Boolean by bundle.booleanFalse
+//    private var rightButtonBlue: Boolean by bundle.booleanFalse
 
     @Suppress("unused")
     val hasRightButton: Boolean
@@ -780,7 +780,7 @@ abstract class UtDialog: UtDialogBase() {
     private fun updateRightButton() {
         val label = rightButtonText
         if (label != null) {
-            updateButton(rightButton, label, rightButtonBlue)
+            updateButton(rightButton, label, rightButtonPositive)
         } else {
             rightButton.visibility = if (invisibleBuiltInButton) View.INVISIBLE else View.GONE
         }
@@ -1289,6 +1289,7 @@ abstract class UtDialog: UtDialogBase() {
                 animationEffect = false
             }
             preCreateBodyView()
+
             rootView = inflater.inflate(UtDialogConfig.dialogFrameId, container, false) as FrameLayout
 
             val mortalActivity = requireActivity() as? UtMortalActivity

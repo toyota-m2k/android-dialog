@@ -86,43 +86,40 @@
 
     <style name="UtDialogAlternativeLegacyTheme" parent="UtDialogTheme">
         <!-- Colors for Dialog Body -->
-<!--        <item name="color_dlg_bg">#ececec</item>-->
-<!--        <item name="color_dlg_border">#c1c1c1</item>-->
+        <item name="color_dlg_bg">#ececec</item>
+        <item name="color_dlg_border">#c1c1c1</item>
 
-<!--        &lt;!&ndash; Colors for Dialog Title bar &ndash;&gt;-->
-<!--        <item name="color_dlg_title_bg">@color/transparent</item>-->
-<!--        <item name="color_dlg_title_text">#000000</item>-->
-<!--        <item name="color_dlg_title_separator_upper">#c1c1c1</item>-->
-<!--        <item name="color_dlg_title_separator_lower">#FFFFFF</item>-->
+        <!-- Colors for Dialog Title bar -->
+        <item name="color_dlg_title_bg">@color/transparent</item>
+        <item name="color_dlg_title_text">#000000</item>
+        <item name="color_legacy_dlg_title_separator_upper">#c1c1c1</item>
+        <item name="color_legacy_dlg_title_separator_lower">#FFFFFF</item>
 
-<!--        &lt;!&ndash; Colors for DONE button &ndash;&gt;-->
-<!--        <item name="color_dlg_button_bg_normal">#0d9fbe</item>-->
-<!--        <item name="color_dlg_button_bg_pressed">#0a8099</item>-->
-<!--        <item name="color_dlg_button_bg_disabled">#FFFFFF</item>-->
+        <!-- Colors for DONE button -->
+        <item name="color_legacy_dlg_blue_button_bg_normal">#0d9fbe</item>
+        <item name="color_legacy_dlg_blue_button_bg_pressed">#0a8099</item>
+        <item name="color_legacy_dlg_blue_button_bg_disabled">#FFFFFF</item>
 
-<!--        <item name="color_dlg_button_border_normal">#158aa2</item>-->
-<!--        <item name="color_dlg_button_border_pressed">#127084</item>-->
-<!--        <item name="color_dlg_button_border_disabled">#cccccc</item>-->
+        <item name="color_legacy_dlg_blue_button_border_normal">#158aa2</item>
+        <item name="color_legacy_dlg_blue_button_border_pressed">#127084</item>
+        <item name="color_legacy_dlg_blue_button_border_disabled">#cccccc</item>
 
-<!--        <item name="color_dlg_button_text_normal">#FFFFFF</item>-->
-<!--        <item name="color_dlg_button_text_pressed">#FFFFFF</item>-->
-<!--        <item name="color_dlg_button_text_disabled">#a0a0a0</item>-->
+        <item name="color_legacy_dlg_blue_button_text_normal">#FFFFFF</item>
+        <item name="color_legacy_dlg_blue_button_text_pressed">#FFFFFF</item>
+        <item name="color_legacy_dlg_blue_button_text_disabled">#a0a0a0</item>
 
-<!--        &lt;!&ndash; Colors for Cancel button &ndash;&gt;-->
-<!--        <item name="color_dlg_white_button_bg_normal">#FFFFFF</item>-->
-<!--        <item name="color_dlg_white_button_bg_pressed">#d9d9d9</item>-->
-<!--        <item name="color_dlg_white_button_bg_disabled">#FFFFFF</item>-->
+        <!-- Colors for Cancel button -->
+        <item name="color_legacy_dlg_white_button_bg_normal">#FFFFFF</item>
+        <item name="color_legacy_dlg_white_button_bg_pressed">#d9d9d9</item>
+        <item name="color_legacy_dlg_white_button_bg_disabled">#FFFFFF</item>
 
-<!--        <item name="color_dlg_white_button_border_normal">#cccccc</item>-->
-<!--        <item name="color_dlg_white_button_border_pressed">#c8c8c8</item>-->
-<!--        <item name="color_dlg_white_button_border_disabled">#cccccc</item>-->
+        <item name="color_legacy_dlg_white_button_border_normal">#cccccc</item>
+        <item name="color_legacy_dlg_white_button_border_pressed">#c8c8c8</item>
+        <item name="color_legacy_dlg_white_button_border_disabled">#cccccc</item>
 
-<!--        <item name="color_dlg_white_button_text_normal">#323a45</item>-->
-<!--        <item name="color_dlg_white_button_text_pressed">#323a45</item>-->
-<!--        <item name="color_dlg_white_button_text_disabled">#a0a0a0</item>-->
-
-<!--        <item name="color_translucent_dim">#40000000</item>-->
-<!--        <item name="color_translucent_see_through">#D0FFFFFF</item>-->
+        <item name="color_legacy_dlg_white_button_text_normal">#323a45</item>
+        <item name="color_legacy_dlg_white_button_text_pressed">#323a45</item>
+        <item name="color_legacy_dlg_white_button_text_disabled">#a0a0a0</item>
     </style>
 
 </resources>
