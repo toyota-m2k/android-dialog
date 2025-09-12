@@ -10,7 +10,9 @@ open class UtAndroidViewModel(application: Application) : AndroidViewModel(appli
 
     companion object {
         fun <T> create(clazz: Class<T>, application: Application, task: IUtImmortalTask, initialize:((T)->Unit)?=null) : T where T: UtAndroidViewModel {
-            return ViewModelProvider(task.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[clazz]
+            return ViewModelProvider(
+                task.immortalTaskContext,
+                ViewModelProvider.AndroidViewModelFactory.getInstance(task.application))[clazz]
                 .apply {
                     immortalTaskContext = task.immortalTaskContext
                     initialize?.invoke(this)

@@ -66,7 +66,7 @@ abstract class UtDialogEx : UtDialog() {
             = visibilityBinding(leftButton, data, boolConvert,hiddenMode)
 
     /**
-     * 右ボタンにテキストをバインドする。
+     * 左ボタンにテキストをバインドする。
      */
     fun Binder.dialogLeftButtonString(data: LiveData<String>, boolConvert: BoolConvert=BoolConvert.Straight):Binder
             = textBinding(leftButton, data)
@@ -74,10 +74,11 @@ abstract class UtDialogEx : UtDialog() {
             = textBinding(leftButton, data)
 
     /**
-     * 右ボタンにコマンドをバインドする
+     * 左ボタンにコマンドをバインドする
      */
     fun Binder.dialogLeftButtonCommand(command: IUnitCommand):Binder
             = bindCommand(command, leftButton)
+
 
     // endregion
 
@@ -111,6 +112,61 @@ abstract class UtDialogEx : UtDialog() {
      */
     fun Binder.dialogRightButtonCommand(command: IUnitCommand):Binder
         = bindCommand(command, rightButton)
+
+    // endregion
+
+    // region Option Button
+
+
+    /**
+     * オプションボタンの有効/無効とモデルをバインドする。
+     */
+    fun Binder.dialogOptionButtonEnable(data: LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder = apply {
+        optionButton?.let { optionButton ->
+            enableBinding(optionButton, data, boolConvert)
+        }
+    }
+    fun Binder.dialogOptionButtonEnable(data: Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight):Binder = apply {
+        optionButton?.let { optionButton ->
+            enableBinding(optionButton, data, boolConvert)
+        }
+    }
+
+    /**
+     * オプションボタンの表示/非表示をモデルにバインドする
+     */
+    fun Binder.dialogOptionButtonVisibility(data: LiveData<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight, hiddenMode:VisibilityBinding.HiddenMode = VisibilityBinding.HiddenMode.HideByGone):Binder = apply {
+        optionButton?.let { optionButton ->
+            visibilityBinding(optionButton, data, boolConvert, hiddenMode)
+        }
+    }
+    fun Binder.dialogOptionButtonVisibility(data: Flow<Boolean>, boolConvert: BoolConvert=BoolConvert.Straight, hiddenMode:VisibilityBinding.HiddenMode = VisibilityBinding.HiddenMode.HideByGone):Binder = apply {
+        optionButton?.let { optionButton ->
+            visibilityBinding(optionButton, data, boolConvert, hiddenMode)
+        }
+    }
+    /**
+     * オプションボタンにテキストをバインドする。
+     */
+    fun Binder.dialogOptionButtonString(data: LiveData<String>, boolConvert: BoolConvert=BoolConvert.Straight):Binder = apply {
+        optionButton?.let { optionButton ->
+            textBinding(optionButton, data)
+        }
+    }
+    fun Binder.dialogOptionButtonString(data: Flow<String>, boolConvert: BoolConvert=BoolConvert.Straight):Binder = apply {
+        optionButton?.let { optionButton ->
+            textBinding(optionButton, data)
+        }
+    }
+    /**
+     * オプションボタンにコマンドをバインドする
+     */
+    fun Binder.dialogOptionButtonCommand(command: IUnitCommand) = apply {
+        optionButton?.let { optionButton ->
+            bindCommand(command, optionButton)
+        }
+    }
+
 
     // endregion
 

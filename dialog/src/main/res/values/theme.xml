@@ -17,6 +17,7 @@
         <item name="color_footer_button_text">?attr/colorOnPrimaryContainer</item>
         <item name="color_footer_button_text_pressed">?attr/colorPrimary</item>
         <item name="color_footer_button_text_disabled">@color/gray40</item>
+
     </style>
 
     <!-- colorSecondary ベースの配色 -->
@@ -33,6 +34,7 @@
         <item name="color_dlg_footer_bg">?attr/colorSecondaryContainer</item>
         <item name="color_footer_button_text">?attr/colorOnSecondaryContainer</item>
         <item name="color_footer_button_text_pressed">?attr/colorSecondary</item>
+
     </style>
 
     <!-- colorTertiary ベースの配色 -->

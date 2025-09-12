@@ -2,6 +2,7 @@ package io.github.toyota32k.dialog.sample.dialog
 
 import android.os.Bundle
 import android.view.View
+import io.github.toyota32k.binder.clickBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.editTextBinding
@@ -37,6 +38,9 @@ class CompactDialog : UtDialogEx() {
         gravityOption = GravityOption.CENTER
         leftButtonType = ButtonType.CANCEL
         rightButtonType = ButtonType.DONE
+        optionButtonType = ButtonType("Option", true)
+//        optionButtonWithAccent = true
+
         cancellable = false
         draggable = true
         enableFocusManagement()
@@ -50,6 +54,9 @@ class CompactDialog : UtDialogEx() {
             .editTextBinding(controls.nameInput, viewModel.yourName)
 //            .enableBinding(rightButton, viewModel.yourName.map { it.isNotEmpty() }) // ensure the name is not empty
             .bindCommand(LiteUnitCommand(this::onPositive), controls.nameInput)     // enter key on the name input --> onPositive
+            .dialogOptionButtonCommand(LiteUnitCommand {
+                logger.debug("option button clicked")
+            })
         return controls.root
     }
 

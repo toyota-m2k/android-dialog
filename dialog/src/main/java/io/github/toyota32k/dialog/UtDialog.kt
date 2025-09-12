@@ -691,6 +691,10 @@ abstract class UtDialog: UtDialogBase() {
     var rightButtonType: ButtonType
         get() = ButtonType(rightButtonText, rightButtonPositive)
         set(v) = setRightButton(v.string, v.positive)
+    var optionButtonType: ButtonType
+        get() = ButtonType(optionButtonText, optionButtonPositive)
+        set(v) = setOptionButton(v.string, v.positive)
+    var optionButtonWithAccent: Boolean by bundle.booleanFalse
 
     // 左ボタンのプロパティ (setLeftButton()で設定）
     private var leftButtonText: String? by bundle.stringNullable
@@ -703,11 +707,19 @@ abstract class UtDialog: UtDialogBase() {
     // 右ボタンのプロパティ（setRightButton()で設定）
     private var rightButtonText: String? by bundle.stringNullable
     private var rightButtonPositive: Boolean by bundle.booleanFalse
-//    private var rightButtonBlue: Boolean by bundle.booleanFalse
 
-    @Suppress("unused")
-    val hasRightButton: Boolean
-        get() = rightButtonText != null
+    @Deprecated("use rightButtonPositive instead")
+    private var rightButtonBlue: Boolean
+        get() = rightButtonPositive
+        set(v) { rightButtonPositive = v }
+
+//    @Suppress("unused")
+//    val hasRightButton: Boolean
+//        get() = rightButtonText != null
+
+    // オプションボタンのプロパティ（setOptionButton()で設定）
+    private var optionButtonText: String? by bundle.stringNullable
+    private var optionButtonPositive: Boolean by bundle.booleanTrue
 
     /**
      * 左ボタンのプロパティを細かく指定
@@ -738,6 +750,19 @@ abstract class UtDialog: UtDialogBase() {
         }
     }
 
+    /**
+     * オプションボタンのプロパティを細かく指定
+     * @param id        ボタンキャプションの文字列リソースID
+     * @param positive  true:Positiveボタン(タップしてonPositiveを発行）
+     *                  false:Negativeボタン（タップしてonNegativeを発行）
+     */
+    fun setOptionButton(string: String?, positive: Boolean = true) {
+        optionButtonText = string
+        optionButtonPositive = positive
+        if (isViewInitialized) {
+            updateOptionButton()
+        }
+    }
     private val themedContext: Context by lazy { ContextThemeWrapper(super.getContext(), UtDialogConfig.dialogTheme) }
     override fun getContext(): Context {
         return themedContext
@@ -783,6 +808,17 @@ abstract class UtDialog: UtDialogBase() {
             updateButton(rightButton, label, rightButtonPositive)
         } else {
             rightButton.visibility = if (invisibleBuiltInButton) View.INVISIBLE else View.GONE
+        }
+    }
+    private fun updateOptionButton() {
+        optionButton?.let { optionButton ->
+            val label = optionButtonText
+            if (label != null) {
+                optionButton.visibility = View.VISIBLE
+                updateButton(optionButton, label, optionButtonPositive)
+            } else {
+                optionButton.visibility = if (invisibleBuiltInButton) View.INVISIBLE else View.GONE
+            }
         }
     }
 
@@ -982,6 +1018,9 @@ abstract class UtDialog: UtDialogBase() {
         private set
     lateinit var rightButton: Button
         private set
+    var optionButton: Button? = null
+        private set
+    val hasOptionButton: Boolean get() = optionButton != null
     lateinit var progressRingOnTitleBar: ProgressBar
         private set
 
@@ -1275,10 +1314,6 @@ abstract class UtDialog: UtDialogBase() {
     private val compatBackKeyDispatcher = CompatBackKeyDispatcher()
     private var backInvokerPriority = UtDialogConfig.baseBackInvokedDispatcherPriority
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-    }
-
     /**
      * コンテントビュー生成処理
      */
@@ -1321,6 +1356,7 @@ abstract class UtDialog: UtDialogBase() {
             }
             leftButton = rootView.findViewById(R.id.left_button)
             rightButton = rootView.findViewById(R.id.right_button)
+            optionButton = rootView.findViewById(if(optionButtonWithAccent) R.id.option_button_accent else R.id.option_button_no_accent)
             titleView = rootView.findViewById(R.id.dialog_title)
             progressRingOnTitleBar = rootView.findViewById(R.id.progress_on_title_bar)
             dialogView = rootView.findViewById(R.id.dialog_view)
@@ -1351,6 +1387,7 @@ abstract class UtDialog: UtDialogBase() {
             rootView.setOnClickListener(this@UtDialog::onBackgroundTapped)
             updateLeftButton()
             updateRightButton()
+            updateOptionButton()
             bodyView = createBodyView(savedInstanceState, ViewInflater(inflater, bodyContainer))
             bodyContainer.addView(bodyView)
             focusManager?.attach(rootView, bodyView)
