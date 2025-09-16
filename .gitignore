@@ -32,3 +32,5 @@ app/release
 .idea/gradle.xml
 app/build
 .idea/deviceManager.xml
+.idea/copilot.data.migration.agent.xml
+.idea/copilot.data.migration.edit.xml
