@@ -68,6 +68,9 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
+/**
+ * ダイアログクラス
+ */
 abstract class UtDialog: UtDialogBase() {
     // region 動作/操作モード
 
@@ -1030,7 +1033,8 @@ abstract class UtDialog: UtDialogBase() {
         protected set
     lateinit var bodyContainer: ViewGroup          // bodyViewの入れ物
         private set
-    lateinit var bodyView: View                      /* UtDialogを継承するサブクラス毎に作成されるダイアログの中身  (createBodyView()で構築されたビュー） */ private set
+    lateinit var bodyView:View                      // UtDialogを継承するサブクラス毎に作成されるダイアログの中身  (createBodyView()で構築されたビュー）
+        private set
     lateinit var refContainerView: View              // コンテナ領域（ダイアログ領域ーヘッダー領域）にフィットするダミービュー
         private set
     lateinit var bodyGuardView: FrameLayout           // dialogContentへの操作をブロックするためのガードビュー

@@ -44,26 +44,9 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     var isDialog : Boolean by bundle.booleanWithDefault(UtDialogConfig.showInDialogModeAsDefault)
     val isFragment: Boolean get() = !isDialog
 
-//    enum class SystemBarOptionOnFragmentMode {
-//        NONE,   // 何もしない (NoActionBar ならこれでok)
-////        DODGE,  // SystemBarを避ける
-//        HIDE,   // SystemBarを隠す
-//        STRICT, // ActivityのContentView領域だけを使い、それ以外には一切手出ししない（Activityの layout のルートコンテナに id 必須）
-//    }
-
     /**
-     * フラグメントモードの場合に、setOnApplyWindowInsetsListenerを呼び出して、insets の調整を行うかどうか。
+     * システム領域を除けるための設定
      */
-//    private val edgeToEdgeEnabled get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.DODGE
-//    private val hideSystemBarOnFragmentMode get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.HIDE
-//    private val strictSystemBarMode get() = systemBarOptionOnFragmentMode == SystemBarOptionOnFragmentMode.STRICT
-
-    /**
-     * フラグメントモードの場合に、StatusBar / ActionBar をどう扱うか。
-     */
-    // var systemBarOptionOnFragmentMode : SystemBarOptionOnFragmentMode by bundle.enum(def=UtDialogConfig.systemBarOptionOnFragmentMode)
-
-
     private var systemZoneOptionValue:Int by bundle.intNonnull(UtDialogConfig.systemZoneOption.value)
     var systemZoneOption: SystemZoneOption
         get() = SystemZoneOption.of(systemZoneOptionValue)
@@ -364,15 +347,6 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
     override fun cancel() {
         complete(IUtDialog.Status.NEGATIVE)
     }
-
-//    protected fun getActivityContentViewId(activity:FragmentActivity): Int {
-//        val id = activity.findViewById<ViewGroup>(android.R.id.content)?.getChildAt(0)?.id
-//        return if (id != null && id != View.NO_ID) {
-//            id
-//        } else {
-//            android.R.id.content
-//        }
-//    }
 
     /**
      * ダイアログを表示する

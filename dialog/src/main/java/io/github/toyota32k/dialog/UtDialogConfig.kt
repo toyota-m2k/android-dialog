@@ -45,6 +45,9 @@ object UtDialogConfig {
      */
     var draggable = false
 
+    /**
+     * システム領域の定義
+     */
     object SystemZone {
         val SYSTEM_BARS:Int = WindowInsetsCompat.Type.systemBars()
         val IME:Int = WindowInsetsCompat.Type.ime()
@@ -68,6 +71,9 @@ object UtDialogConfig {
             return all
         }
     }
+    /**
+     * システム領域を除ける方法の定義
+     */
 
     enum class SystemZoneOption(val value:Int) {
         NONE(0),                    // 何もしない
@@ -82,7 +88,14 @@ object UtDialogConfig {
         }
     }
 
+    /**
+     * システム領域の除け方（デフォルト値）
+     */
     var systemZoneOption: SystemZoneOption = SystemZoneOption.FIT_TO_ACTIVITY
+
+    /**
+     * 除けるシステム領域の指定（デフォルト値）
+     */
     var systemZoneFlags:Int = SystemZone.NORMAL
 
     /**
