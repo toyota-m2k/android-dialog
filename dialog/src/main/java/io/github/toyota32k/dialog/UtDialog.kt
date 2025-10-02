@@ -1139,7 +1139,7 @@ abstract class UtDialog: UtDialogBase() {
     private fun updateDynamicHeight(lp: ConstraintLayout.LayoutParams): Boolean {
         if (heightFlag.isDynamicSizing) {
             val winHeight = rootView.height - rootView.paddingTop - rootView.paddingBottom
-            if (winHeight == 0) return false
+            if (winHeight <= 0) return false
             val containerHeight = refContainerView.height
             val dlgHeight = dialogView.height + dialogView.marginTop + dialogView.marginBottom
             val bodyHeight = bodyView.height
@@ -1331,22 +1331,7 @@ abstract class UtDialog: UtDialogBase() {
 
             rootView = inflater.inflate(UtDialogConfig.dialogFrameId, container, false) as FrameLayout
 
-            val mortalActivity = requireActivity() as? UtMortalActivity
-            if (mortalActivity!=null) {
-                if (systemZoneOption == SystemZoneOption.FIT_TO_ACTIVITY) {
-                    // ActivityのルートビューのInsetsをダイアログのrootViewに適用する。
-                    mortalActivity.addRootViewInsetsListener(this) {
-                        rootView.setPadding(it.left, it.top, it.right, it.bottom)
-                    }
-                } else if (systemZoneOption == SystemZoneOption.CUSTOM_INSETS && systemZoneFlags != 0) {
-                    // カスタムなInsetsをダイアログのrootViewに適用する。
-                    ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
-                        val all = UtDialogConfig.SystemZone.calcInsets(insets, systemZoneFlags)
-                        rootView.setPadding(all.left, all.top, all.right, all.bottom)
-                        insets
-                    }
-                }
-            }
+            setupWindowInsetsListener()
 
             if (noHeader) {
                 rootView.findViewById<View>(R.id.header).visibility = View.GONE
@@ -1429,6 +1414,26 @@ abstract class UtDialog: UtDialogBase() {
             dismiss()
             notifyResult()  // onDismissも呼ばれないことがあるようだ。
             return null
+        }
+    }
+
+    /**
+     * ダイアログのWindowInsetsListenerを初期化する。
+     */
+    private fun setupWindowInsetsListener() {
+        val mortalActivity = requireActivity() as? UtMortalActivity ?: return
+        if (systemZoneOption == SystemZoneOption.FIT_TO_ACTIVITY) {
+            // ActivityのルートビューのInsetsをダイアログのrootViewに適用する。
+            mortalActivity.addRootViewInsetsListener(this) {
+                rootView.setPadding(it.left, it.top, it.right, it.bottom)
+            }
+        } else if (systemZoneOption == SystemZoneOption.CUSTOM_INSETS && systemZoneFlags != 0) {
+            // カスタムなInsetsをダイアログのrootViewに適用する。
+            ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
+                val all = UtDialogConfig.SystemZone.calcInsets(insets, systemZoneFlags)
+                rootView.setPadding(all.left, all.top, all.right, all.bottom)
+                insets
+            }
         }
     }
 
