@@ -7,14 +7,10 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.Binder
-import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.activityActionBarBinding
 import io.github.toyota32k.binder.activityStatusBarBinding
 import io.github.toyota32k.binder.checkBinding
@@ -31,7 +27,6 @@ import io.github.toyota32k.dialog.UtDialog.ButtonType
 import io.github.toyota32k.dialog.UtDialog.GravityOption
 import io.github.toyota32k.dialog.UtDialog.HeightOption
 import io.github.toyota32k.dialog.UtDialog.WidthOption
-import io.github.toyota32k.dialog.UtDialogBase
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.mortal.UtMortalActivity
 import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.DarkLightInfo
@@ -57,7 +52,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 
 class OptionActivity : UtMortalActivity() {
@@ -211,7 +205,7 @@ class OptionActivity : UtMortalActivity() {
             }
         }
 
-        fun zoneFlagsOf(systemBars:Boolean, ime:Boolean, cutout:Boolean):Int {
+        private fun zoneFlagsOf(systemBars:Boolean, ime:Boolean, cutout:Boolean):Int {
             var flags = 0
             flags = flags or if (systemBars) UtDialogConfig.SystemZone.SYSTEM_BARS else 0
             flags = flags or if (ime) UtDialogConfig.SystemZone.IME else 0

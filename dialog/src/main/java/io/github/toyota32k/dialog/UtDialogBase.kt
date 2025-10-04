@@ -7,6 +7,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import io.github.toyota32k.dialog.UtDialogConfig.SystemZone
 import io.github.toyota32k.dialog.UtDialogConfig.SystemZoneOption
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.logger.UtLog
@@ -53,8 +54,17 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         set(value) {
             systemZoneOptionValue = value.value
         }
+
+    /**
+     * CUSTOM_INSETS を指定した場合のSystemZoneフラグ
+     * デフォルト：UtDialogConfig.systemZoneFlags = NORMAL
+     */
     var systemZoneFlags:Int by bundle.intNonnull(UtDialogConfig.systemZoneFlags)
 
+    fun setCustomSystemZone(vararg zones: Int) {
+        systemZoneOption = SystemZoneOption.CUSTOM_INSETS
+        systemZoneFlags = zones.reduce { a, b -> a or b }
+    }
 
     private var dialogHost: WeakReference<IUtDialogHost>? = null
 
