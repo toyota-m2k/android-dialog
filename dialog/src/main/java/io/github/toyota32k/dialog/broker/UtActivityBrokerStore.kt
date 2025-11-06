@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.dialog.broker.pickers.UtCreateFilePicker
 import io.github.toyota32k.dialog.broker.pickers.UtDirectoryPicker
+import io.github.toyota32k.dialog.broker.pickers.UtMediaFilePicker
 import io.github.toyota32k.dialog.broker.pickers.UtOpenFilePicker
 import io.github.toyota32k.dialog.broker.pickers.UtOpenMultiFilePicker
 import io.github.toyota32k.dialog.broker.pickers.UtOpenReadOnlyFilePicker
@@ -48,6 +49,7 @@ open class UtActivityBrokerStore(activity: FragmentActivity, vararg brokers: IUt
     val openReadOnlyMultiFilePicker get() = broker<UtOpenReadOnlyMultiFilePicker>()
     val createFilePicker get() = broker<UtCreateFilePicker>()
     val directoryPicker get() = broker<UtDirectoryPicker>()
+    val mediaFilePicker get() = broker<UtMediaFilePicker>()
     val permissionBroker get() = broker<UtPermissionBroker>()
     val multiPermissionBroker get() = broker<UtMultiPermissionsBroker>()
 

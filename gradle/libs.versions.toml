@@ -6,7 +6,7 @@ agp = "8.13.0"
 #libraries
 coreKtx = "1.17.0"
 appcompat = "1.7.1"
-kotlinReflect = "2.2.0"
+kotlinReflect = "2.2.20"
 lifecycleRuntimeKtx = "2.9.4"
 lifecycleViewnodelKtxVersion = "2.9.4"
 lifecycleLivedataKtx = "2.9.4"
