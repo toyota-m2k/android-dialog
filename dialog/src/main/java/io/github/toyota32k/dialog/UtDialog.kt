@@ -66,6 +66,7 @@ import io.github.toyota32k.utils.android.setMargin
 import io.github.toyota32k.utils.android.withAlpha
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.text.toFloat
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 /**
@@ -869,6 +870,8 @@ abstract class UtDialog: UtDialogBase() {
     private class DragParam {
         private var dialogSize: Float = 0f
         private var screenSize: Float = 0f
+        private var paddingStart: Float = 0f
+        private var paddingEnd: Float = 0f
         private var clip: Boolean = false
         private var minPos: Float = 0f
         private var maxPos: Float = 0f
@@ -876,7 +879,9 @@ abstract class UtDialog: UtDialogBase() {
         private var orgDialogPos: Float = 0f
         private var dragStartPos: Float = 0f
 
-        fun setup(dialogSize: Float, screenSize: Float, clip: Boolean, minPos: Float, maxPos: Float) {
+        fun setup(dialogSize: Float, screenSize: Float, paddingStart:Int, paddingEnd:Int, clip: Boolean, minPos: Float, maxPos: Float) {
+            this.paddingStart = paddingStart.toFloat()
+            this.paddingEnd = paddingEnd.toFloat()
             this.dialogSize = dialogSize
             this.screenSize = screenSize
             this.clip = clip
@@ -902,9 +907,9 @@ abstract class UtDialog: UtDialogBase() {
          */
         fun clipPosition(pos: Float): Float {
             return if (clip) {
-                max(0f, min(pos, screenSize - dialogSize))
+                max(paddingStart, min(pos, screenSize-paddingStart-paddingEnd - dialogSize))
             } else {
-                max(minPos, min(pos, screenSize - maxPos))
+                max(minPos, min(pos, screenSize-paddingStart-paddingEnd - maxPos))
             }
         }
     }
@@ -922,8 +927,8 @@ abstract class UtDialog: UtDialogBase() {
          */
         private fun setup() {
             val w = dialogView.width.toFloat()
-            x.setup(w, rootView.width.toFloat(), clipHorizontalOnDrag, -w / 2f, w / 2f)
-            y.setup(dialogView.height.toFloat(), rootView.height.toFloat(), clipVerticalOnDrag, 0f, requireContext().dp2px(50).toFloat())
+            x.setup(w, rootView.width.toFloat(), rootView.paddingStart, rootView.paddingEnd, clipHorizontalOnDrag, -w / 2f, w / 2f)
+            y.setup(dialogView.height.toFloat(), rootView.height.toFloat(), rootView.paddingTop, rootView.paddingBottom, clipVerticalOnDrag, rootView.paddingTop.toFloat(), requireContext().dp2px(50).toFloat())
         }
 
         /**
