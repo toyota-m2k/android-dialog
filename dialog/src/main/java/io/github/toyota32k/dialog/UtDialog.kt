@@ -1597,16 +1597,15 @@ abstract class UtDialog: UtDialogBase() {
         paddingAnimator?.cancel()
 
         val currentPadding = rootView.paddingBottom
-        val targetPadding = if (bottomOffset > 0) bottomOffset else 0
-
-        if (currentPadding == targetPadding) return
+        val targetPadding = bottomOffset.coerceAtLeast(0)
+        if (currentPadding == bottomOffset) return
 
         paddingAnimator = ValueAnimator.ofInt(currentPadding, targetPadding).apply {
             duration = if (bottomOffset > 0) 200 else 150
             interpolator = if (bottomOffset > 0) DecelerateInterpolator() else AccelerateInterpolator()
             addUpdateListener { animator ->
                 val value = animator.animatedValue as Int
-                rootView.setPadding(0, 0, 0, value)
+                rootView.setPadding(rootView.paddingStart, rootView.paddingTop, rootView.paddingEnd, value)
             }
             start()
         }
