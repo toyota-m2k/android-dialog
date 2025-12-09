@@ -270,7 +270,7 @@ class OptionActivity : UtMortalActivity() {
     private val viewModel:OptionActivityViewModel = ViewModelProvider(ApplicationViewModelStoreOwner.viewModelStore, ViewModelProvider.NewInstanceFactory())[OptionActivityViewModel::class.java]
     private lateinit var controls: ActivityOptionBinding
 
-    private val compatBackKeyDispatcher = CompatBackKeyDispatcher(false)
+    private val compatBackKeyDispatcher = CompatBackKeyDispatcher()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
