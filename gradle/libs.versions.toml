@@ -1,7 +1,6 @@
 [versions]
 #plugins
-kotlin = "2.3.0"
-agp = "8.13.2"
+agp = "9.0.0"
 
 #libraries
 coreKtx = "1.17.0"
@@ -19,7 +18,7 @@ espressoCore = "3.7.0"
 activityVersion = "1.12.2"
 androidUtilities="4.12.1"
 androidBinding = "1.12.2"
-androidViewex = "1.1.19"
+androidViewex = "1.1.20"
 
 [libraries]
 kotlinReflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlinReflect" }
@@ -40,6 +39,5 @@ android-viewex = { module = "com.github.toyota-m2k:android-viewex", version.ref 
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activityVersion" }
 
 [plugins]
-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
