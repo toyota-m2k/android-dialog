@@ -24,7 +24,7 @@ object UtImmortalTaskManager : Closeable  {
         val name:String
         val state: UtImmortalTaskState
         val task:IUtImmortalTask?
-        val result:Any?
+//        val result:Any?
         fun registerStateObserver(owner:LifecycleOwner, fn:(UtImmortalTaskState)->Unit):IDisposable
     }
 
@@ -38,7 +38,7 @@ object UtImmortalTaskManager : Closeable  {
             get() = stateFlow.value
             set(v) { stateFlow.value = v }
         override var task:IUtImmortalTask?=null
-        override var result:Any?=null
+//        override var result:Any?=null
 
         override fun registerStateObserver(owner: LifecycleOwner, fn: (UtImmortalTaskState) -> Unit): IDisposable {
             observableFlow.clean()
@@ -188,7 +188,7 @@ object UtImmortalTaskManager : Closeable  {
     private fun detachTask(task:IUtImmortalTask, succeeded:Boolean) {
         logger.debug()
         val entry = taskTable[task.taskName] ?: return
-        entry.result = task.taskResult
+//        entry.result = task.taskResult
         entry.state = if(succeeded) UtImmortalTaskState.COMPLETED else UtImmortalTaskState.ERROR
         entry.task = null
         logger.debug("detached: ${task.taskName}")

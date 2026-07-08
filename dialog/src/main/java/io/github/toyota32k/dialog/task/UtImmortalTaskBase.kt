@@ -71,7 +71,7 @@ abstract class UtImmortalTaskBase(
     /**
      * bool 以外の結果を返す場合は、このプロパティをオーバーライドする。
      */
-    override val taskResult:Any? = null
+//    override val taskResult:Any? = null
 
     val isRunning:Boolean get() = UtImmortalTaskManager.isRunning(taskName)
 
