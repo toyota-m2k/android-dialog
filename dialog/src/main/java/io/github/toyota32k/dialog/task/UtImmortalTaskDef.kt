@@ -23,7 +23,7 @@ enum class UtImmortalTaskState(val finished:Boolean) {
 interface IUtImmortalTask : Closeable, IUtImmortalTaskContextSource {
     val taskName: String
     val taskResult:Any?
-    fun resumeTask(value:Any?)
+    fun resumeTask(tag: String, value:Any?)
 }
 
 /**

@@ -2,8 +2,7 @@ package io.github.toyota32k.dialog.task
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.coroutineScope
 
 /**
  * ImmortalTask は、タスク毎に UtImmortalTaskBase から派生したタスククラスを用意する前提で設計しましたが、
@@ -64,7 +63,7 @@ class UtImmortalTask<T>(
             return UtImmortalTask(taskName, allowSequential, callback).run {
                 if (fireAsync()) {
                     @Suppress("UNCHECKED_CAST")
-                    return result as T
+                    result as T
                 } else {
                     throw IllegalStateException("Task failed")
                 }
@@ -74,6 +73,7 @@ class UtImmortalTask<T>(
          * 結果を待つ
          * エラーが発生したら、defValue を返す
          */
+        @Deprecated("use awaitTaskResultWithDefValue")
         suspend fun <T> awaitTaskResult(defValue:T, taskName: String = DEF_TASK_NAME, allowSequential:Boolean = false, callback:suspend UtImmortalTaskBase.()->T) : T {
             return UtImmortalTask(taskName, allowSequential, callback).run {
                 if (fireAsync()) {
@@ -84,24 +84,33 @@ class UtImmortalTask<T>(
                 }
             }
         }
+        suspend fun <T> awaitTaskResultWithDefValue(taskName: String = DEF_TASK_NAME, default:T, allowSequential:Boolean = false, callback:suspend UtImmortalTaskBase.()->T) : T {
+            return UtImmortalTask(taskName, allowSequential, callback).run {
+                if (fireAsync()) {
+                    @Suppress("UNCHECKED_CAST")
+                    result as T
+                } else {
+                    default
+                }
+            }
+        }
     }
 
 }
 
-fun UtImmortalTaskBase.launchSubTask(fn:suspend UtImmortalTaskBase.()->Unit):Job {
-    return this.immortalCoroutineScope.launch {
-        fn()
-    }
+fun UtImmortalTaskBase.launchSubTask(coroutineScope: CoroutineScope?=null, allowSequential: Boolean=false, callback:suspend UtImmortalTaskBase.()->Unit):Job {
+    return UtImmortalTask.launchTask("$taskName#${nextSubTaskId()}", coroutineScope, allowSequential, callback)
 }
 
-suspend fun UtImmortalTaskBase.awaitSubTask(fn:suspend UtImmortalTaskBase.()->Unit) {
-    launchSubTask(fn).join()
+suspend fun UtImmortalTaskBase.awaitSubTask(coroutineScope: CoroutineScope?=null, allowSequential: Boolean=false, callback:suspend UtImmortalTaskBase.()->Unit) {
+    UtImmortalTask.awaitTask("$taskName#${nextSubTaskId()}", coroutineScope, allowSequential, callback)
 }
 
-suspend fun <T> UtImmortalTaskBase.awaitSubTaskResult(fn:suspend UtImmortalTaskBase.()->T):T {
-    return withContext(this.immortalCoroutineScope.coroutineContext) {
-        fn()
-    }
+suspend fun <T> UtImmortalTaskBase.awaitSubTaskResult(coroutineScope: CoroutineScope?=null, allowSequential: Boolean=false, callback:suspend UtImmortalTaskBase.()->T):T {
+    return UtImmortalTask.awaitTaskResult("$taskName#${nextSubTaskId()}", allowSequential, callback)
+}
+suspend fun <T> UtImmortalTaskBase.awaitSubTaskResult(default:T, coroutineScope: CoroutineScope?=null, allowSequential: Boolean=false, callback:suspend UtImmortalTaskBase.()->T):T {
+    return UtImmortalTask.awaitTaskResultWithDefValue("$taskName#${nextSubTaskId()}", default, allowSequential, callback)
 }
 
 fun IUtImmortalTaskContext.toRunningTask():UtImmortalTaskBase? {
@@ -115,26 +124,27 @@ fun IUtImmortalTaskContext.toRunningTask():UtImmortalTaskBase? {
  * 実行中のUtImmortalTaskBase上で、サブタスクを開始する
  * （やりっぱなし）
  */
-fun IUtImmortalTaskContext.launchSubTask(fn:suspend UtImmortalTaskBase.()->Unit):Job {
+fun IUtImmortalTaskContext.launchSubTask(coroutineScope: CoroutineScope?=null, allowSequential: Boolean=false, callback:suspend UtImmortalTaskBase.()->Unit):Job {
     val task = toRunningTask() ?: throw IllegalStateException("cannot launch sub-task on ${this.taskName}")
-    return task.launchSubTask(fn)
+    return task.launchSubTask(coroutineScope, allowSequential, callback)
 }
 
 /**
  * 実行中のUtImmortalTaskBase上で、サブタスクを開始する
  * （終了を待つ）
  */
-suspend fun IUtImmortalTaskContext.awaitSubTask(fn:suspend UtImmortalTaskBase.()->Unit) {
-    return launchSubTask(fn).join()
+suspend fun IUtImmortalTaskContext.awaitSubTask(coroutineScope: CoroutineScope?=null, allowSequential: Boolean=false, callback:suspend UtImmortalTaskBase.()->Unit) {
+    val task = toRunningTask() ?: throw IllegalStateException("cannot launch sub-task on ${this.taskName}")
+    return task.awaitSubTask(coroutineScope, allowSequential, callback)
 }
 
 /**
  * 実行中のUtImmortalTaskBase上で、サブタスクを開始する
  * （サブタスクの結果を待つ）
  */
-suspend fun <T> IUtImmortalTaskContext.awaitSubTaskResult(fn:suspend UtImmortalTaskBase.()->T):T {
+suspend fun <T> IUtImmortalTaskContext.awaitSubTaskResult(coroutineScope: CoroutineScope?=null, allowSequential: Boolean=false, callback:suspend UtImmortalTaskBase.()->T):T {
     val task = toRunningTask() ?: throw IllegalStateException("cannot launch sub-task on ${this.taskName}")
-    return task.awaitSubTaskResult(fn)
+    return task.awaitSubTaskResult(coroutineScope, allowSequential,callback)
 }
 
 

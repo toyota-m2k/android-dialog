@@ -286,7 +286,7 @@ abstract class UtDialogBase : DialogFragment(), IUtDialog {
         notified = true
         val task = immortalTaskName?.let { UtImmortalTaskManager.taskOf(it) }?.task
         if(task!=null && !doNotResumeTask) {
-            task.resumeTask(this)
+            task.resumeTask(tag!!,this)
         } else {
             queryResultReceptor()?.onDialogResult(this)
         }

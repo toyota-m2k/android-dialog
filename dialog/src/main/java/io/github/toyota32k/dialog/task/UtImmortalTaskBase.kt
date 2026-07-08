@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -22,7 +23,7 @@ import kotlin.coroutines.suspendCoroutine
  *                      ViewModelも、親タスクのライフサイクル内で動作する。
  * @param allowSequential true:同名のタスクが実行中なら、それが終わるのを待って実行 / false:同名のタスクが実行中ならエラー
  */
-@Suppress("unused", "MemberVisibilityCanBePrivate")
+@Suppress("unused", "MemberVisibilityCanBePrivate", "CoroutineContextWithJob", "SuspendCoroutineLacksCancellationGuarantees")
 abstract class UtImmortalTaskBase(
     final override val taskName: String,
     val parentContext:IUtImmortalTaskContext? = null,
@@ -30,12 +31,18 @@ abstract class UtImmortalTaskBase(
 
 //    private var continuation:Continuation<Any?>? = null
     // ダイアログの終了待ち用 continuation ... ネストできるようにスタックとする（push/pop）
-    private val continuationStack = mutableListOf<Continuation<Any?>>()
-    private fun pushContinuation(c:Continuation<Any?>) {
-        continuationStack.add(c)
+    // --> 単純なネストではなく、親が先に閉じるケース（いわゆる松葉崩し型）に対応するため mapに変更。
+    //     具体的には、プログレスバーで、非同期APIを監視する場合など、２つのImmortalTask が並列実行され、
+    //     それぞれの終了タイミングがレースコンディションとなるケースが発生した。
+    private val continuationMap = mutableMapOf< String, Continuation<Any?>>()
+    private fun pushContinuation(tag: String, c:Continuation<Any?>) {
+        continuationMap[tag] = c
     }
-    private fun popContinuation():Continuation<Any?>? {
-        return continuationStack.removeLastOrNull()
+    private fun popContinuation(tag: String):Continuation<Any?>? {
+        return continuationMap.remove(tag)
+    }
+    private fun peekContinuation(tag: String): Continuation<Any?>? {
+        return continuationMap[tag]
     }
 
     override val immortalTaskContext =  UtImmortalTaskContext(taskName, parentContext)
@@ -43,8 +50,8 @@ abstract class UtImmortalTaskBase(
     /**
      * ダイアログのcomplete待ち用
      */
-    override fun resumeTask(value: Any?) {
-        popContinuation()?.resume(value)
+    override fun resumeTask(tag: String, value: Any?) {
+        popContinuation(tag)?.resume(value)
     }
 
     /**
@@ -67,6 +74,11 @@ abstract class UtImmortalTaskBase(
     override val taskResult:Any? = null
 
     val isRunning:Boolean get() = UtImmortalTaskManager.isRunning(taskName)
+
+    private val subTaskId = AtomicLong(0)
+    fun nextSubTaskId():Long {
+        return subTaskId.incrementAndGet()
+    }
 
     /**
      * タスクを開始する
@@ -145,16 +157,20 @@ abstract class UtImmortalTaskBase(
     }
 
     private suspend fun <D> internalShowDialog(tag:String, takeOwner:suspend ()->UtDialogOwner, dialogSource:(UtDialogOwner)->D):D where D:IUtDialog {
+        if (peekContinuation(tag)!=null) {
+            throw IllegalStateException("$taskName: don't show same dialogs in parallel.")
+        }
+
         val running = UtImmortalTaskManager.taskOf(taskName)
         if(running == null || running.task != this) {
-            throw IllegalStateException("task($taskName) is not running")
+            throw IllegalStateException("$taskName: task is not running")
         }
         logger.debug("dialog opening...")
         @Suppress("UNCHECKED_CAST")
         val r = withContext(UtImmortalTaskManager.immortalTaskScope.coroutineContext) {
             val owner = takeOwner()
             suspendCoroutine {
-                pushContinuation(it)
+                pushContinuation(tag,it)
                 dialogSource(owner).apply { immortalTaskName = taskName }.show(owner, tag)
             }
         } as D
