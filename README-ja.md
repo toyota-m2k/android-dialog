@@ -365,6 +365,7 @@ class CompactDialog : UtDialogEx() {
         }
     }
 }
+```
 
 このように、UtImmortalTask を使えば、ダイアログの中からメッセージボックスを表示することも簡単に実現できました。
 
