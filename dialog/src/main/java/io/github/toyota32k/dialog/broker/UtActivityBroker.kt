@@ -60,6 +60,7 @@ abstract class UtActivityBroker<I,O>(owner: ActivityResultCaller? = null)
         (oneTimeGetContinuation() as? Continuation<O>)?.resume(result)
     }
 
+    @Suppress("SuspendCoroutineLacksCancellationGuarantees")
     suspend fun invoke(input:I): O {
         if(continuation!=null) {
             throw IllegalStateException("broker is busy.")

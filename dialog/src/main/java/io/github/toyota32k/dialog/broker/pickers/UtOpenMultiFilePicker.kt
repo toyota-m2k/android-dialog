@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.broker.pickers
 
 import android.content.Context
@@ -17,7 +19,6 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * アイテムを長押し選択すると、チェックボックスが現れ、右上に「選択」または、「開く」 などのボタンが表示される。
  * この状態で、アイテムを選択すると、チェックボックスのon/off がトグルして、複数選択が可能になる。
  */
-@Suppress("unused")
 open class UtOpenMultiFilePicker(owner: ActivityResultCaller? = null) : UtActivityBroker<Array<String>, List<Uri>>(owner) {
     companion object {
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<List<Uri>>) : IUtActivityLauncher<Array<String>> {

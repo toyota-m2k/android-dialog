@@ -15,7 +15,7 @@ import io.github.toyota32k.dialog.task.UtImmortalTaskManager
  * この仕掛けを利用する機会はほとんどありませんでしたし、今後も必要になる見込みもないので、
  * v5以降は、コードの見通しをよくするため、これに関わる実装を分離して、legacy namespace に塩漬けにします。
  */
-abstract class UtMortalTaskReceiverActivity(val mortalStaticTaskKeeper: UtMortalStaticTaskKeeper = UtMortalStaticTaskKeeper())
+abstract class UtMortalTaskReceiverActivity(mortalStaticTaskKeeper: UtMortalStaticTaskKeeper = UtMortalStaticTaskKeeper())
     : UtMortalActivity(mortalStaticTaskKeeper), IUtImmortalTaskResultReceiver {
 
     /**

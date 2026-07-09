@@ -43,7 +43,6 @@ abstract class  UtDialogViewModel : ViewModel(), IUtImmortalTaskMutableContextSo
             return ViewModelProvider(task.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[clazz]
         }
         inline fun <reified T> instanceOf(taskName:String):T where T:ViewModel {
-            val task = UtImmortalTaskManager.taskOf(taskName)?.task ?: throw IllegalStateException("no task")
             return instanceOf(T::class.java, taskName)
         }
         /**
@@ -111,7 +110,7 @@ abstract class  UtDialogViewModel : ViewModel(), IUtImmortalTaskMutableContextSo
  * ```
  */
 inline fun <reified T> IUtImmortalTask.createViewModel(noinline initialize:(T.()->Unit)?=null) : T where T: UtDialogViewModel {
-    return UtDialogViewModel.create(T::class.java, this) { it->
+    return UtDialogViewModel.create(T::class.java, this) {
         if (initialize!=null) {
             it.initialize()
         }

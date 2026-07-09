@@ -19,7 +19,7 @@ private fun IUtImmortalTask.id2strOrNull(@StringRes id:Int):String? {
     return getStringOrNull(id)
 }
 private fun IUtImmortalTask.id2str(@StringRes id:Int):String {
-    if(id==0) return throw IllegalStateException("id==0")
+    if(id==0) throw IllegalStateException("id==0")
     return getStringOrNull(id) ?: throw IllegalStateException("no string: $id")
 }
 /**

@@ -66,7 +66,6 @@ import io.github.toyota32k.utils.android.setMargin
 import io.github.toyota32k.utils.android.withAlpha
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.text.toFloat
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 /**
@@ -210,7 +209,7 @@ abstract class UtDialog: UtDialogBase() {
             dialogView        layout_width/height = wrap_content のまま
             bodyContainer    layout_width/height = 計算値（updateDynamicWidth/Height)
             基本的な考え方はFIXEDと同じく、内側のサイズを規定することで、外側のサイズが決まる方式。
-     *------------------------------------------------------------------------------------------------------------*/
+     *----------------------------------------------------------------------------------------------------------- -*/
 
     /**
      * 幅指定フラグ
@@ -600,7 +599,7 @@ abstract class UtDialog: UtDialogBase() {
         }
 
     private val fadeInAnimation get() = UtFadeAnimation(true, UtDialogConfig.fadeInDuration)
-    private val fadeOutAnimation get() = UtFadeAnimation(false, UtDialogConfig.fadeOutDuraton)
+    private val fadeOutAnimation get() = UtFadeAnimation(false, UtDialogConfig.fadeOutDuration)
 
     private fun fadeIn(enableAnimation:Boolean, completed: (() -> Unit)? = null) {
         if (!this::rootView.isInitialized) {
@@ -704,7 +703,6 @@ abstract class UtDialog: UtDialogBase() {
     private var leftButtonText: String? by bundle.stringNullable
     private var leftButtonPositive: Boolean by bundle.booleanFalse
 
-    @Suppress("unused")
     val hasLeftButton: Boolean
         get() = leftButtonText != null
 

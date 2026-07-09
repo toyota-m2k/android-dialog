@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.broker.pickers
 
 import android.content.Context
@@ -16,10 +18,8 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * ACTION_GET_CONTENT
  * データの読み取りとインポートのみを行う場合
  */
-@Suppress("unused")
 open class UtOpenReadOnlyFilePicker(owner: ActivityResultCaller? = null) : UtActivityBroker<String, Uri?>(owner)  {
     companion object {
-        const val defaultMimeType: String = "*/*"
         @JvmStatic
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActivityLauncher<String> {
             return UtOpenReadOnlyFilePicker().apply {
@@ -42,7 +42,7 @@ open class UtOpenReadOnlyFilePicker(owner: ActivityResultCaller? = null) : UtAct
     override val contract: ActivityResultContract<String, Uri?>
         get() = Contract()
 
-    suspend fun selectFile(mimeType:String = defaultMimeType): Uri? {
+    suspend fun selectFile(mimeType:String = UtOpenFilePicker.DEFAULT_MIME_TYPE): Uri? {
         return invoke(mimeType)
     }
 }

@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.task
 
 import androidx.annotation.MainThread
@@ -96,7 +98,6 @@ suspend inline fun <reified T: FragmentActivity> IUtMortalInstanceSource.getActi
     return getOwnerOf(T::class.java).asActivity() as? T ?: throw java.lang.IllegalStateException("not target activity")
 }
 
-@Suppress("unused")
 suspend inline fun <reified T:FragmentActivity, R> IUtMortalInstanceSource.withActivity(fn:(T)->R):R {
     return fn(getActivity<T>())
 }

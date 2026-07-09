@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog
 
 import android.content.Context
@@ -7,7 +9,6 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
-import io.github.toyota32k.dialog.UtDialogConfig.SystemZone
 import io.github.toyota32k.dialog.UtDialogConfig.SystemZoneOption
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.logger.UtLog

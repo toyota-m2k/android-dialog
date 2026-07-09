@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog
 
 import android.app.Application
@@ -40,7 +42,6 @@ data class UtDialogOwner(val lifecycleOwner: LifecycleOwner) {
         }
     }
 
-    @Suppress("unused")
     fun asFragment():FragmentActivity? {
         return when(lifecycleOwner) {
             is FragmentActivity->lifecycleOwner
@@ -70,7 +71,6 @@ fun FragmentActivity.toDialogOwner() = UtDialogOwner(this)
 /**
  * Fragment --> UtDialogOwner
  */
-@Suppress("unused")
 fun Fragment.toDialogOwner() = UtDialogOwner(this)
 
 /**
@@ -131,7 +131,6 @@ open class UtDialogWeakOwner(owner: LifecycleOwner) : LifecycleEventObserver {
         weakOwner = null
     }
 
-    @Suppress("unused")
     val hasOwner:Boolean
         get() = lifecycleOwner!=null
 }

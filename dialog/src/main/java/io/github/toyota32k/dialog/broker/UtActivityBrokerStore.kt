@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.broker
 
 import androidx.fragment.app.FragmentActivity

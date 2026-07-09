@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.broker.pickers
 
 import android.content.Context
@@ -15,7 +17,6 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * 読み取り専用に複数のファイルを選択
  * ACTION_GET_CONTENT
  */
-@Suppress("unused")
 open class UtOpenReadOnlyMultiFilePicker(owner: ActivityResultCaller? = null) : UtActivityBroker<String, List<Uri>>(owner) {
     companion object {
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<List<Uri>>) : IUtActivityLauncher<String> {
@@ -39,7 +40,7 @@ open class UtOpenReadOnlyMultiFilePicker(owner: ActivityResultCaller? = null) : 
     override val contract: ActivityResultContract<String, List<Uri>>
         get() = Contract()
 
-    suspend fun selectFiles(mimeType:String = UtOpenReadOnlyFilePicker.defaultMimeType): List<Uri> {
+    suspend fun selectFiles(mimeType:String = UtOpenFilePicker.DEFAULT_MIME_TYPE): List<Uri> {
         return invoke(mimeType)
     }
 }
