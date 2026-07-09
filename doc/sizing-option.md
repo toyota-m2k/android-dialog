@@ -1,52 +1,76 @@
-# How to Use WidthOption/HeightOption
+# WidthOption/HeightOption - Dialog Sizing
+
 <div align="right">
 EN | <a href="./sizing-option-ja.md">JA</a>
 </div>
 
-In [README](../README.md), we created a simple dialog with only one text input field. The basics are the same even if the dialog content becomes more complex. However, it is necessary to consider cases where the dialog content increases and no longer fits within the screen. UtDialog provides several options for determining the size of the dialog.
+In the [tutorial (basics)](./tutorial-basic.md), we created a simple dialog with just one text input field. The basics stay the same as the dialog content grows and becomes more complex. However, you do need to consider the case where the content no longer fits on the screen. UtDialog provides several options that determine the dialog size.
+
+Set `widthOption` / `heightOption` in `preCreateBodyView()`.
+
+```kotlin
+override fun preCreateBodyView() {
+    widthOption = WidthOption.LIMIT(400)
+    heightOption = HeightOption.AUTO_SCROLL
+    ...
+}
+```
 
 ## WidthOption
 
 ### (1) COMPACT
 
-Matches the width of the bodyView created by createBodyView(). This is equivalent to WRAP_CONTENT. It is used for compact dialogs that always fit within the screen even on a phone screen, as in the [README](../README.md) example.
+Fits the width of the bodyView created by createBodyView(). Equivalent to WRAP_CONTENT. Use it for compact dialogs that always fit on screen, even on phones.
 
 ### (2) FULL
 
-Matches the screen width of the device. This is equivalent to MATCH_PARENT. When the device orientation is Landscape, it may become unnecessarily wide and unsightly. In that case, consider applying FIXED or LIMIT.
+Fits the device screen width. Equivalent to MATCH_PARENT. In landscape orientation, the dialog can become pointlessly wide and ugly; consider FIXED or LIMIT in that case.
 
 ### (3) FIXED
 
-Fixes the width to the specified value. Specify the width in dp, such as WidthOption.FIXED(400).
+Fixes the width to the specified value. Specify the width as a DP value, e.g., WidthOption.FIXED(400).
 
 ### (4) LIMIT
 
-Behaves the same as FULL on small screens, but on larger screens, it is adjusted so that it does not become larger than the specified width. Specify the maximum width in dp, such as WidthOption.LIMIT(400). This is the most user-friendly option for WidthOption.
+Behaves like FULL on small screens, but on large screens the width is capped at the specified value. Specify the maximum width as a DP value, e.g., WidthOption.LIMIT(400). This is the most convenient WidthOption.
 
 ## HeightOption
 
 ### (1) COMPACT
 
-Matches the height of the bodyView created by createBodyView(). This is equivalent to WRAP_CONTENT. It is used for compact dialogs that always fit within the screen even on a phone screen, as in the [README](../README.md) example.
+Fits the height of the bodyView created by createBodyView(). Equivalent to WRAP_CONTENT. Use it for compact dialogs that always fit on screen, even on phones.
 
 ### (2) FULL
 
-Matches the screen height of the device. This is equivalent to MATCH_PARENT. It is used when there is a height-adjustable view in the dialog, such as a list view, that can scroll by itself.
+Fits the device screen height. Equivalent to MATCH_PARENT.
+Use it when the dialog contains a height-adjustable view that can scroll by itself, such as a list view.
 
-[Sample](../sample/src/main/java/io/github/toyota32k/dialog/sample/dialog/FullHeightDialog.kt)
+[Sample: FullHeightDialog](../sample/src/main/java/io/github/toyota32k/dialog/sample/dialog/FullHeightDialog.kt)
 
 ### (3) FIXED
 
-Fixes the width to the specified value. Specify the height in dp, such as HeightOption.FIXED(600). Similar to FULL, this is used when there is a height-adjustable view in the dialog, such as a list view, that can scroll by itself, and FULL results in too much whitespace, but FIXED prevents excessive scrolling when the number of items increases.
+Fixes the height to the specified value. Specify the height as a DP value, e.g., HeightOption.FIXED(600).
+Like FULL, use it when the dialog contains a view that can scroll by itself, such as a list view, and FULL would leave too much empty space.
 
-### (4) AUTO_SCROLL
+### (4) LIMIT
 
-Adjusts the height of the bodyView created by createBodyView() within the range that does not exceed the device's screen height. If it does not fit on the screen, it scrolls. Useful when placing many views vertically using StackLayout, etc.
+Behaves like FULL on small screens, but on large screens the height is capped at the specified value. Specify the maximum height as a DP value, e.g., HeightOption.LIMIT(600).
 
-[Sample](../sample/src/main/java/io/github/toyota32k/dialog/sample/dialog/AutoScrollDialog.kt)
+### (5) AUTO_SCROLL
 
-### (5) CUSTOM
+Adjusts to the height of the bodyView created by createBodyView(), within the limits of the device screen height. If the content does not fit on the screen, it scrolls. Convenient when many views are stacked vertically, e.g., with a LinearLayout.
 
-Customizes the height adjustment of the dialog. For example, even though it has a resizable list view, if only a few items are registered, FULL results in unsightly whitespace, and FIXED requires unnecessary scrolling when the number of items increases. In such cases, it is possible to increase the height of the dialog according to the number of items registered in the list view, and if it reaches the screen height, scroll within the list view thereafter.
+[Sample: AutoScrollDialog](../sample/src/main/java/io/github/toyota32k/dialog/sample/dialog/AutoScrollDialog.kt)
 
-[Sample](../sample/src/main/java/io/github/toyota32k/dialog/sample/dialog/CustomHeightDialog.kt)
+### (6) CUSTOM
+
+Customizes the dialog height adjustment. Overriding `calcCustomContainerHeight()` is required (see the [reference](./reference.md)).
+
+For example: the dialog has a resizable list view, but most of the time only a few items are registered — FULL would leave large ugly gaps, while FIXED would force needless scrolling as items grow. With CUSTOM, you can grow the dialog height along with the number of items in the list view, and once it reaches the screen height, let the list view scroll internally.
+
+[Sample: CustomHeightDialog](../sample/src/main/java/io/github/toyota32k/dialog/sample/dialog/CustomHeightDialog.kt)
+
+## Related Documents
+
+- [UtDialog Reference](./reference.md)
+- [Tutorial (Basics)](./tutorial-basic.md)

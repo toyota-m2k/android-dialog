@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.broker
 
 import android.content.Context
@@ -24,7 +26,6 @@ class UtPermissionBroker(owner: ActivityResultCaller? = null) : UtActivityBroker
     override val contract: ActivityResultContract<String, Boolean>
         get() = ActivityResultContracts.RequestPermission()
 
-    @Suppress("unused")
     suspend fun requestPermission(permission:String):Boolean {
         if(isPermitted(permission)) {
             return true // すでに許可されている
@@ -33,7 +34,6 @@ class UtPermissionBroker(owner: ActivityResultCaller? = null) : UtActivityBroker
     }
 }
 
-@Suppress("unused")
 class UtMultiPermissionsBroker(owner: ActivityResultCaller? = null) : UtActivityBroker<Array<String>, Map<String,Boolean>>(owner) {
     override val contract: ActivityResultContract<Array<String>, Map<String,Boolean>>
         get() = ActivityResultContracts.RequestMultiplePermissions()

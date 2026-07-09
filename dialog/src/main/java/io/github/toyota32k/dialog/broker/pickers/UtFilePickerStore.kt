@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.broker.pickers
 
 import androidx.fragment.app.Fragment
@@ -15,7 +17,6 @@ class UtFilePickerStore private constructor() {
     constructor(activity: FragmentActivity):this() {
         register(activity)
     }
-    @Suppress("unused")
     constructor(fragment: Fragment):this() {
         register(fragment)
     }

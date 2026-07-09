@@ -37,3 +37,4 @@ app/build
 .idea/copilot.data.migration.ask.xml
 .idea/copilot.data.migration.ask2agent.xml
 .idea/markdown.xml
+CLAUDE.md

@@ -65,7 +65,7 @@ internal class GlobalLayoutSoftwareKeyboardObserver(owner:LifecycleOwner, activi
 
 internal class WindowInsetsSoftwareKeyboardObserver(owner: LifecycleOwner, val rootView:View) : BaseSoftwareKeyboardObserver(owner, rootView.activity()?.window?.decorView ?: rootView) {
     init {
-        ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, insets ->
             val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
             callback(ime.bottom, decorView.height)
             insets

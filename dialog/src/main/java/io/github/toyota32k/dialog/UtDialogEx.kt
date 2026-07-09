@@ -7,13 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
-import io.github.toyota32k.binder.*
-import io.github.toyota32k.binder.command.ICommand
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.BoolConvert
+import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.command.IUnitCommand
-import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
-import io.github.toyota32k.dialog.task.UtDialogViewModel
+import io.github.toyota32k.binder.enableBinding
+import io.github.toyota32k.binder.genericBoolBinding
+import io.github.toyota32k.binder.textBinding
+import io.github.toyota32k.binder.visibilityBinding
 import kotlinx.coroutines.flow.Flow
 
 /**

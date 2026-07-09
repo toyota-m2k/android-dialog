@@ -1,6 +1,5 @@
 package io.github.toyota32k.dialog.mortal.legacy
 
-import androidx.fragment.app.FragmentActivity
 import io.github.toyota32k.dialog.mortal.UtMortalTaskKeeper
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.Disposer

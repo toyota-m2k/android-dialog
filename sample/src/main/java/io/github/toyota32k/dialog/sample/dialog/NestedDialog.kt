@@ -18,6 +18,7 @@ import io.github.toyota32k.dialog.sample.databinding.ItemStringListBinding
 import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.getViewModel
+import io.github.toyota32k.dialog.task.showDialog
 import io.github.toyota32k.utils.letOnTrue
 import io.github.toyota32k.utils.lifecycle.asConstantLiveData
 import java.io.File

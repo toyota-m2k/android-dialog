@@ -6,8 +6,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import io.github.toyota32k.dialog.task.UtImmortalTask
-import io.github.toyota32k.dialog.task.getActivity
 import io.github.toyota32k.logger.UtLog
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
@@ -62,6 +60,7 @@ abstract class UtActivityBroker<I,O>(owner: ActivityResultCaller? = null)
         (oneTimeGetContinuation() as? Continuation<O>)?.resume(result)
     }
 
+    @Suppress("SuspendCoroutineLacksCancellationGuarantees")
     suspend fun invoke(input:I): O {
         if(continuation!=null) {
             throw IllegalStateException("broker is busy.")
@@ -73,18 +72,6 @@ abstract class UtActivityBroker<I,O>(owner: ActivityResultCaller? = null)
             } catch(e:Throwable) {
                 oneTimeGetContinuation()?.resumeWithException(e)
             }
-        }
-    }
-
-    // for java
-    fun invoke(input:I, callback:(FragmentActivity,O)->Unit) {
-        UtImmortalTask.launchTask {
-            val r = invoke(input)
-            val activity = getActivity()
-            if(activity!=null) {
-                callback(activity, r)
-            }
-            true
         }
     }
 

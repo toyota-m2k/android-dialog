@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.broker.pickers
 
 import android.content.Context
@@ -16,10 +18,10 @@ import io.github.toyota32k.dialog.broker.UtActivityBroker
  * ACTION_OPEN_DOCUMENT
  * データの編集を行うなど、長期間の永続的なアクセスが必要な場合に使用。
  */
-@Suppress("unused")
 open class UtOpenFilePicker(owner: ActivityResultCaller? = null) : UtActivityBroker<Array<String>, Uri?>(owner) {
     companion object {
-        val defaultMimeTypes: Array<String> = arrayOf("*/*")
+        const val DEFAULT_MIME_TYPE: String = "*/*"
+        val defaultMimeTypes: Array<String> = arrayOf(DEFAULT_MIME_TYPE)
 
         @JvmStatic
         fun launcher(owner: FragmentActivity, callback: ActivityResultCallback<Uri?>) : IUtActivityLauncher<Array<String>> {

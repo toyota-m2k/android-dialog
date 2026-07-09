@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.mortal
 
 import android.view.KeyEvent
@@ -99,7 +101,7 @@ abstract class UtMortalActivity(
      * @param getTargetInsetsZones 適用するシステムゾーンを返すラムダ
      */
     protected fun setupWindowInsetsListener(rootView: View, getTargetInsetsZones: ()-> Int) {
-        ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, insets ->
             val targetSystemZone  = getTargetInsetsZones()
             val all = UtDialogConfig.SystemZone.calcInsets(insets, targetSystemZone)
             rootView.setPadding(all.left, all.top, all.right, all.bottom)

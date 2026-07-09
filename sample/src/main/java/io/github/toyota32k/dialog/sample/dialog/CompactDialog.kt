@@ -2,12 +2,9 @@ package io.github.toyota32k.dialog.sample.dialog
 
 import android.os.Bundle
 import android.view.View
-import io.github.toyota32k.binder.clickBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.editTextBinding
-import io.github.toyota32k.binder.enableBinding
-import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.sample.R
 import io.github.toyota32k.dialog.sample.databinding.DialogCompactBinding
@@ -16,7 +13,6 @@ import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.getViewModel
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
 
 class CompactDialog : UtDialogEx() {
     class CompactDialogViewModel : UtDialogViewModel() {

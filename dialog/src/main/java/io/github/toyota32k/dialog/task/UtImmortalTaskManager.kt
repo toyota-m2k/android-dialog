@@ -24,7 +24,7 @@ object UtImmortalTaskManager : Closeable  {
         val name:String
         val state: UtImmortalTaskState
         val task:IUtImmortalTask?
-        val result:Any?
+//        val result:Any?
         fun registerStateObserver(owner:LifecycleOwner, fn:(UtImmortalTaskState)->Unit):IDisposable
     }
 
@@ -38,7 +38,7 @@ object UtImmortalTaskManager : Closeable  {
             get() = stateFlow.value
             set(v) { stateFlow.value = v }
         override var task:IUtImmortalTask?=null
-        override var result:Any?=null
+//        override var result:Any?=null
 
         override fun registerStateObserver(owner: LifecycleOwner, fn: (UtImmortalTaskState) -> Unit): IDisposable {
             observableFlow.clean()
@@ -188,13 +188,13 @@ object UtImmortalTaskManager : Closeable  {
     private fun detachTask(task:IUtImmortalTask, succeeded:Boolean) {
         logger.debug()
         val entry = taskTable[task.taskName] ?: return
-        entry.result = task.taskResult
+//        entry.result = task.taskResult
         entry.state = if(succeeded) UtImmortalTaskState.COMPLETED else UtImmortalTaskState.ERROR
         entry.task = null
         logger.debug("detached: ${task.taskName}")
     }
 
-    private suspend fun internalExecuteTask(task:IUtImmortalTask, execute:suspend ()->Boolean):Boolean {
+    private suspend fun <T> internalExecuteTask(task:IUtImmortalTask, execute:suspend ()->T):T {
         val dyn = synchronized(taskTable) {
             // タスク名が未登録なら動的登録
             dynamicReserveTask(task).also {
@@ -202,31 +202,33 @@ object UtImmortalTaskManager : Closeable  {
                 attachTask(task)
             }
         }
-        val result = try {
+        var succeeded = true
+        try {
             // タスクの実行
-            execute()
+            return execute()
         } catch(e:Throwable) {
             logger.stackTrace(e, "task error.")
-            false
-        }
-        // タスクをデタッチ
-        detachTask(task, result)
-        if(dyn) {
-            logger.debug("close dynamic task: ${task.taskName}")
-            // タスクをクローズ
-            withContext(Dispatchers.IO) {
-                try {
-                    task.close()
-                } catch(e:Throwable) {
-                    logger.stackTrace(e)
+            succeeded = false
+            throw e
+        } finally {
+            // タスクをデタッチ
+            detachTask(task, succeeded)
+            if (dyn) {
+                logger.debug("close dynamic task: ${task.taskName}")
+                // タスクをクローズ
+                withContext(Dispatchers.IO) {
+                    try {
+                        task.close()
+                    } catch (e: Throwable) {
+                        logger.stackTrace(e)
+                    }
+                }
+                // 動的登録した場合は登録を解除しておく
+                synchronized(taskTable) {
+                    taskTable.remove(task.taskName)
                 }
             }
-            // 動的登録した場合は登録を解除しておく
-            synchronized(taskTable) {
-                taskTable.remove(task.taskName)
-            }
         }
-        return result
     }
 
     /**
@@ -234,7 +236,7 @@ object UtImmortalTaskManager : Closeable  {
      * もし、同名タスクが実行中なら、それが終わるのを待ってから実行
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun beginTaskSequentially(task:IUtImmortalTask, execute:suspend ()->Boolean):Boolean {
+    suspend fun <T> beginTaskSequentially(task:IUtImmortalTask, execute:suspend ()->T):T {
         return NamedMutex.withLock(task.taskName, task) {
             internalExecuteTask(task, execute)
         }
@@ -242,13 +244,13 @@ object UtImmortalTaskManager : Closeable  {
 
     /**
      * タスクの実行を開始
-     * もし、同名のタスクが実行中なら、エラーとして、ただちにfalseを返す。
+     * もし、同名のタスクが実行中なら、エラーとして、ただちに例外を投げる。
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun beginTaskExclusively(task:IUtImmortalTask, execute:suspend ()->Boolean):Boolean {
+    suspend fun <T> beginTaskExclusively(task:IUtImmortalTask, execute:suspend ()->T):T {
         if(!NamedMutex.tryLock(task.taskName, task)) {
             logger.error("cannot begin task: already running: ${task.taskName}")
-            return false
+            throw IllegalStateException("task already running: ${task.taskName}")
         }
 
         return try {
@@ -258,7 +260,7 @@ object UtImmortalTaskManager : Closeable  {
         }
     }
 
-    suspend fun beginTask(sequential:Boolean, task:IUtImmortalTask, execute: suspend () -> Boolean):Boolean {
+    suspend fun <T> beginTask(sequential:Boolean, task:IUtImmortalTask, execute: suspend () -> T): T {
         return if(sequential) beginTaskSequentially(task, execute)
                else           beginTaskExclusively(task, execute)
     }

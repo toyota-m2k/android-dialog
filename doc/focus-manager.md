@@ -1,39 +1,49 @@
-#   Focus Management Class (UtFocusManager)
+# Focus Management Class (UtFocusManager)
+
 <div align="right">
 EN | <a href="./focus-manager-ja.md">JA</a>
 </div>
 
+We rarely think about it in everyday development, but various problems appear once you connect an external keyboard or run the app on a Chromebook:
 
-While often overlooked, various issues arise when connecting an external keyboard or running on a Chromebook.
+- The behavior of the Tab/Enter keys on an EditText (committing conversion, moving focus, EditorAction) differs by device and IME.
+- When entering Japanese text, committing with Enter on a hardware keyboard moves the focus to the next control (nextFocusDown), even with imeOptions == actionDone.
+- You think you are moving the focus inside the dialog, but the focus lands on a control on the Activity side.
 
--   The behavior of the Tab key and Enter key in EditText (confirmation of conversion, focus movement, EditorAction) varies depending on the device and IME.
--   When confirming with the Enter key on a hardware keyboard during Japanese input, focus moves to the next control (nextFocusDown) even with (imeOptions == actionDone).
--   Despite intending to move focus within the dialog, focus ends up on a control in the main Activity.
+`UtFocusManager` avoids most of these problems.
+Although UtFocusManager is used as a standard feature of UtDialog, it is designed to be usable in any Activity or Fragment as well.
 
-Most of these issues can be avoided by using `UtFocusManager`.
-It's worth noting that UtFocusManager is used as a standard feature of UtDialog, but it is also designed to be usable in any Activity or Fragment.
+## Usage
 
-##   How to Use
+### With UtDialog
 
-###   Usage with UtDialog
+Initialize the rootFocusManager in the constructor of your UtDialog subclass, or in preCreateBodyView().
 
--   Initialize `rootFocusManager` in the constructor of the UtDialog derived class or in `preCreateBodyView()`.
+```kotlin
+override fun preCreateBodyView() {
+    ...
+    enableFocusManagement(true)             // Enable the rootFocusManager. Passing false excludes the header buttons (Done/Cancel, etc.) from management.
+        .autoRegister()                     // Auto-register focusable views (to register individually, pass R.id.xxxx to register()).
+        .setCustomEditorAction()            // Enable manual focus movement by the Enter key.
+        .setInitialFocus(R.id.input_1)      // Specify the control that receives the initial focus (optional).
+}
+```
 
-    ```
-    enableFocusManagement(true)             // Enables rootFocusManager. Setting the Boolean argument to false excludes header buttons (e.g., Done/Cancel) from management.
-        .autoRegister()                     // Automatically registers focus targets in this example. To register individually, pass R.id.xxxx to register().
-        .setCustomEditorAction()            // Enables custom focus movement with the Enter key
-        .setInitialFocus(R.id.input_1)      // Specifies the control to set focus on initially (optional)
-    ```
+For usage examples, see the [tutorial (basics)](./tutorial-basic.md) and [Sample: CompactDialog](../sample/src/main/java/io/github/toyota32k/dialog/sample/dialog/CompactDialog.kt).
 
-###   Usage with General Activities and Fragments
+### With a Regular Activity or Fragment
 
--   Create and initialize a UtFocusManager instance as a member of the Activity or Fragment, and register the views to be managed.
--   Call `UtFocusManager#attach()` in `Activity#onCreate()` or `Fragment#onCreateView()` to attach the root view (the root view that can be used to resolve IdRes --> View).
--   Override `Activity#onKeyDown()` and call `UtFocusManager#handleTabEvent()`.
+- Create and initialize a UtFocusManager instance as a member of the Activity or Fragment, and register the views to manage.
+- In `Activity#onCreate()` or `Fragment#onCreateView()`, call `UtFocusManager#attach()` to attach the root view (a root view usable for IdRes --> View resolution).
+- Override `Activity#onKeyDown()` and call `UtFocusManager#handleTabEvent()`.
 
-##   Complex Container Structures
+## Composing Complex Containers
 
--   If you want to manage focus in complex containers where IDs may be duplicated, such as in list view content, you can create a hierarchy of UtFocusManager.
--   Use the `appendChild()`, `insertChildAfter()`, and `removeChild()` methods to construct the hierarchical structure of the focus manager.
--   In practice, UtDialog uses a hierarchical structure to maintain the `rootView`, which includes the dialog's built-in buttons, and the `bodyView`, which is created by the subclass.
+- To manage focus in complex containers with duplicated IDs — such as list view content — UtFocusManagers can be arranged hierarchically.
+- Build the focus manager hierarchy with the `appendChild()`, `insertChildAfter()`, and `removeChild()` methods.
+- In fact, UtDialog holds a hierarchy of the rootView (including the dialog's built-in buttons) and the bodyView created by the subclass.
+
+## Related Documents
+
+- [UtDialog Reference](./reference.md)
+- [Tutorial (Basics)](./tutorial-basic.md)

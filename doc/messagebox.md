@@ -1,117 +1,134 @@
-# Displaying Message Boxes
+# Message Boxes / Selection Boxes
+
 <div align="right">
 EN | <a href="./messagebox-ja.md">JA</a>
 </div>
 
-
-Message boxes are simple dialogs that display a title (string), a message (string), and OK and Cancel buttons (or Yes/No buttons) to prompt the user for a decision. Internally, they use AlertDialog and can be easily used from anywhere, following the UtDialog conventions.
+A message box is a simple dialog that shows a title (string), a message (string), and OK/Cancel (or Yes/No) buttons to prompt the user for a decision. Internally it uses AlertDialog, and following the UtDialog conventions, it can easily be used from anywhere.
 
 ## Preparation
 
-Derive the Activity that will display the dialog from `UtMortalActivity`. If you cannot change the existing implementation (base class), refer to the implementation of `UtMortalActivity` and add the necessary processing (mainly UtMortalTaskKeeper's event handler calls) to your Activity class.
+Derive the Activity that shows dialogs from `UtMortalActivity`. If you cannot change the existing implementation (base class), refer to the implementation of `UtMortalActivity` and add the necessary processing (mainly calls to the `UtMortalTaskKeeper` event handlers) to your Activity class. See [UtImmortalTask In Depth](./immortal-task.md#how-tasks-and-activities-cooperate) for details.
 
-## Displaying a Message Box
+## Showing a Message Box
 
-UtMessageBox is also an implementation class of IUtDialog, and like a normal UtDialog, you can construct and display a UtMessageBox instance within the UtImmortalTask scope.
+`UtMessageBox` is also an implementation class of IUtDialog, and like a regular UtDialog, you can construct and show a UtMessageBox instance within a UtImmortalTask scope.
 
 ```kotlin
 UtImmortalTask.launchTask {
-    showDialog("confirm") { 
-        UtMessageBox.createForConfirm("Download File", "Completed.") 
+    showDialog("confirm") {
+        UtMessageBox.createForConfirm("Download File", "Completed.")
     }
 }
 ```
 
-UtImmortalTask also has several extension functions specialized for displaying message boxes. Using these, the above code can be written as follows:
+Furthermore, using the extension functions specialized for message boxes, the code above can be written as:
 
 ```kotlin
 UtImmortalTask.launchTask {
-    showConfirmMessageBox("Download File", "Completed.") 
+    showConfirmMessageBox("Download File", "Completed.")
 }
 ```
 
-## Extension Functions for Displaying Message Boxes
+All of these extension functions suspend until the user presses a button (or cancels). Overloads that take string resource IDs (`@StringRes Int`) instead of the title/message strings are also available.
+
+## Message Box Extension Functions
 
 ### (1) Confirmation Message
 
 ```kotlin
-suspend fun UtImmortalTaskBase.showConfirmMessageBox(
-    title:String?, 
-    message:String?, 
-    okLabel:String= UtStandardString.OK.text)
+suspend fun IUtImmortalTask.showConfirmMessageBox(
+    title:String?,
+    message:String?,
+    okLabel:String = UtStandardString.OK.text,
+    cancellable:Boolean = true)
 ```
 
-Displays a message box with only one confirmation (OK) button. Suspends until the user presses the OK button. There is no return value.
+Shows a message box with a single confirmation (OK) button.
+Suspends until the user presses the OK button. There is no return value.
 
-### (2) Ok/Cancel Message Box
+### (2) OK/Cancel Message Box
 
 ```kotlin
-suspend fun UtImmortalTaskBase.showOkCancelMessageBox(
-    title:String?, 
-    message:String?, 
-    okLabel:String= UtStandardString.OK.text, 
-    cancelLabel:String= UtStandardString.CANCEL.text) : Boolean
+suspend fun IUtImmortalTask.showOkCancelMessageBox(
+    title:String?,
+    message:String?,
+    okLabel:String = UtStandardString.OK.text,
+    cancelLabel:String = UtStandardString.CANCEL.text,
+    cancellable:Boolean = true) : Boolean
 ```
 
-Displays a message box with OK and Cancel buttons. Suspends until the user presses the OK or Cancel button, and returns true if the OK button is pressed, and false if the Cancel button is pressed.
+Shows a message box with an OK button and a Cancel button.
+Suspends until the user presses a button; returns true if the OK button was pressed, false if the Cancel button was pressed.
 
 ### (3) Yes/No Message Box
 
 ```kotlin
-suspend fun UtImmortalTaskBase.showYesNoMessageBox(
-    title:String?, 
-    message:String?, 
-    yesLabel:String= UtStandardString.YES.text, 
-    noLabel:String= UtStandardString.NO.text) : Boolean
+suspend fun IUtImmortalTask.showYesNoMessageBox(
+    title:String?,
+    message:String?,
+    yesLabel:String = UtStandardString.YES.text,
+    noLabel:String = UtStandardString.NO.text,
+    cancellable:Boolean = false) : Boolean
 ```
 
-Exactly the same as the OK/Cancel message box, except that the OK button is labeled "Yes" and the Cancel button is labeled "No".
+Exactly the same as the OK/Cancel message box, except that the OK button is labeled Yes and the Cancel button is labeled No.
 
 ### (4) Three-Choice Message Box
 
 ```kotlin
-suspend fun UtImmortalTaskBase.showThreeChoicesMessageBox(
-    title:String?, 
-    message:String?, 
-    positiveLabel:String, 
-    neutralLabel:String, 
-    negativeLabel:String) : IUtDialog.Status
+suspend fun IUtImmortalTask.showThreeChoicesMessageBox(
+    title:String?,
+    message:String?,
+    positiveLabel:String,
+    neutralLabel:String,
+    negativeLabel:String,
+    cancellable:Boolean = false) : IUtDialog.Status
 ```
 
-A message box with three buttons: Positive/Neutral/Negative. For example, it is used to present three options such as \[Retry] / \[Skip] / \[Abort] when an error occurs. The user's selection result is received as a return value of type IUtDialog.Status (POSITIVE/NEUTRAL/NEGATIVE).
+A message box with three buttons: Positive/Neutral/Negative. Use it, for example, to present the three options \[Retry\] / \[Skip\] / \[Abort\] when an error occurs. The user's choice is received as an IUtDialog.Status return value (POSITIVE/NEUTRAL/NEGATIVE).
 
-### (5) Single Selection Message Box from a List
+### (5) Single-Selection Message Box (from a list)
 
 ```kotlin
-suspend fun UtImmortalTaskBase.showSingleSelectionBox(
-    title:String?, 
-    items:Array<String>) : Int
+suspend fun IUtImmortalTask.showSingleSelectionBox(
+    title:String?,
+    items:Array<String>,
+    cancellable:Boolean = false) : Int
 ```
 
-Passes list items as an array of strings. When the user taps a list item, it returns the index of that item in the array as a return value. If the selection is canceled, such as by tapping outside the message box, it returns -1.
+Pass the list items as an array of strings. When the user taps a list item, the index of that item in the array is returned. If the selection is canceled (e.g., by tapping outside the message box), -1 is returned.
 
-### (6) Single Selection Message Box from a Radio Button Type List
+### (6) Single-Selection Message Box with Radio Buttons
 
 ```kotlin
-suspend fun UtImmortalTaskBase.showRadioSelectionBox(
-    title:String?, 
-    items:Array<String>, 
-    initialSelection:Int, 
-    okLabel:String= UtStandardString.OK.text, 
-    cancelLabel:String?=UtStandardString.CANCEL.text) : Int
+suspend fun IUtImmortalTask.showRadioSelectionBox(
+    title:String?,
+    items:Array<String>,
+    initialSelection:Int,
+    okLabel:String = UtStandardString.OK.text,
+    cancelLabel:String? = UtStandardString.CANCEL.text,
+    cancellable:Boolean = true) : Int
 ```
 
-Similar to `showSingleSelectionBox()`, but this displays the selection status on the list as radio buttons, and the message box does not close even if the user taps a list item; the selection status changes. When the user presses the OK button, the index of the last selected item is returned as a return value. `showSingleSelectionBox()` is used for simple selection from a list, while `showRadioSelectionBox()` is used to display the current selection value and then change it.
+Similar to `showSingleSelectionBox()`, but this one displays the selection state on the list as radio buttons; tapping a list item does not close the message box, it just changes the selection. When the user presses the OK button, the index of the last-selected item is returned. If canceled, -1 is returned. While `showSingleSelectionBox()` is for a simple pick from a list, `showRadioSelectionBox()` is for showing the current selection and letting the user change it.
 
-### (7) Multiple Selection Message Box from a List
+### (7) Multiple-Selection Message Box
 
 ```kotlin
-suspend fun UtImmortalTaskBase.showMultiSelectionBox(
-    title:String?, 
-    items:Array<String>, 
-    initialSelections:BooleanArray?, 
-    okLabel:String= UtStandardString.OK.text, 
-    cancelLabel:String?=UtStandardString.CANCEL.text) : BooleanArray
+suspend fun IUtImmortalTask.showMultiSelectionBox(
+    title:String?,
+    items:Array<String>,
+    initialSelections:BooleanArray?,
+    okLabel:String = UtStandardString.OK.text,
+    cancelLabel:String? = UtStandardString.CANCEL.text,
+    cancellable:Boolean = true) : BooleanArray
 ```
 
-While `showRadioSelectionBox()` is for single selection radio buttons, `showMultiSelectionBox()` is a check box list that allows multiple selections. The items selected by the user are returned as a BooleanArray type return value. You can also specify the selection status immediately after displaying the message box by passing initialSelection.
+While `showRadioSelectionBox()` uses single-selection radio buttons, `showMultiSelectionBox()` is a checkbox list allowing multiple selections. The items the user selected are returned as a BooleanArray (an empty BooleanArray if canceled). By passing initialSelections, you can specify the selection state right after the message box is shown.
+
+## Related Documents
+
+- [UtImmortalTask In Depth](./immortal-task.md)
+- [Tutorial (Basics)](./tutorial-basic.md)
+- [UtDialog Reference](./reference.md)

@@ -8,8 +8,6 @@ import io.github.toyota32k.dialog.UtDialogHelper
 import io.github.toyota32k.dialog.UtDialogHostManager
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.dialog.toDialogOwner
-import io.github.toyota32k.utils.lifecycle.LifecycleOwnerHolder
-import io.github.toyota32k.utils.lifecycle.LifecycleReference
 import java.lang.ref.WeakReference
 
 interface IUtKeyEventDispatcher {
@@ -28,7 +26,9 @@ open class UtMortalTaskKeeper(
     private var ownerRef:WeakReference<FragmentActivity>? = null
     protected var ownerActivity: FragmentActivity?
         get() = ownerRef?.get()
-        set(value) { if (value!=null) ownerRef=WeakReference(value) else ownerRef = null }
+        set(value) {
+            ownerRef = if (value!=null) WeakReference(value) else null
+        }
 
     fun attach(activity: FragmentActivity) {
         ownerActivity = activity

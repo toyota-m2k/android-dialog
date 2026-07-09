@@ -95,7 +95,7 @@ internal fun Bundle.get(key:String, clazz: KClassifier?):Any? {
     }
 }
 
-@Suppress("RemoveExplicitTypeArguments", "unused")
+@Suppress("RemoveExplicitTypeArguments")
 class UtBundleDelegate(private val namespace:String?, val source:()->Bundle) {
     constructor(source:()->Bundle):this(null,source)
 //    constructor(fragment:Fragment, namespace:String?=null): this(namespace, { fragment.arguments!! })

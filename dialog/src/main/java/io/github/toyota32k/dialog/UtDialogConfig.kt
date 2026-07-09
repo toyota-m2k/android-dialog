@@ -185,7 +185,7 @@ object UtDialogConfig {
      * フェードイン/アウトアニメーションの遷移時間
      */
     var fadeInDuration:Long = 300L
-    var fadeOutDuraton:Long = 400L
+    var fadeOutDuration:Long = 400L
 
     /**
      * rootViewに対するdialogViewのマージン
