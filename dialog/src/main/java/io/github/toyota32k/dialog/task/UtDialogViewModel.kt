@@ -5,6 +5,7 @@ package io.github.toyota32k.dialog.task
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.dialog.IUtDialog
+import kotlinx.coroutines.Job
 
 /**
  * IUtImmortalTaskMutableContextSource を実装し、
@@ -60,22 +61,26 @@ abstract class  UtDialogViewModel : ViewModel(), IUtImmortalTaskMutableContextSo
      * ViewModel内から、実行中のImmortalTask上で、サブタスクを開始する。
      * （やりっぱなし）
      */
-    fun launchSubTask(fn:suspend UtImmortalTaskBase.()->Unit) {
-        (this.immortalTaskContext.task as UtImmortalTask).subTask().launchTask(callback=fn)
+    fun launchSubTask(callback:suspend IUtImmortalTask.()->Unit): Job {
+        return (this.immortalTaskContext.task as UtImmortalTaskImpl).subTask().launchTask(callback)
     }
     /**
      * ViewModel内から、実行中のImmortalTask上で、サブタスクを開始する。
      * （終了を待つ）
      */
-    suspend fun awaitSubTask(fn:suspend UtImmortalTaskBase.()->Unit) {
-        (this.immortalTaskContext.task as UtImmortalTask).subTask().awaitTask(callback=fn)
+    suspend fun awaitSubTask(callback:suspend IUtImmortalTask.()->Unit) {
+        return (this.immortalTaskContext.task as UtImmortalTaskImpl).subTask().awaitTask(callback)
     }
     /**
      * ViewModel内から、実行中のImmortalTask上で、サブタスクを開始する。
      * （結果を待つ）
      */
-    suspend fun <T> awaitSubTaskResult(fn:suspend UtImmortalTaskBase.()->T):T {
-        return (this.immortalTaskContext.task as UtImmortalTask).subTask().awaitTaskResult(callback=fn)
+    suspend fun <T> awaitSubTaskResult(callback:suspend IUtImmortalTask.()->T):T {
+        return (this.immortalTaskContext.task as UtImmortalTaskImpl).subTask().awaitTaskResult(callback)
+    }
+
+    suspend fun <T> safeAwaitSubTaskResult(default:T, callback:suspend IUtImmortalTask.()->T):T {
+        return (this.immortalTaskContext.task as UtImmortalTaskImpl).subTask().awaitTaskResultCatching(default, callback)
     }
 }
 

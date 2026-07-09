@@ -239,7 +239,7 @@ class OptionActivity : UtMortalActivity() {
         }
 
         val commandShowDialog = LiteUnitCommand {
-            UtImmortalTask().launchTask {
+            UtImmortalTask.launchTask {
 //                createViewModel<FullHeightDialog.FullHeightDialogViewModel>()
 //                showDialog(FullHeightDialog())
 //
@@ -259,7 +259,7 @@ class OptionActivity : UtMortalActivity() {
             }
         }
         val commandThemeColors = LiteUnitCommand {
-            UtImmortalTask().launchTask {
+            UtImmortalTask.launchTask {
                 showDialog(ThemeColorDialog())
             }
         }
@@ -288,7 +288,7 @@ class OptionActivity : UtMortalActivity() {
             .setInvokedDispatcherPriority(1) // NORMAL+1 ... 0 だと onBackInvokedCallbackより、onBackPressedCallback が優先される（compatBackKeyDispatcherが吸収するので、どちらでも動作に影響はないが動作確認のため。）
             .register(this) {
             logger.debug("BackKey pressed on OptionActivity")
-                UtImmortalTask("OpenActivity.Exit").launchTask {
+                UtImmortalTask.launchTask("OpenActivity.Exit") {
                 if(showYesNoMessageBox("OptionActivity", "Activity is closing, Are you sure?")) {
                     withOwner(OptionActivity::class.java) {
                         it.asActivity()?.finish()

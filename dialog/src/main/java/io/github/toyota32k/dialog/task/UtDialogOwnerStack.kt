@@ -36,7 +36,7 @@ class UtDialogOwnerStack: IUtMortalInstanceSource {
 
     @MainThread
     private fun latest(): UtOwner? {
-        while(list.size>0) {
+        while (list.isNotEmpty()) {
             val v = list.last()
             if(v.asDialogOwner!=null) {
                 return v

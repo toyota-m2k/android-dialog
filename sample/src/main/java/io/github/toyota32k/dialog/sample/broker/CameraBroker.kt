@@ -201,7 +201,7 @@ abstract class CameraBroker(val forVideo:Boolean, owner: ActivityResultCaller? =
      *          - ファイルをアルバムに残すときは true / 破棄するときは false を返すこと。
      */
     inline fun <reified T: FragmentActivity> take(outputFileName:String?=null,crossinline fn:suspend (T, MediaFile)->Boolean /*trueを返すとアルバムに登録/falseを返すと削除*/) {
-        UtImmortalTask().launchTask {
+        UtImmortalTask.launchTask {
             val file = take(outputFileName) ?: return@launchTask
             withOwner {
                 val activity = it.asActivity() as? T ?: return@withOwner

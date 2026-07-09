@@ -35,6 +35,7 @@ import io.github.toyota32k.dialog.sample.dialog.NestedDialog
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
+import io.github.toyota32k.dialog.task.showDialog
 import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.logger.UtLogConfig
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +64,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //                }
 //                logger.debug("completed")
 //            }
-            UtImmortalTask().launchTask {
+            UtImmortalTask.launchTask {
                 outputString.value = "MessageBox opening"
                 showConfirmMessageBox("MessageBox", "Hello world.")
 //                showSingleSelectionBox("SingleSelection", arrayOf("aaa", "bbb", "ccc"))
@@ -71,7 +72,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             }
         }
         val commandOkCancel = LiteUnitCommand {
-            UtImmortalTask().launchTask {
+            UtImmortalTask.launchTask {
                 outputString.value = "Yes/No MessageBox opening"
                 if (showYesNoMessageBox("Yes/No", "Are you ok?")) {
                     outputString.value = "You are ok."
@@ -82,7 +83,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             }
         }
         val commandCompactDialog = LiteUnitCommand {
-            UtImmortalTask().launchTask {
+            UtImmortalTask.launchTask {
                 outputString.value = "Compact Dialog opening"
                 val vm = createViewModel<CompactDialog.CompactDialogViewModel>()
                 if(showDialog(CompactDialog()).status.ok) {
@@ -93,24 +94,24 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             }
         }
         val commandAutoScrollDialog = LiteUnitCommand {
-            UtImmortalTask().launchTask {
+            UtImmortalTask.launchTask {
                 showDialog<AutoScrollDialog.AutoScrollDialogViewModel,AutoScrollDialog>()
             }
         }
         val commandFullHeightDialog = LiteUnitCommand {
-            UtImmortalTask().launchTask {
+            UtImmortalTask.launchTask {
                 createViewModel<FullHeightDialog.FullHeightDialogViewModel>()
                 showDialog(FullHeightDialog())
             }
         }
         val commandCustomHeightDialog = LiteUnitCommand {
-            UtImmortalTask().launchTask {
+            UtImmortalTask.launchTask {
                 createViewModel<CustomHeightDialog.CustomHeightDialogViewModel>()
                 showDialog(CustomHeightDialog())
             }
         }
         val commandFileSelection = LiteUnitCommand {
-            UtImmortalTask().launchTask {
+            UtImmortalTask.launchTask {
                 withOwner {
                 val activity = it.asActivityBrokerStore()
                     val uri = activity.openFilePicker.selectFile()
@@ -123,7 +124,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             }
         }
         val commandNestedDialog = LiteUnitCommand {
-            UtImmortalTask().launchTask {
+            UtImmortalTask.launchTask {
                 createViewModel<NestedDialog.NestedDialogViewModel>()
                 if(showDialog(NestedDialog()).status.ok) {
                     outputString.value = "NestedDialog: OK"

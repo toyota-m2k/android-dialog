@@ -1,9 +1,10 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.task
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.github.toyota32k.dialog.IUtDialog
 
 open class UtAndroidViewModel(application: Application) : AndroidViewModel(application), IUtImmortalTaskMutableContextSource {
     override lateinit var immortalTaskContext: IUtImmortalTaskContext
@@ -12,7 +13,7 @@ open class UtAndroidViewModel(application: Application) : AndroidViewModel(appli
         fun <T> create(clazz: Class<T>, application: Application, task: IUtImmortalTask, initialize:((T)->Unit)?=null) : T where T: UtAndroidViewModel {
             return ViewModelProvider(
                 task.immortalTaskContext,
-                ViewModelProvider.AndroidViewModelFactory.getInstance(task.application))[clazz]
+                ViewModelProvider.AndroidViewModelFactory.getInstance(application))[clazz]
                 .apply {
                     immortalTaskContext = task.immortalTaskContext
                     initialize?.invoke(this)

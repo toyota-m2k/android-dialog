@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.toyota32k.dialog.task
 
 import androidx.fragment.app.FragmentActivity
@@ -23,10 +25,10 @@ import kotlin.coroutines.suspendCoroutine
  * @param allowSequential true:同名のタスクが実行中なら、それが終わるのを待って実行 / false:同名のタスクが実行中ならエラー
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate", "CoroutineContextWithJob", "SuspendCoroutineLacksCancellationGuarantees")
-abstract class UtImmortalTaskBase(
-    final override val taskName: String,
+internal class UtImmortalTaskImpl(
+    override val taskName: String,
     val parentContext:IUtImmortalTaskContext? = null,
-    val allowSequential:Boolean = false) : IUtImmortalTask {
+    val allowSequential:Boolean = false) : IUtImmortalTask, IUtImmortalTaskExecutable {
 
 //    private var continuation:Continuation<Any?>? = null
     // ダイアログの終了待ち用 continuation ... ネストできるようにスタックとする（push/pop）
@@ -82,11 +84,11 @@ abstract class UtImmortalTaskBase(
     /**
      * タスクを開始する
      */
-    fun fire(callback: suspend ()->Unit) : Job {
+    fun fire(callback: suspend IUtImmortalTask.()->Unit) : Job {
         logger.debug()
         return immortalCoroutineScope.launch {
             try {
-                UtImmortalTaskManager.beginTask(allowSequential, this@UtImmortalTaskBase) {
+                UtImmortalTaskManager.beginTask(allowSequential, this@UtImmortalTaskImpl) {
                     callback()
                 }
             } catch(e:Throwable) {
@@ -97,7 +99,7 @@ abstract class UtImmortalTaskBase(
         }
     }
 
-    suspend fun <T> fireAsync(callback: suspend ()->T):T {
+    suspend fun <T> fireAsync(callback: suspend IUtImmortalTask.()->T):T {
         logger.debug(taskName)
         return UtImmortalTaskManager.beginTask(allowSequential, this) {
             withContext(immortalCoroutineScope.coroutineContext) {
@@ -106,54 +108,54 @@ abstract class UtImmortalTaskBase(
         }
     }
 
-    suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T {
+    override suspend fun <T> withOwner(fn: suspend (UtDialogOwner)->T):T {
         return UtImmortalTaskManager.mortalInstanceSource.withOwner { owner ->
             fn(owner)
         }
     }
-    suspend fun <T> withOwner(clazz: Class<*>, fn: suspend (UtDialogOwner)->T):T {
+    override suspend fun <T> withOwner(clazz: Class<*>, fn: suspend (UtDialogOwner)->T):T {
         return UtImmortalTaskManager.mortalInstanceSource.withOwner(clazz) { owner ->
             fn(owner)
         }
     }
-    suspend fun <T> withOwner(ownerChooser: (LifecycleOwner) -> Boolean, fn: suspend (UtDialogOwner)->T):T {
+    override suspend fun <T> withOwner(ownerChooser: (LifecycleOwner) -> Boolean, fn: suspend (UtDialogOwner)->T):T {
         return UtImmortalTaskManager.mortalInstanceSource.withOwner(ownerChooser) { owner ->
             fn(owner)
         }
     }
-    suspend inline fun <reified T:FragmentActivity, R> withActivity(fn: (T)->R):R {
-        return UtImmortalTaskManager.mortalInstanceSource.withActivity<T,R>(fn)
-    }
+//    override suspend inline fun <reified T:FragmentActivity, R> withActivity(fn: (T)->R):R {
+//        return UtImmortalTaskManager.mortalInstanceSource.withActivity<T,R>(fn)
+//    }
 
     /**
      * タスク内からダイアログを表示し、complete()までsuspendする。
      */
-    suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D where D:IUtDialog {
+    override suspend fun <D> showDialog(tag:String, dialogSource:(UtDialogOwner)-> D) : D where D:IUtDialog {
         return internalShowDialog(tag, takeOwner = UtImmortalTaskManager.mortalInstanceSource::getOwner, dialogSource = dialogSource)
     }
 
     /**
      * showDialogの簡略版
      */
-    suspend fun <D> showDialog(dlg:D):D where D:IUtDialog {
+    override suspend fun <D> showDialog(dlg:D):D where D:IUtDialog {
         return showDialog(dlg.javaClass.name) { dlg }
     }
-    suspend inline fun <reified VM, reified D> showDialog():D where VM: UtDialogViewModel, D:IUtDialog {
-        createViewModel<VM>()
-        return showDialog(D::class.java.name) { D::class.java.getDeclaredConstructor().newInstance() }
-    }
+//    suspend inline fun <reified VM, reified D> showDialog():D where VM: UtDialogViewModel, D:IUtDialog {
+//        createViewModel<VM>()
+//        return showDialog(D::class.java.name) { D::class.java.getDeclaredConstructor().newInstance() }
+//    }
 
     /**
      * オーナークラス（アクティビティ）を指定して（指定されたクラスのアクティビティが表示されるのを待って）ダイアログを表示
      */
-    suspend fun <D> showDialog(tag:String, ownerClass:Class<*>, dialogSource:(UtDialogOwner)->D):D where D:IUtDialog {
+    override suspend fun <D> showDialog(tag:String, ownerClass:Class<*>, dialogSource:(UtDialogOwner)->D):D where D:IUtDialog {
         return internalShowDialog(tag, takeOwner = { UtImmortalTaskManager.mortalInstanceSource.getOwnerOf(ownerClass) }, dialogSource = dialogSource)
     }
 
     /**
      * オーナー（アクティビティ）を指定して（Chooserで選択されるアクティビティが表示されるのを待って）ダイアログを表示
      */
-    suspend fun <D> showDialog(tag:String, ownerChooser:(LifecycleOwner)->Boolean, dialogSource:(UtDialogOwner)->D):D where D:IUtDialog {
+    override suspend fun <D> showDialog(tag:String, ownerChooser:(LifecycleOwner)->Boolean, dialogSource:(UtDialogOwner)->D):D where D:IUtDialog {
         return internalShowDialog(tag, takeOwner = { UtImmortalTaskManager.mortalInstanceSource.getOwnerBy(ownerChooser) }, dialogSource = dialogSource)
     }
 
@@ -179,8 +181,51 @@ abstract class UtImmortalTaskBase(
         return r
     }
 
+    override fun subTask(): IUtImmortalTaskExecutable {
+        return UtImmortalTaskImpl("$taskName#${nextSubTaskId()}", null, allowSequential)
+    }
+
+    // IUtImmortalTaskExecutable
+
+    override fun toString(): String {
+        return "UtImmortalTask($taskName)"
+    }
+
+    override fun launchTask(callback: suspend IUtImmortalTask.() -> Unit) :Job {
+        return fire(callback)
+    }
+
+    override suspend fun awaitTask(callback: suspend IUtImmortalTask.() -> Unit) {
+        fireAsync(callback)
+    }
+
+    override suspend fun awaitTaskCatching(callback: suspend IUtImmortalTask.() -> Unit) {
+        launchTask(callback).join()
+    }
+
+    override suspend fun <T> awaitTaskResult(callback: suspend IUtImmortalTask.() -> T): T {
+        return fireAsync(callback)
+    }
+
+    override suspend fun <T> awaitTaskResultCatching(default: T, callback: suspend IUtImmortalTask.() -> T): T {
+        return try {
+            UtImmortalTask.awaitTaskResult(taskName, allowSequential, callback)
+        } catch (e: Exception) {
+            logger.error()
+            default
+        }
+    }
+
     companion object {
         val logger: UtLog = UtImmortalTaskManager.logger
     }
 }
 
+suspend inline fun <reified T:FragmentActivity, R> IUtImmortalTask.withActivity(fn: (T)->R):R {
+    return UtImmortalTaskManager.mortalInstanceSource.withActivity<T,R>(fn)
+}
+
+suspend inline fun <reified VM, reified D> IUtImmortalTask.showDialog():D where VM: UtDialogViewModel, D:IUtDialog {
+    createViewModel<VM>()
+    return showDialog(D::class.java.name) { D::class.java.getDeclaredConstructor().newInstance() }
+}
