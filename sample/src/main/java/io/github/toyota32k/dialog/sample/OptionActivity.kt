@@ -39,7 +39,7 @@ import io.github.toyota32k.dialog.sample.OptionActivity.OptionActivityViewModel.
 import io.github.toyota32k.dialog.sample.databinding.ActivityOptionBinding
 import io.github.toyota32k.dialog.sample.dialog.OptionSampleDialog
 import io.github.toyota32k.dialog.sample.dialog.ThemeColorDialog
-import io.github.toyota32k.dialog.task.UtImmortalTask.Companion.launchTask
+import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.utils.android.ApplicationViewModelStoreOwner
@@ -239,7 +239,7 @@ class OptionActivity : UtMortalActivity() {
         }
 
         val commandShowDialog = LiteUnitCommand {
-            launchTask {
+            UtImmortalTask().launchTask {
 //                createViewModel<FullHeightDialog.FullHeightDialogViewModel>()
 //                showDialog(FullHeightDialog())
 //
@@ -259,7 +259,7 @@ class OptionActivity : UtMortalActivity() {
             }
         }
         val commandThemeColors = LiteUnitCommand {
-            launchTask {
+            UtImmortalTask().launchTask {
                 showDialog(ThemeColorDialog())
             }
         }
@@ -288,7 +288,7 @@ class OptionActivity : UtMortalActivity() {
             .setInvokedDispatcherPriority(1) // NORMAL+1 ... 0 だと onBackInvokedCallbackより、onBackPressedCallback が優先される（compatBackKeyDispatcherが吸収するので、どちらでも動作に影響はないが動作確認のため。）
             .register(this) {
             logger.debug("BackKey pressed on OptionActivity")
-            launchTask("OpenActivity.Exit") {
+                UtImmortalTask("OpenActivity.Exit").launchTask {
                 if(showYesNoMessageBox("OptionActivity", "Activity is closing, Are you sure?")) {
                     withOwner(OptionActivity::class.java) {
                         it.asActivity()?.finish()

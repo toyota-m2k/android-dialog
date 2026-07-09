@@ -6,7 +6,6 @@ import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.dialog.show
 import io.github.toyota32k.logger.UtLog
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,7 +22,7 @@ import kotlin.coroutines.suspendCoroutine
  *                      ViewModelも、親タスクのライフサイクル内で動作する。
  * @param allowSequential true:同名のタスクが実行中なら、それが終わるのを待って実行 / false:同名のタスクが実行中ならエラー
  */
-@Suppress("unused", "MemberVisibilityCanBePrivate")
+@Suppress("unused", "MemberVisibilityCanBePrivate", "CoroutineContextWithJob", "SuspendCoroutineLacksCancellationGuarantees")
 abstract class UtImmortalTaskBase(
     final override val taskName: String,
     val parentContext:IUtImmortalTaskContext? = null,
@@ -66,7 +65,7 @@ abstract class UtImmortalTaskBase(
      * この suspendメソッドは、タスクが完了するまで待機する。
      * つまり、このメソッドが応答を返すとタスクは終了する。
      */
-    protected abstract suspend fun execute(): Boolean
+    // protected abstract suspend fun execute(): Boolean
 
     /**
      * bool 以外の結果を返す場合は、このプロパティをオーバーライドする。
@@ -83,24 +82,26 @@ abstract class UtImmortalTaskBase(
     /**
      * タスクを開始する
      */
-    fun fire() : Job {
+    fun fire(callback: suspend ()->Unit) : Job {
         logger.debug()
-        return (UtImmortalTaskManager.immortalTaskScope).launch {
+        return immortalCoroutineScope.launch {
             try {
-                fireAsync()
+                UtImmortalTaskManager.beginTask(allowSequential, this@UtImmortalTaskBase) {
+                    callback()
+                }
             } catch(e:Throwable) {
-                logger.stackTrace(e, "ImmortalTask:$taskName")
+                logger.stackTrace(e, "ImmortalTask:$taskName failed")
             } finally {
                 logger.verbose("ImmortalTask:$taskName finished")
             }
         }
     }
 
-    suspend fun fireAsync():Boolean {
+    suspend fun <T> fireAsync(callback: suspend ()->T):T {
         logger.debug(taskName)
         return UtImmortalTaskManager.beginTask(allowSequential, this) {
             withContext(immortalCoroutineScope.coroutineContext) {
-                execute()
+                callback()
             }
         }
     }

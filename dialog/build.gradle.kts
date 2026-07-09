@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.android.viewex)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinxCoroutinesTest)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.espressoCore)
 }

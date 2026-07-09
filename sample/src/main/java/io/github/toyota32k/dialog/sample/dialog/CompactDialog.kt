@@ -22,7 +22,7 @@ class CompactDialog : UtDialogEx() {
     class CompactDialogViewModel : UtDialogViewModel() {
         val yourName = MutableStateFlow("")
         fun showErrorMessage() {
-            UtImmortalTask.launchTask("sub") {
+            UtImmortalTask("sub").launchTask {
                 showConfirmMessageBox(null, "Input your name.")
             }
         }
