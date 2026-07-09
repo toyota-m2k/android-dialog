@@ -1,15 +1,15 @@
-# Activity Broker
+# Activity Broker - File Pickers / Permissions
+
 <div align="right">
 EN | <a href="./activity-broker-ja.md">JA</a>
 </div>
 
+## The Problem with Activity Calls and How the UtDialog Library Solves It
 
-## Problems with Activity Invocation and Solutions with the UtDialog Library
+On Android, file pickers and runtime permission request screens are provided as Activities of external apps. When taking photos or videos, you may also delegate the work to an external Activity (app) instead of implementing your own camera feature.
 
-In Android, screens for requesting FilePicker or runtime permissions, etc., are provided as Activities of external apps. When shooting photos or videos, processing may be entrusted to an external Activity (app) without preparing your own camera function.
-
-However, processing to invoke an Activity and receive the result requires troublesome implementation no matter how you do it.
-For example, the implementation to select one image file using FilePicker is as follows:
+However, calling an Activity and receiving its result inevitably requires tedious implementation.
+For example, an implementation that lets the user select one image file with a file picker looks like this:
 
 ```kotlin
 class MainActivity : AppCompatActivity() {
@@ -30,15 +30,16 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
-There are two major problems:
-- The location to launch the file picker (`launcher.launch("image/*")`) and the location to receive and process the file (Uri) from the file picker are separated. In particular, even if the launcher is called from outside the Activity, such as from a ViewModel, the result can only be processed in the Activity, and business logic and the view cannot be separated.
+There are two major problems.
 
-- Since the code to process the received file is implemented inside the launcher, even when using the same picker, it is necessary to prepare a launcher for each process, or branch within the launcher, which makes the code even dirtier.
+- The place where the file picker is launched (`launcher.launch("image/*")`) and the place where the file (Uri) is received and processed are separated. In particular, even if the launcher is invoked from outside the Activity (e.g., from a ViewModel), the result can only be handled in the Activity, so business logic and views cannot be decoupled.
 
-In such cases, if you use `UtActivityBroker` of the UtDialog library, the above code can be written as follows:
+- Because the code that processes the received file lives inside the launcher, even when using the same picker, you need a launcher per use case, or branching inside the launcher — making the code ever messier.
+
+With the UtDialog library's `UtActivityBroker`, the code above can be written like this:
 
 ```kotlin
-class MainActivity : UtMoralActivity() {
+class MainActivity : UtMortalActivity() {
     val filePicker = UtOpenReadOnlyFilePicker().apply { register(this@MainActivity) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,24 +48,23 @@ class MainActivity : UtMoralActivity() {
 
         findViewById<Button>(R.id.button).setOnClickListener {
             UtImmortalTask.launchTask {
-                val uri = filePicker.selectFile()
+                val uri = filePicker.selectFile("image/*")
                 findViewById<ImageView>(R.id.image_view).setImageURI(uri)
-                true
             }
         }
     }
 }
 ```
 
-As long as it is called from the `UtImmortalTask` scope, the filePicker can be used from the ViewModel's command handler or UtDialog.
+Launching the picker and processing the result are now written as a sequential coroutine flow. Moreover, as long as it is called from a `UtImmortalTask` scope, the filePicker can be used from ViewModel command handlers or from a UtDialog.
 
-Example: Calling from ViewModel
+Example: calling from a ViewModel
 
 ```kotlin
 class MainActivityViewModel : ViewModel() {
-    val imageUrl = MutableStateFlow<Uri?>(null)
+    val imageUri = MutableStateFlow<Uri?>(null)
     val commandSelectFile = LiteUnitCommand {
-        launchTask {
+        UtImmortalTask.launchTask {
             withOwner { owner->
                 val activity = owner.asActivity() as MainActivity
                 imageUri.value = activity.filePicker.selectFile("image/*")
@@ -74,29 +74,35 @@ class MainActivityViewModel : ViewModel() {
 }
 ```
 
-## Built-in UtActivityBroker
+This example references the Activity's field directly; a way to decouple the ViewModel from the concrete Activity implementation is described [below](#utactivitybrokerstore-and-iutactivitybrokerstoreprovider).
+
+## Built-in UtActivityBrokers
 
 ### (1) UtOpenReadOnlyFilePicker
 
 Selects one file for reading.
+
 ```kotlin
 suspend fun selectFile(mimeType:String = defaultMimeType): Uri?
 ```
-|   | Description |
-|---|---|
-| Argument | mimeType (default: `"*/*"`) |
-| Return value | Uri of the selected file, null if canceled |
 
-### (2) UtOpenReadOnlyMultiFile
+|   |Description|
+|---|---|
+|Argument|mimeType (default: `"*/*"`)|
+|Returns|Uri of the selected file, or null if canceled|
+
+### (2) UtOpenReadOnlyMultiFilePicker
 
 Selects multiple files for reading.
+
 ```kotlin
 suspend fun selectFiles(mimeType:String = defaultMimeType): List<Uri>
 ```
-|   | Description |
+
+|   |Description|
 |---|---|
-| Argument | mimeType (default: `"*/*"`) |
-| Return value | List of Uri of the selected files, emptyList if canceled |
+|Argument|mimeType (default: `"*/*"`)|
+|Returns|List of Uris of the selected files, or emptyList if canceled|
 
 ### (3) UtOpenFilePicker
 
@@ -105,51 +111,55 @@ Selects one file for reading and writing.
 ```kotlin
 suspend fun selectFile(mimeTypes:Array<String> = defaultMimeTypes):Uri?
 ```
-|   | Description |
+
+|   |Description|
 |---|---|
-| Argument | Array of mimeType (default: `arrayOf("*/*")`) |
-| Return value | Uri of the selected file, null if canceled |
+|Argument|Array of mimeTypes (default: `arrayOf("*/*")`)|
+|Returns|Uri of the selected file, or null if canceled|
 
 ### (4) UtOpenMultiFilePicker
 
 Selects multiple files for reading and writing.
 
 ```kotlin
-    suspend fun selectFiles(mimeTypes:Array<String> = defaultMimeTypes): List<Uri>
+suspend fun selectFiles(mimeTypes:Array<String> = defaultMimeTypes): List<Uri>
 ```
-|   | Description |
+
+|   |Description|
 |---|---|
-| Argument | Array of mimeType (default: `arrayOf("*/*")`) |
-| Return value | List of Uri of the selected files, emptyList if canceled |
+|Argument|Array of mimeTypes (default: `arrayOf("*/*")`)|
+|Returns|List of Uris of the selected files, or emptyList if canceled|
 
 ### (5) UtCreateFilePicker
+
+Selects a file to create. Equivalent to "Save As".
+
 ```kotlin
 suspend fun selectFile(initialFileName:String, mimeType:String? = null):Uri?
 ```
 
-Selects a file to create. Corresponds to "Save As".
-
-|   | Description |
+|   |Description|
 |---|---|
-| Argument | initialFileName Initial file name |
-|| mimeType (default: null) |
-| Return value | Uri of the selected file, null if canceled |
-
+|Argument|initialFileName: initial file name|
+||mimeType (default: null)|
+|Returns|Uri of the selected file, or null if canceled|
 
 ### (6) UtDirectoryPicker
+
+Selects a directory.
 
 ```kotlin
 suspend fun selectDirectory(initialPath:Uri?=null):Uri?
 ```
 
-Selects a directory.
-
-|   | Description |
+|   |Description|
 |---|---|
-| Argument | initialPath Path name to initially select (default: null) |
-| Return value | Uri of the directory. Using this Uri, a DocumentFile instance of the directory can be obtained by `DocumentFile.fromTreeUri(context, uri)`. |
+|Argument|initialPath: initially selected path (default: null)|
+|Returns|Uri of the directory. Using this Uri, a DocumentFile instance for the directory can be obtained via `DocumentFile.fromTreeUri(context, uri)`.|
 
 ### (7) UtPermissionBroker
+
+Requests a single runtime permission.
 
 ```kotlin
 fun isPermitted(permission: String):Boolean
@@ -157,26 +167,26 @@ fun isPermitted(permission: String):Boolean
 
 Checks whether the specified permission is granted (PERMISSION_GRANTED).
 
-|   | Description |
+|   |Description|
 |---|---|
-| Argument | permission Name of the permission (e.g., android.Manifest.permission.CAMERA) |
-| Return value | true: Granted (PERMISSION_GRANTED) / false: Not granted |
+|Argument|permission: name of the permission (e.g., android.Manifest.permission.CAMERA)|
+|Returns|true: granted (PERMISSION_GRANTED) / false: not granted|
 
 ```kotlin
-suspend fun requestPermission(permission:String):Boolean {
+suspend fun requestPermission(permission:String):Boolean
 ```
 
 Requests the specified permission.
 
-|   | Description |
+|   |Description|
 |---|---|
-| Argument | permission Name of the permission (e.g., android.Manifest.permission.CAMERA) |
-| Return value | true: Granted (PERMISSION_GRANTED) / false: Not granted |
+|Argument|permission: name of the permission (e.g., android.Manifest.permission.CAMERA)|
+|Returns|true: granted (PERMISSION_GRANTED) / false: not granted|
 
-### (7) UtMultiPermissionsBroker
+### (8) UtMultiPermissionsBroker
 
 Requests multiple permissions at once.
-Obtain a request builder with permissionsBroker.Request(), add the permissions to request with add(), and call execute(). addIf() conditionally requests permissions. The following example requests CAMERA, RECORD_AUDIO permissions, and WRITE_EXTERNAL_STORAGE if Android version is prior to 10.
+Obtain a request builder with permissionsBroker.Request(), add() the permissions to request, and call execute(). addIf() requests a permission conditionally. The following example requests the CAMERA and RECORD_AUDIO permissions, plus WRITE_EXTERNAL_STORAGE on Android 10 and earlier.
 
 ```kotlin
 if (permissionsBroker.Request()
@@ -188,28 +198,28 @@ if (permissionsBroker.Request()
 }
 ```
 
-## Custom ActivityBroker
+## Custom ActivityBrokers
 
-For Activity invocations other than the above, a broker class derived from UtActivityBroker can be created, and a contract derived from ActivityResultContract can be implemented to use it in the same way as the built-in broker.
+Other Activity invocations can be used just like the built-in brokers: create a broker class derived from UtActivityBroker and implement a contract derived from ActivityResultContract.
 
-[CameraBroker](../sample/src/main/java/io/github/toyota32k/dialog/sample/broker/CameraBroker.kt) is a complete implementation example of ActivityBroker that uses an implicit Intent to launch the camera app's Activity and acquire photos and videos. Internally, it also acquires the UtPermissionBroker instance and requests camera and microphone permissions via `UtActivityBrokerStore` (described in the next chapter). You can see that using ActivityBroker allows you to describe a complete flow including Activity invocation intuitively.
+[CameraBroker](../sample/src/main/java/io/github/toyota32k/dialog/sample/broker/CameraBroker.kt) is a complete ActivityBroker implementation example that launches a camera app's Activity via an implicit Intent to capture photos and videos. Internally, it obtains the UtPermissionBroker instance via the `UtActivityBrokerStore` (described in the next section) to request camera and microphone permissions. You can see how an ActivityBroker lets you describe a complete flow, including Activity invocations, intuitively.
 
 ## UtActivityBrokerStore and IUtActivityBrokerStoreProvider
 
-`UtActivityBrokerStore` is a container for registering and holding arbitrary `UtActivityBroker` instances, including built-in brokers. `IUtActivityBrokerStoreProvider` is an interface for indicating that an object (mainly Activity) has a `UtActivityBrokerStore`.
+`UtActivityBrokerStore` is a container for registering and holding arbitrary `UtActivityBroker`s, including the built-in brokers. `IUtActivityBrokerStoreProvider` is an interface indicating that an object (mainly an Activity) has a `UtActivityBrokerStore`.
 
-As mentioned above, UtActivityBroker can be called from anywhere, such as ViewModel or UtDialog, but the UtActivityBroker instance itself must be implemented in the Activity. When using these in multiple Activities, it is necessary to implement code to create UtActivityBroker instances and expose them as members in each Activity. UtActivityBrokerStore generalizes this cumbersome task. For example, if you use UtOpenFilePicker and UtCreateFilePicker, define fields in the Activity as follows:
+As mentioned, a UtActivityBroker can be called from anywhere — ViewModels, UtDialogs, etc. — but the UtActivityBroker instance itself must be implemented on an Activity (due to the ActivityResultContract mechanism, launchers must be registered by the Activity's onCreate). When multiple Activities use them, each Activity needs the code to create the UtActivityBroker instances and expose them as members. UtActivityBrokerStore generalizes this tedious work. For example, to use UtOpenFilePicker and UtCreateFilePicker, define a field in the Activity like this:
 
 ```kotlin
 class SomeActivity : UtMortalActivity() {
-    val activityBrokers = UtActivityBrokerStore(this, 
-                            UtOpenFilePicker(), 
+    val activityBrokers = UtActivityBrokerStore(this,
+                            UtOpenFilePicker(),
                             UtCreateFilePicker())
 }
 ```
 
-Now, `activityBrokers.openFilePicker.selectFile()` and `activityBrokers.createFilePicker.selectFile()` can be used.
-However, if you want to use activityBroker from a module outside the Activity as it is, you need to know that SomeActivity has the activityBroker field, cast it to SomeActivity, and use it.
+Now `activityBrokers.openFilePicker.selectFile()` and `activityBrokers.createFilePicker.selectFile()` are available.
+However, as it stands, when a module outside the Activity wants to use activityBrokers, it must know that SomeActivity has the activityBrokers field and cast to SomeActivity.
 
 ```kotlin
 class OtherViewModel : ViewModel() {
@@ -218,8 +228,8 @@ class OtherViewModel : ViewModel() {
             withOwner { owner->
                 val activity = owner.asActivity() as? SomeActivity
                 if(activity!=null) {
-                    val url = activity.activityBrokers.openFilePicker.selectFile()
-                    if(url!=null) {
+                    val uri = activity.activityBrokers.openFilePicker.selectFile()
+                    if(uri!=null) {
                         ...
                     }
                 }
@@ -229,19 +239,19 @@ class OtherViewModel : ViewModel() {
 }
 ```
 
-This code works fine, but the ViewModel, which was supposed to be separated, depends on SomeActivity, which is not elegant.
+This code works fine, but the carefully decoupled view model now depends on SomeActivity — not elegant.
 
-Therefore, add the IUtActivityBrokerStoreProvider interface to SomeActivity and abstract that it has activityBroker.
+So, add the `IUtActivityBrokerStoreProvider` interface to SomeActivity to abstract the fact that it has activityBrokers.
 
 ```kotlin
 class SomeActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
-    override val activityBrokers = UtActivityBrokerStore(this, 
-                            UtOpenFilePicker(), 
+    override val activityBrokers = UtActivityBrokerStore(this,
+                            UtOpenFilePicker(),
                             UtCreateFilePicker())
 }
 ```
 
-Now, OtherViewModel can be written as follows, eliminating the dependency on SomeActivity.
+Now OtherViewModel can be written as follows, eliminating the dependency on SomeActivity:
 
 ```kotlin
 class OtherViewModel : ViewModel() {
@@ -250,8 +260,8 @@ class OtherViewModel : ViewModel() {
             withOwner { owner->
                 val activityBrokers = owner.asActivityBrokerStoreOrNull()
                 if(activityBrokers!=null) {
-                    val url = activityBrokers.openFilePicker.selectFile()
-                    if(url!=null) {
+                    val uri = activityBrokers.openFilePicker.selectFile()
+                    if(uri!=null) {
                         ...
                     }
                 }
@@ -259,3 +269,9 @@ class OtherViewModel : ViewModel() {
         }
     }
 }
+```
+
+## Related Documents
+
+- [Tutorial (Advanced) - Sub-Dialogs and External Activities](./tutorial-subdialog.md)
+- [UtImmortalTask In Depth](./immortal-task.md)

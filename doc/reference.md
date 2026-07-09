@@ -1,303 +1,273 @@
-#   UtDialog Reference Manual
+# UtDialog Reference
+
 <div align="right">
 EN | <a href="./reference-ja.md">JA</a>
 </div>
 
-### Properties to Specify Dialog Behavior
+This is a reference of the properties and methods available in UtDialog subclasses, and the global settings (UtDialogConfig).
+For basic usage, see the [tutorial (basics)](./tutorial-basic.md).
+
+Unless otherwise noted, set each property in `preCreateBodyView()`.
+
+## Dialog Result
 
 ### val status : IUtDialog.Status
 
-This property holds the result of the dialog (how it was closed).
--   UNKNOWN
-    <br>
-    Invalid value (dialog has not been executed yet)
--   POSITIVE
-    <br>
-    The dialog closed by pressing the positive button (e.g., OK).
--   NEGATIVE
-    <br>
-    The dialog closed by pressing the negative button (e.g., Cancel).
--   NEUTRAL
-    <br>
-    The dialog closed by pressing the neutral button (only for 3-button message boxes).
+Holds the dialog's result (how it was closed).
 
-Normally, you check the status property of the IUtDialog return value of IUtImmortalTask.showDialog().
+- UNKNOWN<br>Invalid value (the dialog has not been closed yet)
+- POSITIVE<br>The dialog was closed by pressing a positive button (OK, etc.).
+- NEGATIVE<br>The dialog was closed by pressing a negative button (Cancel, etc.).
+- NEUTRAL<br>The dialog was closed by pressing the neutral button (three-button message boxes only).
+
+It offers convenience properties such as `ok` (== positive), `cancel` (== negative), `yes`, and `no`. Typically, you check it as `status.ok` on the IUtDialog returned by `IUtImmortalTask.showDialog()`.
+
+## Display Modes
 
 ### var isDialog : Boolean
 
-Default: true
-<br>
-The default value can be changed by setting `UtDialogConfig.showInDialogModeAsDefault`.
+Default: `UtDialogConfig.showInDialogModeAsDefault` (initially true)
 
-If true (default), it operates in dialog mode and is displayed by DialogFragment#show(). In this case, a new Window is created (not on the Activity's Window), and the dialog is displayed on it.
+- true (dialog mode): The dialog is shown via DialogFragment#show(). A new Window is created (instead of using the Activity's Window), and the dialog is displayed on it.
+- false (fragment mode): The dialog is shown on the Activity's Window via a FragmentManager transaction.
 
-If false, it operates in fragment mode, and the dialog is displayed on the Activity's Window by FragmentManager's transaction.
+To change this flag per dialog, set it in the constructor, not in preCreateBodyView().
 
-If you want to change this flag for each dialog, set it in the constructor, not in preCreateBodyView.
+### Handling System Zones (System Bars, Cutouts, etc.)
 
-##  var hideStatusBarOnDialogMode:Boolean
+Use `systemZoneOption` to specify how the dialog avoids system areas such as the status bar, navigation bar, and display cutouts when it is placed.
 
-Default: true
-<br>
-The default value can be changed by setting UtDialogConfig.hideStatusBarOnDialogMode.
+- SystemZoneOption.NONE<br>Does nothing (full-screen display).
+- SystemZoneOption.FIT_TO_ACTIVITY (default)<br>Fits the Activity's Window (content area).
+- SystemZoneOption.HIDE_ACTION_BAR<br>Hides the ActionBar and uses as much of the screen as possible.
+- SystemZoneOption.CUSTOM_INSETS<br>Avoids the system areas specified by `systemZoneFlags` (a combination of SystemZone.SYSTEM_BARS / IME / CUTOUT).
 
-Specifies whether to hide the StatusBar when displaying the dialog.
-This property is valid only for UtDialog derived classes in dialog mode (isDialog = true). It is invalid for UtMessageBox and UtSelectionBox.
+When using CUSTOM_INSETS, `setCustomSystemZone()` sets the option and the flags together:
 
-When applying a NoActionBar-style theme to the Activity and hiding the StatusBar (programmatically),
-in dialog mode, a window independent of the Activity is created, and the StatusBar is displayed. In Landscape mode, the rootView is placed in an area that avoids the notch. This is not very noticeable in Portrait mode or in dialogs with a transparent background (GuardColor.TRANSPARENT), but in dialogs that hide the background, only the StatusBar appears to be exposed. This phenomenon can be avoided by setting hideStatusBarOnDialogMode = true.
+```kotlin
+setCustomSystemZone(UtDialogConfig.SystemZone.SYSTEM_BARS, UtDialogConfig.SystemZone.CUTOUT)
+```
 
-However, as far as we have confirmed at this time, the phenomenon of "the notch being exposed" does not occur except in the case of "applying a NoActionBar-style theme and hiding the StatusBar programmatically".
+The default values can be changed via `UtDialogConfig.systemZoneOption` / `UtDialogConfig.systemZoneFlags`. To change them per dialog, set them in the constructor.
 
-If you want to change this flag for each dialog, set it in the constructor, not in preCreateBodyView.
-
-##  var systemBarOptionOnFragmentMode
-
-Default: SystemBarOptionOnFragmentMode.NONE
-<br>
-
-Specifies how to handle the system bar (especially ActionBar) in fragment mode (isDialog == false).
-
--   NONE
-    <br>
-    Does nothing. This is the optimal setting when applying a NoActionBar Theme.
-    If the ActionBar is displayed, part of the dialog is hidden under the ActionBar (in terms of Z-order), so specify another option.
--   HIDE
-    <br>
-    Hides the StatusBar/ActionBar when displaying the dialog. Restores them when closing the dialog.
--   STRICT
-    <br>
-    Restricts the dialog (rootView) to be displayed only within the Activity's ContentView. In other words, the dialog is displayed avoiding the StatusBar. This can be said to be the most correct behavior for handling Android's System Bar, but the ActionBar can be operated while the modal dialog is displayed, which may not be desirable depending on the implementation.
-
-If you want to change this flag for each dialog, set it in the constructor, not in preCreateBodyView.
+## Behavior / Operation Modes
 
 ### var cancellable:Boolean
 
 Default: true
-<br>
 
-Specifies whether to cancel and close the dialog when tapping outside the dialog (or message box) screen. If you do not want to close the dialog even when tapping outside the screen, set it to false.
+Specifies whether tapping outside the dialog (or message box) cancels and closes it. Set to false to prevent the dialog from closing when tapping outside.
 Can be changed at any time.
 
-When using UtDialogEx, it can be bound to the ViewModel using the `Binder.dialogCancellable()` extension function.
+When using UtDialogEx, it can be bound to the view model via the `Binder.dialogCancellable()` extension function.
+
+### var positiveCancellable:Boolean (protected)
+
+Default: false
+
+By default, tapping outside the dialog is treated as cancel (closes the dialog by calling negative()). When positiveCancellable is set to true, tapping outside closes the dialog by calling positive().
 
 ### var scrollable:Boolean
 
 Default: false
-<br>
 
-Specifies whether to enable scrolling in the container view. However, setting scrollable=true has no effect when heightOption=COMPACT. Also, when heightOption=AUTO_SCROLL, it always operates as scrollable=true.
-
-### var positiveCancellable:Boolean
-
-Default: false
-<br>
-
-By default, tapping outside the dialog screen cancels the dialog (closes the dialog by calling negative()), but if positiveCancellable is set to true, tapping outside the screen closes the dialog by calling positive().
+Specifies whether scrolling is enabled in the container view. When setting this to true, set heightOption to something other than COMPACT (AUTO_SCROLL is recommended). With heightOption=AUTO_SCROLL, the dialog always behaves as scrollable=true.
 
 ### var draggable:Boolean
 
-Default: false
-<br>
+Default: `UtDialogConfig.draggable` (initially false)
 
-If set to true, you can move the dialog by dragging the title bar of the dialog.
+If true, the dialog can be moved by dragging its title bar.
 
 ### var clipVerticalOnDrag:Boolean
 
-Default: false
-<br>
+Default: true
 
-If set to true, when dragging the dialog, it is restricted so that it cannot be moved outside the top and bottom edges of the device screen.
+If true, the dialog cannot be dragged past the top and bottom edges of the device screen.
 
-var clipHorizontalOnDrag:Boolean
-Default: false
-<br>
+### var clipHorizontalOnDrag:Boolean
 
-If set to true, when dragging the dialog, it is restricted so that it cannot be moved outside the left and right edges of the device screen.
+Default: true
+
+If true, the dialog cannot be dragged past the left and right edges of the device screen (even when false, it is still clipped just enough to remain operable).
 
 ### var animationEffect:Boolean
 
-Default: true
-<br>
+Default: `UtDialogConfig.animationEffect` (initially true)
 
-If set to false, the fade-in/out animation when displaying the dialog is disabled.
+Set to false to disable the fade-in/out animation when showing the dialog.
 
 ### var noHeader:Boolean
 
 Default: false
-<br>
 
-If set to true, the standard title bar (including the ok/cancel buttons for legacy ui) is not displayed.
+If true, the standard title bar (which, in the legacy UI, includes the ok/cancel buttons) is not displayed.
 
 ### var noFooter:Boolean
 
 Default: false
-<br>
 
-If set to true, the button bar (area to display ok/cancel buttons) is not displayed. It has no effect on legacy ui.
+If true, the button bar (the area displaying the ok/cancel buttons) is not displayed. Has no effect on the legacy UI.
 
 ### var invisibleBuiltInButton:Boolean
 
 Default: true
-<br>
 
-Specifies whether the dialog buttons (leftButton/rightButton) are set to View.INVISIBLE or View.GONE when they are hidden (BuiltInButton.NONE). The default (true) is View.INVISIBLE.
+Specifies whether a dialog button (leftButton/rightButton) set to hidden (ButtonType.NONE) becomes View.INVISIBLE or View.GONE. With the default (true), it becomes View.INVISIBLE. Note that with GONE, showing only one of the buttons makes the title lean to one side.
 
-### var bodyContainerMargin
+### var bodyContainerMargin: Int
 
 Default: -1
-<br>
 
-Specifies the top, bottom, left, and right margins of the bodyContainer in dp units. If -1 is specified, the default value (8dp defined in dialog-flame.xml) is used. To customize the top, bottom, left, and right individually, set the margins of bodyContainer directly in onViewCreated().
+Specifies the top/bottom/left/right margins of the bodyContainer in DP. With -1, the default value (8dp, defined in dialog_frame.xml) is used. To customize each side individually, set the bodyContainer margins directly in onViewCreated().
 
 ### var noDialogMargin:Boolean
 
 Default: false
-<br>
 
-The margins of the dialog to the device screen are set by UtDialogConfig.dialogMarginOnPortrait (for landscape orientation) and UtDialogConfig.dialogMarginOnLandscape (for portrait orientation). If noDialogMargin = true, this margin setting is invalidated, and the dialog is displayed on the entire device screen.
+The dialog's margins against the device screen are set by UtDialogConfig.dialogMarginOnPortrait (portrait) and UtDialogConfig.dialogMarginOnLandscape (landscape). Setting noDialogMargin = true disables these margin settings and displays the dialog across the whole device screen.
+
+## Size / Position
 
 ### var widthOption: WidthOption
 
 Default: WidthOption.COMPACT
-<br>
 
-Sets the width of the dialog. For details, please refer to [How to Use WidthOption/HeightOption](sizing-option.md).
+Sets the dialog width. See [How to Use WidthOption/HeightOption](./sizing-option.md) for details.
 
 ### var heightOption: HeightOption
 
 Default: HeightOption.COMPACT
-<br>
 
-Sets the height of the dialog. For details, please refer to [How to Use WidthOption/HeightOption](sizing-option.md).
+Sets the dialog height. See [How to Use WidthOption/HeightOption](./sizing-option.md) for details.
 
 ### var gravityOption: GravityOption
 
 Default: GravityOption.CENTER
-<br>
 
-Specifies the position to place the dialog. The following four values can be set.
+Specifies where the dialog is placed. The following four values are available.
 
--   GravitiyOption.CENTER
-    <br>
-    Place in the center of the screen (default)
--   GravityOption.RIGHT_TOP
-    <br>
-    Place in the top right of the screen
--   GravitiyOption.LEFT_TOP
-    <br>
-    Place in the top left of the screen
--   GravityOption.CUSTOM
-    <br>
-    Specify the position with the customPositionX and customPositionY properties
+- GravityOption.CENTER<br>Center of the screen (default)
+- GravityOption.RIGHT_TOP<br>Top-right of the screen
+- GravityOption.LEFT_TOP<br>Top-left of the screen
+- GravityOption.CUSTOM<br>Position specified by the customPositionX, customPositionY properties
 
 ### var customPositionX: Float?
-
-Default: null
-<br>
-
-Used in combination with GravityOption.CUSTOM.
-Also, if draggable = true, you can get/set the current display position of the dialog.
-
 ### var customPositionY: Float?
 
 Default: null
-<br>
 
-Used in combination with GravityOption.CUSTOM.
-Also, if draggable = true, you can get/set the current display position of the dialog.
+Used together with GravityOption.CUSTOM to specify the dialog's position (local coordinates relative to rootView).
+When draggable = true, they can also be used to get/set the current position of the dialog.
 
-### var guardColor :GuardColor
+## Guard View (the Area "Outside" the Dialog)
 
-Default: GuardColor.INVALID
-<br>
+### var guardColor: GuardColor
 
-Specifies the color outside the dialog.
-The following values can be used.
+Default: GuardColor.INVALID (unspecified)
 
--   GuardColor.TRANSPARENT
-    <br>
-    Transparent
--   DIM
-    <br>
-    Dark semi-transparent color
--   GuardColor.SEE_THROUGH
-    <br>
-    Light semi-transparent color
--   GuardColor.SOLID_GRAY
-    <br>
-    Opaque gray
--   GuardColor.THEME_DIM
-    <br>
-    Semi-transparent color based on the text color (dark/light changes dynamically depending on the theme)
--   THEME_SEE_THROUGH
-    <br>
-    Semi-transparent color based on the background color (dark/light changes dynamically depending on the theme)
--   CUSTOM(color:Int)
-    <br>
-    Specify any color
+Specifies the color of the area outside the dialog (rootView). The following values are available.
 
-If unspecified (default), if `cancellable=true`, `UtDialogConfig.defaultGuardColorOfCancellableDialog` (default: UtDialog.GuardColor.TRANSPARENT) is used, otherwise, `UtDialogConfig.defaultGuardColor` (UtDialog.GuardColor.THEME_SEE_THROUGH) is used. However, if isPhone == true and UtDialogConfig.solidBackgroundOnPhone == true, this setting is ignored, and `GuardColor.SOLID_GRAY` is always used.
+- GuardColor.TRANSPARENT<br>Transparent
+- GuardColor.DIM<br>Dark translucent color
+- GuardColor.SEE_THROUGH<br>Light translucent color
+- GuardColor.SOLID_GRAY<br>Opaque gray
+- GuardColor.THEME_DIM<br>Translucent color based on the theme's text color (dark/light changes dynamically with the theme)
+- GuardColor.THEME_SEE_THROUGH<br>Translucent color based on the theme's background color (dark/light changes dynamically with the theme)
+- GuardColor.CUSTOM(color:Int)<br>Any color
 
-### var bodyGuardColor :GuardColor
+If unspecified (default), `UtDialogConfig.defaultGuardColorOfCancellableDialog` (initially TRANSPARENT) is used when `cancellable=true`, and `UtDialogConfig.defaultGuardColor` (initially THEME_DIM) otherwise. However, when isPhone == true and UtDialogConfig.solidBackgroundOnPhone == true, this setting is ignored and `GuardColor.SOLID_GRAY` is always used.
 
-Default: UtDialogOption.defaultBodyGuardColor (UtDialog.GuardColor.THEME_SEE_THROUGH)
+### var bodyGuardColor: GuardColor
 
-Specifies the background color of bodyGuardView. bodyGuardView is
-a view to block touch operations on the dialog (bodyView), such as when busy. Dialog buttons (leftButton, rightButton) are not blocked. Disable or hide these buttons as needed.
-Please refer to the description of `guardColor` for the values that can be set.
+Default: `UtDialogConfig.defaultBodyGuardColor` (initially THEME_SEE_THROUGH)
+
+Specifies the background color of the bodyGuardView. The bodyGuardView is a view that blocks touch operations on the dialog (bodyView), e.g., while busy. The dialog buttons (leftButton, rightButton) are not blocked; disable or hide them as needed.
+For available values, see the description of `guardColor`.
+
+## Software Keyboard (IME) Support
+
+### var adjustContentForKeyboard: KeyboardAdjustMode
+
+Default: `UtDialogConfig.adjustContentForKeyboard` (initially NONE)
+
+Specifies whether the content is automatically adjusted so that the focused EditText is not hidden when the software keyboard appears.
+
+- KeyboardAdjustMode.NONE<br>Does nothing.
+- KeyboardAdjustMode.AUTO<br>Uses BY_GLOBAL_LAYOUT when isDialog==true, BY_WINDOW_INSETS when false.
+- KeyboardAdjustMode.BY_WINDOW_INSETS<br>Uses a WindowInsets listener to obtain the IME size.
+- KeyboardAdjustMode.BY_GLOBAL_LAYOUT<br>Uses a GlobalLayout listener to watch for the appearance of an IME-like view (a workaround for cases where the WindowInsets listener is not called).
+
+### var adjustContentsStrategy: KeyboardAdjustStrategy
+
+Default: `UtDialogConfig.adjustContentsStrategy` (initially PAN)
+
+Specifies how the content is adjusted when KeyboardAdjustMode is not NONE.
+
+- KeyboardAdjustStrategy.PAN<br>Slides the dialog by adjusting translationY.
+- KeyboardAdjustStrategy.RESIZE<br>Changes the dialog height via paddingBottom (best when the dialog contains height-adjustable views, e.g., HeightOption.FULL/AUTO_SCROLL).
+
+## Title / Built-in Buttons
 
 ### var title:String?
 
 Default: null
 
-String to display in the title bar.
-Can be set at any time.
+The string displayed in the title bar. Can be set at any time.
 
-When using UtDialogEx, it can be bound to the ViewModel with the `Binder.dialogTitle()` extension function.
+When using UtDialogEx, it can be bound to the ViewModel via the `Binder.dialogTitle()` extension function.
 
 ### var leftButtonType:ButtonType
 
 Default: ButtonType.NONE
 
-Specifies the type of the left built-in button. The following values can be specified.
+Specifies the type of the left built-in button. The following values are available.
 
--   NONE (default)
-    <br>
-    Do not display the button. The layout method of the hidden button follows invisibleBuiltInButton.
--   OK
-    <br>
-    Display the OK button (positive).
--   DONE
-    <br>
-    Display the DONE button (positive).
--   CLOSE
-    <br>
-    Display the CLOSE button (positive).
--   CANCEL
-    <br>
-    Display the CANCEL button (negative).
--   BACK
-    <br>
-    Display the BACK button (negative).
--   NEGATIVE_CLOSE
-    <br>
-    Display the CLOSE button (negative).
--   POSITIVE_BACK
-    <br>
-    Display the BACK button (positive).
--   CUSTOM(string:String, positive:Boolean)
-    <br>
-    Display the button with an arbitrary string.
+- NONE (default)<br>The button is not shown. How the hidden button is laid out follows invisibleBuiltInButton.
+- OK<br>Shows an OK button (positive).
+- DONE<br>Shows a DONE button (positive).
+- CLOSE<br>Shows a CLOSE button (positive).
+- CANCEL<br>Shows a CANCEL button (negative).
+- BACK<br>Shows a BACK button (negative).
+- NEGATIVE_CLOSE<br>Shows a CLOSE button (negative).
+- POSITIVE_BACK<br>Shows a BACK button (positive).
+- CUSTOM(string:String, positive:Boolean)<br>Shows a button with any label. An overload taking a string resource ID is also available.
 
 ### var rightButtonType:ButtonType
 
 Default: ButtonType.NONE
-<br>
 
-Specifies the type of the right built-in button. The values that can be specified are the same as those in the description of leftButtonType.
+Specifies the type of the right built-in button. For available values, see the description of leftButtonType.
 
-##  Properties for Getting Status
+### var optionButtonType:ButtonType
+
+Default: ButtonType.NONE
+
+Specifies the type of the option button shown on the title bar. For available values, see the description of leftButtonType. Bind the button-press behavior with UtDialogEx's `Binder.dialogOptionButtonCommand()` etc. (it does not close the dialog as positive/negative).
+
+## Parent-Child Dialogs
+
+### var parentVisibilityOption: ParentVisibilityOption
+
+Default: ParentVisibilityOption.HIDE_AND_SHOW
+
+Specifies whether the parent dialog is hidden when a sub-dialog opens.
+
+- NONE<br>Does nothing (the parent stays visible).
+- HIDE_AND_SHOW (default)<br>Hides the parent when this dialog opens, and shows it again when this dialog closes.
+- HIDE_AND_SHOW_ON_NEGATIVE<br>Shows the parent again only when closing with negative.
+- HIDE_AND_SHOW_ON_POSITIVE<br>Shows the parent again only when closing with positive.
+- HIDE_AND_LEAVE_IT<br>Hides the parent when this dialog opens, and does nothing after that.
+
+### val rootDialog : UtDialog?
+
+Gets the root dialog (the head of the dialog chain).
+
+### val parentDialog : UtDialog?
+
+Gets the parent dialog.
+
+## State Properties
 
 ### val orientation:Int
 
@@ -305,235 +275,246 @@ Returns the value of resources.configuration.orientation (@Orientation).
 
 ### val isLandscape :Boolean
 
-Returns true if the device is in portrait orientation, and false otherwise.
+Returns true if the device is in landscape orientation, false otherwise.
 
 ### val isPortrait :Boolean
 
-Returns true if the device is in landscape orientation, and false otherwise.
+Returns true if the device is in portrait orientation, false otherwise.
 
 ### val isPhone :Boolean
 
-Returns true if the device is a Phone, and false otherwise.
-A device is judged to be a phone if the shorter side of the device screen is less than 600dp, and a tablet if it is 600dp or more.
+Returns true if the device is a phone, false otherwise.
+A device is judged a phone if the short side of its screen is less than 600dp, and a tablet if 600dp or more.
 
-### val isTablet
+### val isTablet :Boolean
 
 Returns !isPhone.
 
-##  Properties for Referencing the Dialog Chain
-
-### val rootDialog : UtDialog?
-
-Gets the root dialog (the beginning of the dialog chain).
-
-### val parentDialog : UtDialog?
-
-Gets the parent dialog.
-
-##  Properties for Getting Built-in Views
+## Built-in View Properties
 
 ### val titleView:TextView
 
-TextView to display the title.
+The TextView that displays the title.
 
 ### val leftButton: Button
 
-Left built-in button.
-The display content is set by leftButtonType.
+The left built-in button. Its content is set via leftButtonType.
 
-When using UtDialogEx, the display/hide, enable/disable, button caption, and command when the button is pressed can be bound to the ViewModel using the `Binder.dialogLeftButtonVisibility()`, `Binder.dialogLeftButtonEnable()`, `Binder.dialogLeftButtonString()`, `Binder.dialogLeftButtonCommand` extension functions.
+When using UtDialogEx, the extension functions `Binder.dialogLeftButtonVisibility()`, `Binder.dialogLeftButtonEnable()`, `Binder.dialogLeftButtonString()`, and `Binder.dialogLeftButtonCommand()` bind the visibility, enabled state, caption, and press command to the view model.
 
 ### val rightButton: Button
 
-Right built-in button.
-The display content is set by rightButtonType.
+The right built-in button. Its content is set via rightButtonType.
 
-When using UtDialogEx, the display/hide, enable/disable, button caption, and command when the button is pressed can be bound to the ViewModel using the `Binder.dialogRightButtonVisibility()`, `Binder.dialogRightButtonEnable()`, `Binder.dialogRightButtonString()`, `Binder.dialogRightButtonCommand` extension functions.
+When using UtDialogEx, the extension functions `Binder.dialogRightButtonVisibility()`, `Binder.dialogRightButtonEnable()`, `Binder.dialogRightButtonString()`, and `Binder.dialogRightButtonCommand()` are available.
+
+### val optionButton: Button?
+
+The option button on the title bar. Valid only when optionButtonType is set.
 
 ### val progressRingOnTitleBar: ProgressBar
 
-Progress Ring to display on the title bar.
-It is hidden (INVISIBLE) by default, but for example, when the dialog content takes time to initialize, such as when downloading from a server, set progressRingOnTitleBar to VISIBLE, and return it to GONE when initialization is complete.
+The progress ring shown on the title bar.
+It is hidden (INVISIBLE) by default. When initialization takes time — e.g., the dialog content is downloaded from a server — make progressRingOnTitleBar VISIBLE and set it back to GONE when initialization finishes.
 
-When using UtDialogEx, the display/hide of the Progress Ring can be bound to the ViewModel using the `Binder.dialogProgressRingOnTitleTitleBarVisibility()` extension function.
+When using UtDialogEx, the `Binder.dialogProgressRingOnTitleBarVisibility()` extension function binds its visibility to the view model.
 
 ### val rootView: ViewGroup
 
-View that covers the entire device screen, which is the background of the dialog.
-It is drawn with the background color specified by `guardColor`.
+The view covering the entire device screen behind the dialog. It is drawn with the background color specified by `guardColor`.
 
 ### val dialogView:ViewGroup
 
-The top-level view that is visible to the user as the dialog screen.
-It is displayed on rootView, and its size and position are adjusted by widthOption, heightOption, gravityOption, customPositionX, customPositionY, etc.
+The topmost view that the user sees as the dialog. It is displayed on the rootView, and its size and position are adjusted by widthOption, heightOption, gravityOption, customPositionX, customPositionY, and so on.
 
 ### val bodyContainer:ViewGroup
 
-Container of bodyView.
-It is ScrollView if scrollable == true, and FrameLayout otherwise.
+The container of the bodyView. It is a ScrollView when scrollable == true, and a FrameLayout otherwise.
 
 ### val bodyView:View
 
-View created by createBodyView(), which is overridden in the UtDialog subclass.
+The view created by createBodyView(), which is overridden in each UtDialog subclass.
 
 ### val refContainerView:View
 
-Invisible view to get the container area (area excluding the header/footer area and margins from the dialog area).
-It is used internally by UtDialog to calculate the size with HeihtOption.AUTO_SCROLL or HeightOption.CUSTOM.
-Normally, it is not used directly from subclasses.
+An invisible view for obtaining the container area (the dialog area minus the header/footer areas and margins). It is used internally by UtDialog to calculate sizes for HeightOption.AUTO_SCROLL and HeightOption.CUSTOM. It is not normally used directly from subclasses.
 
 ### val bodyGuardView:FrameLayout
 
-bodyGuardView is a view to block touch operations on the dialog.
-It is hidden (GONE) by default, but for example, make it VISIBLE when waiting for processing to complete after pressing the OK button. However, dialog buttons (leftButton, rightButton) are not included in bodyView, so they are not blocked. Disable or hide these buttons as needed. The background color of bodyGuardView can be customized by `bodyGuardColor`.
+The bodyGuardView is a view for blocking touch operations on the dialog.
+It is hidden (GONE) by default; make it VISIBLE, for example, while waiting for processing to complete after the OK button is pressed. Note that the dialog buttons (leftButton, rightButton) are not part of the bodyView and thus not blocked; disable or hide them as needed. The bodyGuardView's background color can be customized via `bodyGuardColor`.
 
-When using UtDialogEx, the display/hide of bodyGuardView can be bound to the ViewModel using the `Binder.dialogBodyGuardViewVisibility()` extension function.
+When using UtDialogEx, the `Binder.dialogBodyGuardViewVisibility()` extension function binds its visibility to the view model.
 
 ### val centerProgressRing:ProgressBar
 
-Progress ring to display in the center of bodyGuardView, it is hidden by default. It is displayed by setting it to VISIBLE together with bodyGuardView.
+The progress ring shown at the center of the bodyGuardView. Hidden by default; it becomes visible by making it VISIBLE together with the bodyGuardView.
 
-When using UtDialogEx, when displaying bodyGuardView, you can also specify whether to display centerProgressRing using the `Binder.dialogBodyGuardViewVisibility()` extension function.
+When using UtDialogEx, the `Binder.dialogBodyGuardViewVisibility()` extension function can also specify whether the centerProgressRing is shown when the bodyGuardView is shown.
 
-##  Methods Available from UtDialog Subclasses
+## Methods Available in UtDialog Subclasses
 
 ### fun show(activity: FragmentActivity, tag:String?)
 
-Displays the dialog.
-Normally, the dialog is displayed from within UtImmortalTask using the `IUtImmortalTask.showDialog()` function. You never call the show() function directly.
+Shows the dialog.
+Normally, dialogs are shown from within a task via `IUtImmortalTask.showDialog()`, so you do not call show() directly.
 
 ### fun complete(status: Status)
 
 Closes the dialog with the specified status.
-Normally, in the UtDialog derived class, the dialog is closed using the onPositive() / onNegative() methods.
+Normally, UtDialog subclasses close the dialog via the onPositive() / onNegative() methods.
 
 ### fun cancel()
 
-Closes the dialog with the Status.NEGATIVE status.
-It is synonymous with `complete(Status.NEGATIVE)`.
+Closes the dialog with Status.NEGATIVE. Equivalent to `complete(Status.NEGATIVE)`.
 
 ### fun forceDismiss()
 
 Forcibly closes the dialog.
-Normally not used. It is exceptionally called from UtDialogHelper.forceCloseAllDialogs(), which closes all open dialogs when exiting the activity.
+Not normally used. It is exceptionally called from UtDialogHelper.forceCloseAllDialogs(), which closes all open dialogs when the activity finishes.
 
-##  Methods That Need to Be Overridden in UtDialog Subclasses
+### fun enableFocusManagement(withDialogButtons:Boolean = true, useKey:UseKey? = null): UtFocusManager
+
+Enables [focus management](./focus-manager.md) and returns the UtFocusManager.
+
+### fun updateCustomHeight()
+
+With heightOption = CUSTOM, call this method when the height of the bodyView changes, to recalculate and update the dialog size.
+
+## Methods That Must Be Overridden in UtDialog Subclasses
 
 ### fun preCreateBodyView()
 
-UtDialog needs to set most properties before createBodyView() is called, except for some properties (title, cancellable). preCreateBodyView() is the best time to set these properties.
+Except for a few properties (title, cancellable, etc.), most UtDialog properties must be set before createBodyView() is called. preCreateBodyView() is the best timing to set these properties.
 
-However,
+However, to change
+
 - isDialog
-- hideStatusBarOnDialogMode
-- systemBarOptionOnFragmentMode
+- systemZoneOption / systemZoneFlags
 
-If you want to change these for each dialog, set them in the constructor, not in preCreateView(). Perhaps there is no need to set these for each dialog, so consider setting the default value in UtDialogConfig.
+per dialog, set them in the constructor, not in preCreateBodyView(). There is rarely a need to set these per dialog, so consider setting default values in UtDialogConfig instead.
 
 ### fun createBodyView(savedInstanceState:Bundle?, inflater: IViewInflater): View
 
-Override this method to create the bodyView of the dialog. If you are constructing the view from layout.xml, be sure to use the inflater passed as an argument to correctly reflect the dialog theme.
+Override this to create the dialog's bodyView. When constructing the view from layout.xml, always use the inflater passed as an argument, so that the dialog theme is applied correctly.
 
 ### fun calcCustomContainerHeight(currentBodyHeight:Int, currentContainerHeight:Int, maxContainerHeight:Int):Int
 
-If CUSTOM is specified for heightOption, be sure to override this method.
+When CUSTOM is specified for heightOption, this method must be overridden.
 The following values are passed as arguments.
-- currentBodyHeight<br>The height of the current bodyView (the view returned by createBodyView()).
-- currentContainerHeight<br>The height of the current containerView (the parent of bodyView). Normally matches currentBodyHeight.
-- maxContainerHeight<br>The maximum height of the container. Adjust the height of bodyView so that it does not exceed this size.
 
-As a return value, return the height of containerView after adjusting the height of bodyView.
+- currentBodyHeight<br>The current height of the bodyView (the view returned by createBodyView).
+- currentContainerHeight<br>The current height of the containerView (the bodyView's parent). It usually matches currentBodyHeight.
+- maxContainerHeight<br>The maximum height of the container. Adjust the bodyView's height so that it does not exceed this size.
+
+Return the height of the containerView after adjusting the bodyView's height.
 
 ## Methods That Can Be Overridden in UtDialog Subclasses
 
 ### fun confirmToCompletePositive():Boolean
 
-If you override this method and return false, the dialog will not close when the positive button is pressed.
-This can be used to prevent the dialog from closing with OK if the necessary settings are not complete in the dialog.
+Override this method and return false to keep the dialog open when the positive button is pressed.
+Useful for preventing the dialog from closing with OK when required settings are incomplete. See the [tutorial (basics)](./tutorial-basic.md#improvement-validating-input-before-closing-the-dialog) for a usage example.
 
 ### fun confirmToCompleteNegative():Boolean
 
-If you override this method and return false, the dialog will not close when the negative button is pressed.
-This can be used, for example, to prevent the dialog from closing until some processing is finished.
+Override this method and return false to keep the dialog open when the negative button is pressed.
+Useful, for example, to keep the dialog open until some processing finishes.
 
 ## Global Options (UtDialogConfig)
 
-### var showInDialogModeAsDefault
- = false
+App-wide settings for dialog behavior are collected in the `UtDialogConfig` object. Set them in Application#onCreate() or similar.
+
+### fun setup(context: Context, table:IUtStringTable? = null)
+
+Initializes the library. Call it at app startup so that standard strings such as OK/Cancel are available.
+
+### var showInDialogModeAsDefault = true
 
 Sets the default value of `UtDialog#isDialog`.
 
-### var hideStatusBarOnDialogMode
- = false
+### var animationEffect = true
 
-Sets the default value of UtDialog#hideStatusBarOnDialogMode.
+Sets the default value of `UtDialog#animationEffect`.
 
-### var edgeToEdgeEnabledAsDefault
- = true
+### var draggable = false
 
-Sets the default value of `UtDialog#edgeToEdgeEnabled`.
+Sets the default value of `UtDialog#draggable`.
 
-### var showDialogImmediately:ShowDialogMode
- = ShowDialogMode.Immediately
+### var systemZoneOption = SystemZoneOption.FIT_TO_ACTIVITY
 
-Specifies how to display the dialog in fragment mode (isDialog=false).
-- ShowDialogMode.Immediately (default)<br>
-FragmentManager#executePendingTransactions() is executed immediately after calling FragmentTransaction#commit().
+Sets the default for how system zones (system bars / cutouts) are avoided. See [Handling System Zones](#handling-system-zones-system-bars-cutouts-etc) for details.
+
+### var systemZoneFlags = SystemZone.NORMAL
+
+Specifies the system zones to avoid when systemZoneOption = CUSTOM_INSETS, as a combination of SystemZone.SYSTEM_BARS / IME / CUTOUT.
+
+### var adjustContentForKeyboard = KeyboardAdjustMode.NONE
+
+Sets the default value of `UtDialog#adjustContentForKeyboard`.
+
+### var adjustContentsStrategy = KeyboardAdjustStrategy.PAN
+
+Sets the default value of `UtDialog#adjustContentsStrategy`.
+
+### var showDialogImmediately = ShowDialogMode.Immediately
+
+Specifies how dialogs are shown in fragment mode (isDialog=false).
+
+- ShowDialogMode.Immediately (default)<br>Calls FragmentManager#executePendingTransactions() right after FragmentTransaction#commit().
 - ShowDialogMode.Commit<br>Calls FragmentTransaction#commit().
 - ShowDialogMode.CommitNow<br>Calls FragmentTransaction#commitNow().
 
-### var solidBackgroundOnPhone:Boolean
- = false
+### var solidBackgroundOnPhone = false
 
-If isPhone==true, specify true to fill the background with gray (SOLID_GRAY).
+Set to true to paint the background solid gray (SOLID_GRAY) when isPhone==true.
 
-Depending on the design, on small screens, overlapping the dialog screen on the main screen can make it cluttered and difficult to see. In addition, there was an opinion that it was unpleasant to see the main screen momentarily transparent when transitioning from the dialog to a sub-dialog. This "do not show the background for Phone" setting was prepared for this reason.
+Depending on the design, on a small screen, a dialog overlapping the main screen can look cluttered and hard to read. There was also an opinion that it looks unpleasant when the main screen shows through for a moment while transitioning from a dialog to a sub-dialog — hence this "hide the background on phones" setting.
 
-### var defaultGuardColor:UtDialog.GuardColor
- = UtDialog.GuardColor.THEME_DIM
+### var defaultGuardColor = UtDialog.GuardColor.THEME_DIM
 
-Default value of `UtDialog#guardColor` when cancellable == false.
+The default value of `UtDialog#guardColor` when cancellable == false.
 
-### var defaultGuardColorOfCancellableDialog:Int
- = UtDialog.GuardColor.TRANSPARENT
+### var defaultGuardColorOfCancellableDialog = UtDialog.GuardColor.TRANSPARENT
 
-Default value of `UtDialog#guardColor` when cancellable == true.
+The default value of `UtDialog#guardColor` when cancellable == true.
 
-### var defaultBodyGuardColor:Int
- = UtDialog.GuardColor.THEME_SEE_THROUGH
+### var defaultBodyGuardColor = UtDialog.GuardColor.THEME_SEE_THROUGH
 
-Default value of `UtDialog#bodyGuardColor`.
+The default value of `UtDialog#bodyGuardColor`.
 
-### var dialogTheme: Int
- = R.style UtDialogTheme
+### var dialogTheme: Int = R.style.UtDialogTheme
 
-Specifies the style of the dialog.
-The default (`R.style.UtDialogTheme`) is a color scheme based on Material3's colorPrimary. In addition, `R.style.UtDialogThemeSecondary` based on colorSecondary, and `R.style.UtDialogThemeTertiary` based on colorTertiary are also available.
+Specifies the dialog style.
+The default (`R.style.UtDialogTheme`) is a color scheme based on Material3's colorPrimary. Alternatively, `R.style.UtDialogThemeSecondary` (based on colorSecondary) and `R.style.UtDialogThemeTertiary` (based on colorTertiary) are available.
 
-### var dialogFrameId: Int
- = R.layout.dialog_frame
+### var dialogFrameId: Int = R.layout.dialog_frame
 
-Specifies the layout of the dialog frame (the base view of UtDialog) with a resource ID.
-The default (R.layout.dialog_frame) is a Material3-based design. If you are using Material2 (Theme.MaterialComponents), `R.layout.dialog_frame_legacy` is set by calling the `useLegacyTheme()` method.
+Specifies the layout of the dialog frame (the base view of UtDialog) by resource ID.
+The default (R.layout.dialog_frame) is a Material3-based design. When using Material2 (Theme.MaterialComponents), call the `useLegacyTheme()` method, which sets `R.layout.dialog_frame_legacy`.
 
-### var fadeInDuration:Long
- = 300L
+### var fadeInDuration = 300L
 
-Specifies the transition time of the fade-in animation in milliseconds.
+Specifies the duration of the fade-in animation in milliseconds.
 
-### var fadeOutDuraton:Long
- = 400L
+### var fadeOutDuration = 400L
 
-Specifies the transition time of the fade-out animation in milliseconds.
+Specifies the duration of the fade-out animation in milliseconds.
 
-### var dialogMarginOnPortrait: Rect
- = Rect(20, 40, 20, 40)
+### var dialogMarginOnPortrait: Rect? = Rect(20, 40, 20, 40)
 
-Specifies the margins of dialogView with respect to rootView when the device is in landscape orientation.
-Used to determine the maximum size when Width/HeightOption FULL/LIMIT/AUTO_SCROLL/CUSTOM is specified. If null is set, the margin becomes zero. You can also set the margin to zero for each dialog by setting UtDialog#noDialogMargin = true.
+Specifies the margins of the dialogView against the rootView when the device is in portrait orientation.
+Used to determine the maximum size when Width/HeightOption FULL/LIMIT/AUTO_SCROLL/CUSTOM is specified. Setting null means no margin. Setting UtDialog#noDialogMargin = true also zeroes the margins per dialog.
 
-### var dialogMarginOnLandscape: Rect?
- = Rect(40, 20, 40, 20)
+### var dialogMarginOnLandscape: Rect? = Rect(40, 20, 40, 20)
 
-Specifies the margins of dialogView with respect to rootView when the device is in landscape orientation.
-The specifications are the same as dialogMarginOnPortrait.
+Specifies the margins of the dialogView against the rootView when the device is in landscape orientation.
+The specification follows dialogMarginOnPortrait.
+
+## Related Documents
+
+- [Tutorial (Basics)](./tutorial-basic.md)
+- [How to Use WidthOption/HeightOption](./sizing-option.md)
+- [Message Boxes / Selection Boxes](./messagebox.md)
+- [Focus Manager](./focus-manager.md)
+- [UtImmortalTask In Depth](./immortal-task.md)

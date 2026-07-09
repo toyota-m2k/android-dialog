@@ -1,8 +1,8 @@
 # フォーカス管理クラス (UtFocusManager)
+
 <div align="right">
 <a href="./focus-manager.md">EN</a> | JA
 </div>
-
 
 普段あまり意識しないのですが、外付けキーボードをつないでみたり、Chromebookで実行したりすると、いろいろ問題が発生します。
 
@@ -14,22 +14,36 @@
 尚、UtFocusManager は、UtDialog の標準機能として利用していますが、任意のActivityやFragment でも使えるように設計しています。
 
 ## 使い方
+
 ### UtDialog での利用
 
-- UtDialog派生クラスのコンストラクタ、または、preCreateBodyView() で、rootFocusManager を初期化します。
-    ```
+UtDialog派生クラスのコンストラクタ、または、preCreateBodyView() で、rootFocusManager を初期化します。
+
+```kotlin
+override fun preCreateBodyView() {
+    ...
     enableFocusManagement(true)             // rootFocusManagerを有効化する。Boolean型引数を false にすると、ヘッダー上のボタン(Done/Cancelなど)を管理対象から外す。
         .autoRegister()                     // この例ではフォーカス対象を自動登録。個別に登録する場合は、register()に、R.id.xxxx を渡す。
         .setCustomEditorAction()            // Enterキーによる自力フォーカス移動を有効化
         .setInitialFocus(R.id.input_1)      // 初期状態でフォーカスをセットするコントロールを指定（任意）
-    ```
+}
+```
+
+使用例は、[チュートリアル（基本編）](./tutorial-basic-ja.md) および [サンプル: CompactDialog](../sample/src/main/java/io/github/toyota32k/dialog/sample/dialog/CompactDialog.kt) をご参照ください。
+
 ### 一般的なActivityやFragmentでの利用
+
 - ActivityやFragmentのメンバーとして、UtFocusManagerインスタンスを作って初期化、管理対象ビューを登録します。
-- `Activity#onCreate()`または、`Fragment#onCreateView()` で、`UtFocusManager#attach()` を呼び出して、ルートなるビュー(IdRes --> View解決に利用できるルートビュー) をアタッチします。
+- `Activity#onCreate()`または、`Fragment#onCreateView()` で、`UtFocusManager#attach()` を呼び出して、ルートとなるビュー(IdRes --> View解決に利用できるルートビュー) をアタッチします。
 - `Activity#onKeyDown()` をオーバーライドして、`UtFocusManager#handleTabEvent()`を呼び出します。
 
 ## 複雑なコンテナの構成
+
 - リストビューのコンテントなど、IDが重複するような複雑なコンテナのフォーカスを管理したい場合は、UtFocusManagerを階層化することができます。
 - フォーカスマネージャの階層構造を構築するには、`appendChild()`, `insertChildAfter()`, `removeChild()` メソッドを使います。
 - 実際に、UtDialogでは、ダイアログのビルトインボタンを含むrootViewと、サブクラスが作成する bodyView とを階層構造で保持しています。
 
+## 関連ドキュメント
+
+- [UtDialog リファレンス](./reference-ja.md)
+- [チュートリアル（基本編）](./tutorial-basic-ja.md)

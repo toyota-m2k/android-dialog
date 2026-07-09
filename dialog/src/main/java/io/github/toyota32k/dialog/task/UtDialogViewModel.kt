@@ -65,10 +65,17 @@ abstract class  UtDialogViewModel : ViewModel(), IUtImmortalTaskMutableContextSo
     }
     /**
      * ViewModel内から、実行中のImmortalTask上で、サブタスクを開始する。
-     * （終了を待つ）
+     * （終了を待つ＆例外をスローする）
      */
     suspend fun awaitSubTask(callback:suspend IUtImmortalTask.()->Unit) {
         return (this.immortalTaskContext.task as UtImmortalTaskImpl).subTask().awaitTask(callback)
+    }
+    /**
+     * ViewModel内から、実行中のImmortalTask上で、サブタスクを開始する。
+     * （終了を待つ＆例外をスローしない）
+     */
+    suspend fun awaitSubTaskCatching(callback:suspend IUtImmortalTask.()->Unit) {
+        return (this.immortalTaskContext.task as UtImmortalTaskImpl).subTask().awaitTaskCatching(callback)
     }
     /**
      * ViewModel内から、実行中のImmortalTask上で、サブタスクを開始する。
@@ -78,7 +85,7 @@ abstract class  UtDialogViewModel : ViewModel(), IUtImmortalTaskMutableContextSo
         return (this.immortalTaskContext.task as UtImmortalTaskImpl).subTask().awaitTaskResult(callback)
     }
 
-    suspend fun <T> safeAwaitSubTaskResult(default:T, callback:suspend IUtImmortalTask.()->T):T {
+    suspend fun <T> awaitSubTaskResultCatching(default:T, callback:suspend IUtImmortalTask.()->T):T {
         return (this.immortalTaskContext.task as UtImmortalTaskImpl).subTask().awaitTaskResultCatching(default, callback)
     }
 }
