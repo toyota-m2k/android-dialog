@@ -172,7 +172,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //        UtDialogConfig.useLegacyTheme()
 
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+//        WindowCompat.setDecorFitsSystemWindows(window, false)
 //        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
 //            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 //            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())

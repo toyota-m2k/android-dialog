@@ -1429,12 +1429,18 @@ abstract class UtDialog: UtDialogBase() {
             // ActivityのルートビューのInsetsをダイアログのrootViewに適用する。
             mortalActivity.addRootViewInsetsListener(this) {
                 rootView.setPadding(it.left, it.top, it.right, it.bottom)
+                if (::bodyContainer.isInitialized) {
+                    onRootViewSizeChanged()
+                }
             }
         } else if (systemZoneOption == SystemZoneOption.CUSTOM_INSETS && systemZoneFlags != 0) {
             // カスタムなInsetsをダイアログのrootViewに適用する。
             ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
                 val all = UtDialogConfig.SystemZone.calcInsets(insets, systemZoneFlags)
                 rootView.setPadding(all.left, all.top, all.right, all.bottom)
+                if (::bodyContainer.isInitialized) {
+                    onRootViewSizeChanged()
+                }
                 insets
             }
         }
