@@ -10,7 +10,7 @@ version = "1.0"
 
 configure<LibraryExtension> {
     namespace = "io.github.toyota32k.dialog"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26
@@ -24,14 +24,18 @@ configure<LibraryExtension> {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     publishing {
         singleVariant("release") {
             withSourcesJar()
         }
     }
+}
+
+kotlin {
+    jvmToolchain(21)
 }
 
 dependencies {
