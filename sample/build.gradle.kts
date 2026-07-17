@@ -6,7 +6,10 @@ plugins {
 
 configure<ApplicationExtension> {
     namespace = "io.github.toyota32k.dialog.sample"
-    compileSdk = 37
+    compileSdk {
+        version = release(37)
+        compileSdkMinor = 1
+    }
 
     defaultConfig {
         applicationId = "io.github.toyota32k.dialog.sample"
@@ -45,6 +48,8 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.constraintLayout)
 
+    implementation(libs.android.logger)
+    implementation(libs.android.utilities)
     implementation(libs.android.binding)
     implementation(project(":dialog"))
 
