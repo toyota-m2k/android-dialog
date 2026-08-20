@@ -1,11 +1,12 @@
 [versions]
 #plugins
 agp = "9.3.1"
+kotlin = "2.4.10"   # org.jetbrains.kotlin.android で kotlin のバージョンを明示的に指定する。
 
 #libraries
 coreKtx = "1.19.0"
-appcompat = "1.7.1"
-kotlinReflect = "2.3.21"    # AGP 9.3.1 では、2.3.21 が上限
+appcompat = "1.8.0"
+kotlinReflect = "2.4.10"
 lifecycleRuntimeKtx = "2.11.0"
 lifecycleViewnodelKtxVersion = "2.11.0"
 lifecycleLivedataKtx = "2.11.0"
@@ -20,8 +21,8 @@ activityVersion = "1.13.0"
 #androidUtilities="LOCAL"
 #androidBinding = "LOCAL"
 androidLogger = "2.2.4"
-androidUtilities="4.16.4"
-androidBinding = "1.16.0"
+androidUtilities="LOCAL"
+androidBinding = "LOCAL"
 androidViewex = "1.2.2"
 
 [libraries]
@@ -47,3 +48,4 @@ androidx-activity = { group = "androidx.activity", name = "activity", version.re
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
