@@ -243,14 +243,6 @@ class UtFocusManager : TextView.OnEditorActionListener {
         } != null
     }
 
-//    private fun hideSoftwareKeyboard() {
-//        try {
-//            (rootView.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(rootView.windowToken,0)
-//        } catch (e:Throwable) {
-//            logger.error(e)
-//        }
-//    }
-
     // 祖先（親、親の親、...）に１つでも非表示のビューがあれば false を返す
     private fun View.isAncestorsVisible():Boolean {
         return this.ancestors.find { (it as? ViewGroup)?.isVisible==false } == null

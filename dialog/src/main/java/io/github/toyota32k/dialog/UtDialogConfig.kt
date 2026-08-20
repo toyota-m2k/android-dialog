@@ -19,9 +19,16 @@ import io.github.toyota32k.dialog.UtDialog.KeyboardAdjustStrategy
 object UtDialogConfig {
     /**
      * UtStandardString.setContext()を忘れると OK/Cancel などの文字が表示されなくなるので、ここにも初期化用のメソッドを置いておこう。
+     * UtLib.applicationContext を使えるようになったので、必ずしも setup()を呼ぶ必要はなくなった。table をセットする場合にのみ呼べばよい。
      */
+    @Deprecated("use setupStringTable")
     fun setup(context: Context, table:IUtStringTable?=null) {
-        UtStandardString.setContext(context, table)
+        if(table!=null) {
+            UtStandardString.setStringTable(table)
+        }
+    }
+    fun setupStringTable(table:IUtStringTable) {
+        UtStandardString.setStringTable(table)
     }
 
     /**

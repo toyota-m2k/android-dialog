@@ -6,6 +6,7 @@ import io.github.toyota32k.dialog.UtDialogOwner
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.IDisposable
 import io.github.toyota32k.utils.NamedMutex
+import io.github.toyota32k.utils.UtLib
 import io.github.toyota32k.utils.lifecycle.ObservableFlow
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,17 +71,15 @@ object UtImmortalTaskManager : Closeable  {
 
     /**
      * getString()などのために、ActivityやView以外からapplicationContextが欲しくなることが多いので、ここから取れるようにしておく。
-     * 最初の UtMortalActivity#onResume() でセットされるが、もっと早く使いたい場合は、MainActivity#onCreateあたりから、
-     * UtImmortalTaskManager.application = this.applicationContext as Application
-     * のようにセットしてください。
+     * UtLib.applicationContext のエイリアス
      */
-    lateinit var application: Application
+    val application: Application
+        get() = UtLib.applicationContext as Application
 
     /**
      * （アクティブになった時に）タスクオーナー（ライフサイクルオーナー）を登録
      */
     fun registerOwner(owner:UtDialogOwner) {
-        application = owner.application
         dialogOwnerStack.register(owner)
     }
 
