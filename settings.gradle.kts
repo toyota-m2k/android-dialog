@@ -16,5 +16,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "utdialog"
-include(":dialog")
 include(":sample")
+if (System.getenv("JITPACK") == null) {
+    include(":dialog")
+}
